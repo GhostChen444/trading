@@ -9,6 +9,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --bg:#0E1113;
@@ -62,7 +65,7 @@
   .wrap{max-width:1080px; margin:0 auto; padding:28px 20px 80px;}
 
   .topbar{
-    display:flex; align-items:flex-end; justify-content:space-between;
+    display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap;
     gap:16px; padding-bottom:22px; margin-bottom:26px;
     border-bottom:1px solid var(--border-soft);
   }
@@ -301,9 +304,39 @@
     .account-quick{gap:10px; padding:8px 12px;}
     .account-quick .aq-divider{display:none;}
   }
+
+  /* ---------- Firebase auth gate ---------- */
+  body.cg-locked .wrap{display:none;}
+  #cgAuthOverlay{position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px;}
+  body:not(.cg-locked) #cgAuthOverlay{display:none;}
+  .cg-box{width:100%; max-width:360px; background:var(--panel); border:1px solid var(--border); border-radius:var(--r); padding:32px;}
+  .cg-box h2{font-family:var(--serif); font-weight:500; font-size:22px; margin:0 0 6px; color:var(--text);}
+  .cg-box p.sub{font-size:13px; color:var(--text-dim); margin:0 0 22px;}
+  .cg-box label{display:block; font-size:12px; color:var(--text-dim); margin:14px 0 6px;}
+  .cg-box input{width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--r); padding:10px 12px; color:var(--text); font-size:14px;}
+  .cg-box input:focus{outline:none; border-color:var(--gold-soft);}
+  .cg-box button{width:100%; margin-top:22px; background:var(--gold); color:#171206; border:none; border-radius:var(--r); padding:11px; font-size:14px; font-weight:600;}
+  .cg-box button:hover{background:var(--gold-soft);}
+  .cg-box .cg-error{color:var(--red); font-size:12.5px; margin-top:12px; min-height:16px;}
+  .cg-logout{font-family:var(--mono); font-size:11px; color:var(--text-faint); background:transparent; border:1px solid var(--border); border-radius:var(--r); padding:5px 10px; margin-left:10px;}
+  .cg-logout:hover{color:var(--gold); border-color:var(--gold-soft);}
+  #cgSyncIndicator{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
 </style>
 </head>
-<body>
+<body class="cg-locked">
+
+<div id="cgAuthOverlay">
+  <div class="cg-box">
+    <h2>Carnet de Trading</h2>
+    <p class="sub">Connecte-toi pour accéder à ton journal, synchronisé sur tous tes appareils.</p>
+    <label for="cgEmail">Email</label>
+    <input id="cgEmail" type="email" autocomplete="username">
+    <label for="cgPass">Mot de passe</label>
+    <input id="cgPass" type="password" autocomplete="current-password">
+    <button id="cgLoginBtn" type="button">Se connecter</button>
+    <div class="cg-error" id="cgError"></div>
+  </div>
+</div>
 
 <div class="wrap">
   <header class="topbar">
@@ -322,6 +355,10 @@
         <span class="aq-value" id="quickPnl">—</span>
       </div>
       <button class="aq-btn" type="button">Détails du compte ›</button>
+    </div>
+    <div style="display:flex; align-items:center;">
+      <span id="cgSyncIndicator"></span>
+      <button class="cg-logout" type="button" id="cgLogoutBtn">Déconnexion</button>
     </div>
   </header>
 
@@ -541,6 +578,140 @@
   var state = null;
   var viewYear, viewMonth; // 0-indexed month
   var today = new Date();
+
+  // =====================================================================
+  // FIREBASE — persistance cloud (synchronisation multi-appareils)
+  // =====================================================================
+  //
+  // 1) Colle ici l'objet firebaseConfig récupéré dans la console Firebase
+  //    (Paramètres du projet → Vos applications → icône Web </>).
+  // 2) Dans Firestore → Rules, colle les règles fournies à côté de ce code.
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyBGiSCdtO9LFRZe264VulCZ5LMeyZJB3Uo",
+    authDomain: "carnet-trading.firebaseapp.com",
+    projectId: "carnet-trading",
+    storageBucket: "carnet-trading.firebasestorage.app",
+    messagingSenderId: "1029911799980",
+    appId: "1:1029911799980:web:543b0bf502f62d0bf61709"
+  };
+
+  var cgDb = null;
+  var cgUser = null;
+  var cgSyncTimer = null;
+  var cgApplyingRemote = false; // évite les boucles d'écriture pendant qu'on applique une mise à jour distante
+
+  function cgInitFirebase(){
+    if (FIREBASE_CONFIG.apiKey === "COLLE_TA_CLE_ICI") {
+      console.warn("Firebase non configuré : colle ta config dans FIREBASE_CONFIG. L'app reste utilisable en local uniquement.");
+      document.getElementById("cgAuthOverlay").innerHTML =
+        '<div class="cg-box"><h2>Configuration requise</h2><p class="sub">La config Firebase n\'a pas encore été renseignée dans le code (FIREBASE_CONFIG). L\'app fonctionne pour l\'instant en stockage local uniquement.</p></div>';
+      document.body.classList.remove("cg-locked");
+      initApp();
+      return;
+    }
+    firebase.initializeApp(FIREBASE_CONFIG);
+    cgDb = firebase.firestore();
+
+    firebase.auth().onAuthStateChanged(function(user){
+      if (user) {
+        cgUser = user;
+        document.body.classList.remove("cg-locked");
+        cgStartCloudSync();
+      } else {
+        cgUser = null;
+        document.body.classList.add("cg-locked");
+      }
+    });
+
+    document.getElementById("cgLoginBtn").addEventListener("click", cgHandleLogin);
+    document.getElementById("cgPass").addEventListener("keydown", function(e){ if(e.key === "Enter") cgHandleLogin(); });
+    document.getElementById("cgLogoutBtn").addEventListener("click", function(){ firebase.auth().signOut(); });
+  }
+
+  function cgHandleLogin(){
+    var email = document.getElementById("cgEmail").value.trim();
+    var pass = document.getElementById("cgPass").value;
+    var errEl = document.getElementById("cgError");
+    errEl.textContent = "";
+    if (!email || !pass) { errEl.textContent = "Entre ton email et ton mot de passe."; return; }
+    firebase.auth().signInWithEmailAndPassword(email, pass)
+      .catch(function(e){
+        errEl.textContent = "Connexion impossible : email ou mot de passe incorrect.";
+        console.error(e);
+      });
+  }
+
+  function cgDocRef(){
+    return cgDb.collection("journals").doc(cgUser.uid);
+  }
+
+  // Charge une fois le document cloud, puis écoute les changements en temps réel
+  // (utile si tu ouvres le carnet sur deux appareils en même temps).
+  function cgStartCloudSync(){
+    document.getElementById("cgSyncIndicator").textContent = "Synchronisation…";
+    cgDocRef().get().then(function(doc){
+      var cloudData = doc.exists ? doc.data().state : null;
+      var localData = loadFromLocalStorage();
+
+      var cloudTime = cloudData && cloudData.meta && cloudData.meta.lastSaved ? new Date(cloudData.meta.lastSaved) : null;
+      var localTime = localData && localData.meta && localData.meta.lastSaved ? new Date(localData.meta.lastSaved) : null;
+
+      if (cloudData && (!localTime || (cloudTime && cloudTime > localTime))) {
+        // Le cloud a une version plus récente (modifiée depuis un autre appareil) : on l'utilise.
+        cgApplyingRemote = true;
+        state = normalizeData(cloudData);
+        afterStateReady();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        idbSet(state);
+        cgApplyingRemote = false;
+      } else {
+        // Le local est à jour ou plus récent : on initialise normalement, puis on pousse vers le cloud.
+        initApp();
+        setTimeout(function(){ if (state) cgPushToCloud(); }, 800);
+      }
+
+      // Écoute en temps réel les changements faits depuis un autre appareil.
+      cgDocRef().onSnapshot(function(doc){
+        if (!doc.exists || cgApplyingRemote) return;
+        var remote = doc.data().state;
+        var remoteTime = remote && remote.meta && remote.meta.lastSaved ? new Date(remote.meta.lastSaved) : null;
+        var currentTime = state && state.meta && state.meta.lastSaved ? new Date(state.meta.lastSaved) : null;
+        if (remoteTime && (!currentTime || remoteTime > currentTime)) {
+          cgApplyingRemote = true;
+          state = normalizeData(remote);
+          afterStateReady();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          idbSet(state);
+          document.getElementById("cgSyncIndicator").textContent = "Mis à jour depuis un autre appareil";
+          cgApplyingRemote = false;
+        }
+      });
+
+      document.getElementById("cgSyncIndicator").textContent = "Synchronisé";
+    }).catch(function(e){
+      console.error("Erreur de synchronisation cloud :", e);
+      document.getElementById("cgSyncIndicator").textContent = "Hors ligne (sauvegarde locale uniquement)";
+      initApp();
+    });
+  }
+
+  // Envoie l'état courant vers Firestore, avec un léger délai pour grouper les sauvegardes rapprochées.
+  function cgPushToCloud(){
+    if (!cgDb || !cgUser || cgApplyingRemote) return;
+    clearTimeout(cgSyncTimer);
+    cgSyncTimer = setTimeout(function(){
+      cgDocRef().set({ state: JSON.parse(JSON.stringify(state)) })
+        .then(function(){
+          var el = document.getElementById("cgSyncIndicator");
+          if (el) el.textContent = "Synchronisé";
+        })
+        .catch(function(e){
+          console.error("Échec de synchronisation cloud :", e);
+          var el = document.getElementById("cgSyncIndicator");
+          if (el) el.textContent = "Échec de synchronisation (sauvegarde locale conservée)";
+        });
+    }, 1200);
+  }
   viewYear = today.getFullYear();
   viewMonth = today.getMonth();
 
@@ -697,6 +868,7 @@
 
     idbSet(state);
     updateSaveIndicator();
+    cgPushToCloud();
     return true;
   }
 
@@ -1366,7 +1538,7 @@
   document.getElementById("exportPdfBtn").addEventListener("click", generateMonthlyPdf);
 
   // ---------------- init ----------------
-  initApp();
+  cgInitFirebase();
 
 })();
 </script>
