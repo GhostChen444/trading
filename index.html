@@ -305,44 +305,167 @@
     .account-quick .aq-divider{display:none;}
   }
 
-  /* ---------- Firebase auth gate ---------- */
-  body.cg-locked .wrap{display:none;}
-  #cgAuthOverlay{position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px;}
-  body:not(.cg-locked) #cgAuthOverlay{display:none;}
-  .cg-box{width:100%; max-width:360px; background:var(--panel); border:1px solid var(--border); border-radius:var(--r); padding:32px;}
+
+  /* ---------- side column ---------- */
+  .side{display:flex; flex-direction:column; gap:20px;}
+  .seg{display:flex; border:1px solid var(--border); border-radius:var(--r); overflow:hidden; margin-bottom:10px;}
+  .seg button{flex:1; background:transparent; border:none; color:var(--text-dim); font-size:11.5px; padding:7px 4px; font-family:var(--mono);}
+  .seg button.active{background:var(--panel-2); color:var(--gold);}
+  .donut{width:100%; max-width:190px; display:block; margin:8px auto 14px;}
+  .donut-verdict{text-align:center; margin-bottom:12px;}
+  .legend-dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:7px;}
+  .scope-note{font-size:11px; color:var(--text-faint); text-align:center; margin-top:10px; font-family:var(--mono);}
+  .brand .eyebrow.acc-eyebrow{text-transform:none; max-width:420px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .brand-desc{font-size:12.5px; color:var(--text-faint); max-width:420px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .topbar-right{display:flex; align-items:center; flex-wrap:wrap; gap:6px; justify-content:flex-end;}
+  #userEmail{font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-right:4px;}
+
+  /* ---------- views (auth / loading / picker / setup / app) ---------- */
+  .screen{display:none; min-height:100vh; align-items:center; justify-content:center; padding:24px 16px;}
+  .wrap{display:none;}
+  body[data-view="auth"] #cgAuthOverlay{display:flex;}
+  body[data-view="loading"] #viewLoading{display:flex;}
+  body[data-view="picker"] #viewPicker{display:block;}
+  body[data-view="setup"] #viewSetup{display:flex;}
+  body[data-view="app"] .wrap{display:block;}
+  #viewPicker{min-height:100vh;}
+  .pick-wrap{max-width:900px; margin:0 auto; padding:28px 20px 80px;}
+  .pick-head{display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:14px; padding-bottom:22px; margin-bottom:28px; border-bottom:1px solid var(--border-soft);}
+  .pick-title{font-family:var(--serif); font-weight:500; font-size:24px; margin:0 0 6px;}
+  .pick-sub{font-size:13.5px; color:var(--text-dim); margin:0 0 22px;}
+  .acc-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px;}
+  .acc-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:var(--r);
+    padding:18px; cursor:pointer; display:flex; flex-direction:column; gap:10px; min-height:170px;
+  }
+  .acc-card:hover, .acc-card:focus{border-color:var(--gold-soft); outline:none; background:var(--panel-2);}
+  .acc-card .acc-name{font-family:var(--serif); font-size:18px; color:var(--text); word-break:break-word;}
+  .acc-card .acc-desc{font-size:12.5px; color:var(--text-faint); line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:36px;}
+  .acc-card .acc-stats{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:auto; padding-top:12px; border-top:1px solid var(--border-soft);}
+  .acc-card .acc-stats .k{display:block; font-size:11px; color:var(--text-faint);}
+  .acc-card .acc-stats .v{font-family:var(--mono); font-size:13.5px; color:var(--text);}
+  .acc-card .acc-stats .v.pos{color:var(--green);}
+  .acc-card .acc-stats .v.neg{color:var(--red);}
+  .acc-card.add{
+    border-style:dashed; align-items:center; justify-content:center; text-align:center;
+    color:var(--text-dim); background:transparent;
+  }
+  .acc-card.add:hover{border-color:var(--gold); color:var(--gold);}
+  .acc-card.add .plus{font-family:var(--serif); font-size:34px; line-height:1;}
+  .setup-card{width:100%; max-width:560px;}
+  .setup-card .modal-body{padding:22px;}
+  .req{color:var(--gold);}
+  .form-error{color:var(--red); font-size:12.5px; min-height:18px; margin-top:12px;}
+  .loading-text{font-family:var(--mono); font-size:13px; color:var(--text-dim);}
+
+  /* ---------- auth ---------- */
+  #cgAuthOverlay{position:fixed; inset:0; background:var(--bg); z-index:60; padding:20px;}
+  .cg-box{width:100%; max-width:380px; background:var(--panel); border:1px solid var(--border); border-radius:var(--r); padding:32px;}
   .cg-box h2{font-family:var(--serif); font-weight:500; font-size:22px; margin:0 0 6px; color:var(--text);}
-  .cg-box p.sub{font-size:13px; color:var(--text-dim); margin:0 0 22px;}
+  .cg-box p.sub{font-size:13px; color:var(--text-dim); margin:0 0 20px;}
+  .cg-tabs{display:flex; margin-bottom:6px; border:1px solid var(--border); border-radius:var(--r); overflow:hidden;}
+  .cg-tabs button{flex:1; background:transparent; border:none; color:var(--text-dim); padding:9px; font-size:13px;}
+  .cg-tabs button.active{background:var(--panel-2); color:var(--gold);}
   .cg-box label{display:block; font-size:12px; color:var(--text-dim); margin:14px 0 6px;}
   .cg-box input{width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--r); padding:10px 12px; color:var(--text); font-size:14px;}
   .cg-box input:focus{outline:none; border-color:var(--gold-soft);}
-  .cg-box button{width:100%; margin-top:22px; background:var(--gold); color:#171206; border:none; border-radius:var(--r); padding:11px; font-size:14px; font-weight:600;}
-  .cg-box button:hover{background:var(--gold-soft);}
+  .cg-submit{width:100%; margin-top:22px; background:var(--gold); color:#171206; border:none; border-radius:var(--r); padding:11px; font-size:14px; font-weight:600;}
+  .cg-submit:hover{background:#d6a655;}
+  .cg-submit:disabled{opacity:.6; cursor:default;}
+  .cg-link{background:none; border:none; color:var(--text-faint); font-size:12px; margin-top:14px; padding:0; text-decoration:underline;}
+  .cg-link:hover{color:var(--gold);}
   .cg-box .cg-error{color:var(--red); font-size:12.5px; margin-top:12px; min-height:16px;}
-  .cg-logout{font-family:var(--mono); font-size:11px; color:var(--text-faint); background:transparent; border:1px solid var(--border); border-radius:var(--r); padding:5px 10px; margin-left:10px;}
+  .cg-box .cg-error.ok{color:var(--green);}
+  .cg-logout{font-family:var(--mono); font-size:11px; color:var(--text-faint); background:transparent; border:1px solid var(--border); border-radius:var(--r); padding:5px 10px;}
   .cg-logout:hover{color:var(--gold); border-color:var(--gold-soft);}
   #cgSyncIndicator{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
 </style>
 </head>
-<body class="cg-locked">
+<body data-view="loading">
 
-<div id="cgAuthOverlay">
+<!-- ========== LOADING ========== -->
+<div class="screen" id="viewLoading"><div class="loading-text">Chargement de ton carnet…</div></div>
+
+<!-- ========== AUTH (connexion / création d'utilisateur) ========== -->
+<div class="screen" id="cgAuthOverlay">
   <div class="cg-box">
     <h2>Carnet de Trading</h2>
-    <p class="sub">Connecte-toi pour accéder à ton journal, synchronisé sur tous tes appareils.</p>
+    <p class="sub">Connecte-toi pour accéder à ton journal, synchronisé sur tous tes appareils. Chaque utilisateur a son propre espace.</p>
+    <div class="cg-tabs">
+      <button type="button" id="cgTabLogin" class="active">Connexion</button>
+      <button type="button" id="cgTabSignup">Nouvel utilisateur</button>
+    </div>
     <label for="cgEmail">Email</label>
     <input id="cgEmail" type="email" autocomplete="username">
     <label for="cgPass">Mot de passe</label>
     <input id="cgPass" type="password" autocomplete="current-password">
-    <button id="cgLoginBtn" type="button">Se connecter</button>
+    <div id="cgConfirmWrap" style="display:none;">
+      <label for="cgPass2">Confirmer le mot de passe</label>
+      <input id="cgPass2" type="password" autocomplete="new-password">
+    </div>
+    <button id="cgSubmitBtn" class="cg-submit" type="button">Se connecter</button>
+    <button id="cgForgotBtn" class="cg-link" type="button">Mot de passe oublié ?</button>
     <div class="cg-error" id="cgError"></div>
   </div>
 </div>
 
+<!-- ========== SETUP : création d'un compte de trading ========== -->
+<div class="screen" id="viewSetup">
+  <div class="card setup-card">
+    <div class="modal-header">
+      <div>
+        <h3 id="setupTitle">Nouveau compte</h3>
+        <div class="sub" id="setupSub">renseigne les détails de ton compte de trading</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span2"><label for="s_name">Nom du compte <span class="req">*</span></label><input type="text" id="s_name" placeholder="ex : Compte réel IC Markets" maxlength="80"></div>
+        <div class="field span2"><label for="s_desc">Description</label><textarea id="s_desc" placeholder="objectif du compte, stratégie, remarques…" maxlength="400"></textarea></div>
+        <div class="field num"><label for="s_initial">Capital initial <span class="req">*</span></label><input type="number" step="any" min="0" id="s_initial" placeholder="10000"></div>
+        <div class="field"><label for="s_currency">Devise</label>
+          <select id="s_currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="MAD">MAD</option><option value="CHF">CHF</option></select>
+        </div>
+        <div class="field"><label for="s_broker">Broker</label><input type="text" id="s_broker" placeholder="ex : IC Markets"></div>
+        <div class="field num"><label for="s_leverage">Effet de levier</label><input type="text" id="s_leverage" placeholder="1:100"></div>
+        <div class="field num"><label for="s_risk">Risque par trade (%)</label><input type="number" step="any" id="s_risk" value="1"></div>
+      </div>
+      <div class="form-error" id="setupError"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" type="button" id="setupLogoutBtn" style="display:none;">Déconnexion</button>
+      <button class="btn" type="button" id="setupCancelBtn" style="display:none;">Annuler</button>
+      <button class="btn primary" type="button" id="setupCreateBtn">Créer le compte et ouvrir le carnet</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PICKER : choisir un compte existant ou en ajouter un ========== -->
+<div id="viewPicker">
+  <div class="pick-wrap">
+    <div class="pick-head">
+      <div class="brand">
+        <span class="eyebrow">journal personnel</span>
+        <h1 style="font-family:var(--serif); font-weight:500; font-size:30px; margin:0;">Carnet de Trading</h1>
+      </div>
+      <div class="topbar-right">
+        <span id="pickEmail" style="font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-right:4px;"></span>
+        <button class="cg-logout" type="button" id="pickLogoutBtn">Déconnexion</button>
+      </div>
+    </div>
+    <h2 class="pick-title">Quel compte veux-tu ouvrir ?</h2>
+    <p class="pick-sub">Choisis un compte existant pour accéder à son calendrier et à son journal, ou ajoutes-en un nouveau.</p>
+    <div class="acc-grid" id="accGrid"></div>
+  </div>
+</div>
+
+<!-- ========== APP ========== -->
 <div class="wrap">
   <header class="topbar">
     <div class="brand">
-      <span class="eyebrow">journal personnel</span>
+      <span class="eyebrow acc-eyebrow" id="brandEyebrow">journal personnel</span>
       <h1>Carnet de Trading</h1>
+      <span class="brand-desc" id="brandDesc"></span>
     </div>
     <div class="account-quick" onclick="openAccountModal()">
       <div class="aq-block">
@@ -356,8 +479,10 @@
       </div>
       <button class="aq-btn" type="button">Détails du compte ›</button>
     </div>
-    <div style="display:flex; align-items:center;">
+    <div class="topbar-right">
+      <span id="userEmail"></span>
       <span id="cgSyncIndicator"></span>
+      <button class="cg-logout" type="button" id="switchAccountBtn">Changer de compte</button>
       <button class="cg-logout" type="button" id="cgLogoutBtn">Déconnexion</button>
     </div>
   </header>
@@ -386,18 +511,32 @@
       <div class="days-grid" id="daysGrid"></div>
     </section>
 
-    <aside class="card stats-card" id="statsCard">
-      <h3>Ce mois-ci</h3>
-      <div class="stat-row"><span class="k">Trades</span><span class="v" id="statCount">0</span></div>
-      <div class="stat-row"><span class="k">Taux de réussite</span><span class="v" id="statWinrate">—</span></div>
-      <div class="stat-row"><span class="k">Résultat</span><span class="v" id="statPnl">—</span></div>
-      <div class="stat-row"><span class="k">Gagnants</span><span class="v" id="statWins">0</span></div>
-      <div class="stat-row"><span class="k">Perdants</span><span class="v" id="statLosses">0</span></div>
-      <div class="stat-row"><span class="k">En cours</span><span class="v" id="statOpen">0</span></div>
+    <aside class="side">
+      <section class="card stats-card" id="statsCard">
+        <h3>Ce mois-ci</h3>
+        <div class="stat-row"><span class="k">Trades</span><span class="v" id="statCount">0</span></div>
+        <div class="stat-row"><span class="k">Taux de réussite</span><span class="v" id="statWinrate">—</span></div>
+        <div class="stat-row"><span class="k">Résultat</span><span class="v" id="statPnl">—</span></div>
+        <div class="stat-row"><span class="k">Gagnants</span><span class="v" id="statWins">0</span></div>
+        <div class="stat-row"><span class="k">Perdants</span><span class="v" id="statLosses">0</span></div>
+        <div class="stat-row"><span class="k">En cours</span><span class="v" id="statOpen">0</span></div>
+      </section>
+
+      <section class="card stats-card" id="profitCard">
+        <h3>Rentabilité du compte</h3>
+        <div class="seg">
+          <button type="button" class="active" data-pv="profit">Gains / Pertes</button>
+          <button type="button" data-pv="trades">Trades</button>
+        </div>
+        <div id="donutWrap"></div>
+        <div class="donut-verdict" id="donutVerdict"></div>
+        <div id="donutLegend"></div>
+        <div class="scope-note">tout l'historique du compte</div>
+      </section>
     </aside>
   </main>
 
-  <footer class="pagefoot">Données stockées localement dans ce navigateur — pensez à exporter régulièrement depuis « Détails du compte ».</footer>
+  <footer class="pagefoot">Données synchronisées sur ton espace utilisateur et sauvegardées localement — pensez à exporter régulièrement depuis « Détails du compte ».</footer>
 </div>
 
 <!-- OVERLAY / MODALS -->
@@ -497,12 +636,14 @@
     <div class="modal-header">
       <div>
         <h3>Détails du compte</h3>
-        <div class="sub">calculé automatiquement à partir de vos trades</div>
+        <div class="sub">le solde et les statistiques sont calculés à partir de vos trades</div>
       </div>
       <button class="closebtn" onclick="closeOverlay()">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
+        <div class="field span2"><label for="a_name">Nom du compte</label><input type="text" id="a_name" maxlength="80"></div>
+        <div class="field span2"><label for="a_desc">Description</label><textarea id="a_desc" maxlength="400"></textarea></div>
         <div class="field"><label for="a_broker">Broker</label><input type="text" id="a_broker" placeholder="ex : IC Markets"></div>
         <div class="field"><label for="a_currency">Devise</label>
           <select id="a_currency">
@@ -527,22 +668,23 @@
         <div class="field"><label>Meilleur / pire trade</label><input type="text" id="a_statBestWorst" disabled></div>
       </div>
 
-      <div class="section-label">fiabilité des données</div>
+      <div class="section-label">fiabilité des données (tous vos comptes)</div>
       <div class="form-grid">
         <div class="field"><label>Dernière sauvegarde locale</label><input type="text" id="a_lastSaved" disabled></div>
         <div class="field"><label>Dernier export fichier</label><input type="text" id="a_lastExport" disabled></div>
       </div>
-      <div class="hint">La sauvegarde locale se fait automatiquement à chaque modification. L'export fichier (.json) est votre seule protection en cas de vidage du navigateur — pensez à l'utiliser régulièrement.</div>
+      <div class="hint">La sauvegarde locale et cloud se fait automatiquement à chaque modification. L'export fichier (.json) contient tous vos comptes et reste votre protection ultime — pensez à l'utiliser régulièrement.</div>
 
       <div class="section-label">restaurer une version précédente</div>
-      <div class="hint" style="margin-bottom:10px;">Les 5 dernières sauvegardes sont conservées automatiquement, indépendamment de vos exports manuels.</div>
+      <div class="hint" style="margin-bottom:10px;">Les 5 dernières sauvegardes (tous comptes confondus) sont conservées automatiquement, indépendamment de vos exports manuels.</div>
       <div id="historyList"></div>
 
       <div class="account-footer-actions">
         <button class="btn" type="button" id="exportBtn">Exporter (sauvegarde .json)</button>
         <button class="btn" type="button" id="importBtn">Importer une sauvegarde</button>
         <input type="file" id="importFile" class="file-input" accept="application/json">
-        <button class="btn danger-outline" type="button" id="resetBtn">Réinitialiser toutes les données</button>
+        <button class="btn danger-outline" type="button" id="resetBtn">Effacer les trades de ce compte</button>
+        <button class="btn danger-outline" type="button" id="deleteAccountBtn">Supprimer ce compte</button>
       </div>
     </div>
     <div class="modal-footer">
@@ -557,35 +699,36 @@
 (function(){
   "use strict";
 
-  var STORAGE_KEY = "tradingJournalData_v1";
+  var LS_PREFIX = "carnetTrading_v2_";          // + uid  => données locales propres à chaque utilisateur
   var MONTHS_FR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
   var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"Breakeven"};
 
-  var HISTORY_PREFIX = "tradingJournalData_v1_hist_";
-  var HISTORY_SLOTS = 5; // rotating backups, most recent = slot 1
+  var HISTORY_SLOTS = 5; // sauvegardes tournantes, la plus récente = slot 1
   var IDB_NAME = "tradingJournalDB";
   var IDB_STORE = "state";
-  var IDB_KEY = "main";
-  var EXPORT_REMINDER_CHANGES = 5;   // show banner after N unsaved-to-file changes
-  var EXPORT_REMINDER_DAYS = 7;      // or after N days since last export
+  var EXPORT_REMINDER_CHANGES = 5;
+  var EXPORT_REMINDER_DAYS = 7;
 
-  var defaultData = {
-    account:{ broker:"", currency:"USD", initial:10000, leverage:"", risk:1 },
-    trades:[],
-    meta:{ lastSaved:null, lastExport:null, changesSinceExport:0 }
-  };
-
+  // Modèle de données (version 2) :
+  //   root  = { version:2, accounts:[ acc, ... ], meta:{ lastSaved, lastExport, changesSinceExport } }
+  //   acc   = { id, name, description, createdAt, account:{broker,currency,initial,leverage,risk}, trades:[] }
+  // `state` pointe toujours sur le compte actuellement ouvert (un élément de root.accounts).
+  var root = null;
   var state = null;
-  var viewYear, viewMonth; // 0-indexed month
+  var viewYear, viewMonth;
   var today = new Date();
+  viewYear = today.getFullYear();
+  viewMonth = today.getMonth();
+
+  var activeDayKey = null;
+  var editingTradeId = null;
+  var profitView = "profit";
+  var setupIsFirst = false;
+  var recoveryPending = null;
 
   // =====================================================================
-  // FIREBASE — persistance cloud (synchronisation multi-appareils)
+  // FIREBASE
   // =====================================================================
-  //
-  // 1) Colle ici l'objet firebaseConfig récupéré dans la console Firebase
-  //    (Paramètres du projet → Vos applications → icône Web </>).
-  // 2) Dans Firestore → Rules, colle les règles fournies à côté de ce code.
   var FIREBASE_CONFIG = {
     apiKey: "AIzaSyBGiSCdtO9LFRZe264VulCZ5LMeyZJB3Uo",
     authDomain: "carnet-trading.firebaseapp.com",
@@ -598,139 +741,279 @@
   var cgDb = null;
   var cgUser = null;
   var cgSyncTimer = null;
-  var cgApplyingRemote = false; // évite les boucles d'écriture pendant qu'on applique une mise à jour distante
+  var cgPending = false;
+  var cgUnsub = null;
+  var cgApplyingRemote = false;
+  var cgAuthMode = "login";
+  var pendingAuthError = "";
+
+  function $(id){ return document.getElementById(id); }
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function setSync(txt){ var el = $("cgSyncIndicator"); if(el) el.textContent = txt; }
+  function showView(name){
+    document.body.setAttribute("data-view", name);
+    if(name !== "app") closeOverlay();
+    window.scrollTo(0,0);
+  }
 
   function cgInitFirebase(){
     if (FIREBASE_CONFIG.apiKey === "COLLE_TA_CLE_ICI") {
-      console.warn("Firebase non configuré : colle ta config dans FIREBASE_CONFIG. L'app reste utilisable en local uniquement.");
-      document.getElementById("cgAuthOverlay").innerHTML =
-        '<div class="cg-box"><h2>Configuration requise</h2><p class="sub">La config Firebase n\'a pas encore été renseignée dans le code (FIREBASE_CONFIG). L\'app fonctionne pour l\'instant en stockage local uniquement.</p></div>';
-      document.body.classList.remove("cg-locked");
-      initApp();
+      $("cgAuthOverlay").innerHTML = '<div class="cg-box"><h2>Configuration requise</h2><p class="sub">La config Firebase n\'a pas encore été renseignée dans le code (FIREBASE_CONFIG). Les comptes utilisateurs nécessitent Firebase.</p></div>';
+      showView("auth");
       return;
     }
     firebase.initializeApp(FIREBASE_CONFIG);
     cgDb = firebase.firestore();
 
     firebase.auth().onAuthStateChanged(function(user){
+      cgTeardown();
       if (user) {
         cgUser = user;
-        document.body.classList.remove("cg-locked");
-        cgStartCloudSync();
+        $("cgPass").value = ""; $("cgPass2").value = "";
+        $("userEmail").textContent = user.email || "";
+        $("pickEmail").textContent = user.email || "";
+        showView("loading");
+        cgStartCloudSync(user);
       } else {
-        cgUser = null;
-        document.body.classList.add("cg-locked");
+        var err = $("cgError");
+        err.className = "cg-error";
+        err.textContent = pendingAuthError;
+        pendingAuthError = "";
+        showView("auth");
       }
     });
 
-    document.getElementById("cgLoginBtn").addEventListener("click", cgHandleLogin);
-    document.getElementById("cgPass").addEventListener("keydown", function(e){ if(e.key === "Enter") cgHandleLogin(); });
-    document.getElementById("cgLogoutBtn").addEventListener("click", function(){ firebase.auth().signOut(); });
+    $("cgTabLogin").addEventListener("click", function(){ cgSetMode("login"); });
+    $("cgTabSignup").addEventListener("click", function(){ cgSetMode("signup"); });
+    $("cgSubmitBtn").addEventListener("click", cgHandleSubmit);
+    $("cgForgotBtn").addEventListener("click", cgHandleForgot);
+    ["cgEmail","cgPass","cgPass2"].forEach(function(id){
+      $(id).addEventListener("keydown", function(e){ if(e.key === "Enter") cgHandleSubmit(); });
+    });
+    $("cgLogoutBtn").addEventListener("click", cgLogout);
+    $("pickLogoutBtn").addEventListener("click", cgLogout);
+    $("setupLogoutBtn").addEventListener("click", cgLogout);
   }
 
-  function cgHandleLogin(){
-    var email = document.getElementById("cgEmail").value.trim();
-    var pass = document.getElementById("cgPass").value;
-    var errEl = document.getElementById("cgError");
-    errEl.textContent = "";
+  // Remet à zéro tout l'état en mémoire (changement d'utilisateur ou déconnexion) : aucune donnée ne fuit d'un utilisateur à l'autre.
+  function cgTeardown(){
+    clearTimeout(cgSyncTimer);
+    cgPending = false;
+    if (cgUnsub) { try{ cgUnsub(); }catch(e){} cgUnsub = null; }
+    root = null; state = null; cgUser = null;
+    activeDayKey = null; editingTradeId = null; recoveryPending = null;
+    setSync("");
+  }
+
+  function cgLogout(){
+    cgDoPush().then(function(){ return firebase.auth().signOut(); }, function(){ return firebase.auth().signOut(); });
+  }
+
+  function cgSetMode(mode){
+    cgAuthMode = mode;
+    var signup = mode === "signup";
+    $("cgTabLogin").classList.toggle("active", !signup);
+    $("cgTabSignup").classList.toggle("active", signup);
+    $("cgConfirmWrap").style.display = signup ? "block" : "none";
+    $("cgForgotBtn").style.display = signup ? "none" : "inline";
+    $("cgSubmitBtn").textContent = signup ? "Créer mon espace" : "Se connecter";
+    $("cgPass").setAttribute("autocomplete", signup ? "new-password" : "current-password");
+    var err = $("cgError"); err.className = "cg-error"; err.textContent = "";
+  }
+
+  function cgErrMsg(e){
+    switch(e && e.code){
+      case "auth/invalid-credential":
+      case "auth/invalid-login-credentials":
+      case "auth/wrong-password":
+      case "auth/user-not-found": return "Email ou mot de passe incorrect.";
+      case "auth/email-already-in-use": return "Un utilisateur existe déjà avec cet email. Utilise l'onglet Connexion.";
+      case "auth/weak-password": return "Mot de passe trop court (6 caractères minimum).";
+      case "auth/invalid-email": return "Adresse email invalide.";
+      case "auth/too-many-requests": return "Trop de tentatives, réessaie dans quelques minutes.";
+      case "auth/network-request-failed": return "Problème de connexion réseau.";
+      case "auth/operation-not-allowed": return "L'inscription par email n'est pas activée dans la console Firebase.";
+      default: return "Erreur d'authentification.";
+    }
+  }
+
+  function cgHandleSubmit(){
+    var email = $("cgEmail").value.trim();
+    var pass = $("cgPass").value;
+    var errEl = $("cgError");
+    errEl.className = "cg-error"; errEl.textContent = "";
     if (!email || !pass) { errEl.textContent = "Entre ton email et ton mot de passe."; return; }
-    firebase.auth().signInWithEmailAndPassword(email, pass)
-      .catch(function(e){
-        errEl.textContent = "Connexion impossible : email ou mot de passe incorrect.";
-        console.error(e);
-      });
+    var p;
+    if (cgAuthMode === "signup") {
+      if (pass.length < 6) { errEl.textContent = "Mot de passe trop court (6 caractères minimum)."; return; }
+      if (pass !== $("cgPass2").value) { errEl.textContent = "Les deux mots de passe ne correspondent pas."; return; }
+      p = firebase.auth().createUserWithEmailAndPassword(email, pass);
+    } else {
+      p = firebase.auth().signInWithEmailAndPassword(email, pass);
+    }
+    var btn = $("cgSubmitBtn");
+    btn.disabled = true;
+    p.then(function(){ btn.disabled = false; })
+     .catch(function(e){ btn.disabled = false; errEl.textContent = cgErrMsg(e); console.error(e); });
   }
 
-  function cgDocRef(){
-    return cgDb.collection("journals").doc(cgUser.uid);
+  function cgHandleForgot(){
+    var email = $("cgEmail").value.trim();
+    var errEl = $("cgError");
+    if (!email) { errEl.className = "cg-error"; errEl.textContent = "Entre ton email ci-dessus d'abord."; return; }
+    firebase.auth().sendPasswordResetEmail(email)
+      .then(function(){ errEl.className = "cg-error ok"; errEl.textContent = "Si un utilisateur existe avec cet email, un lien de réinitialisation vient d'être envoyé."; })
+      .catch(function(e){ errEl.className = "cg-error"; errEl.textContent = cgErrMsg(e); });
   }
 
-  // Charge une fois le document cloud, puis écoute les changements en temps réel
-  // (utile si tu ouvres le carnet sur deux appareils en même temps).
-  function cgStartCloudSync(){
-    document.getElementById("cgSyncIndicator").textContent = "Synchronisation…";
-    cgDocRef().get().then(function(doc){
-      var cloudData = doc.exists ? doc.data().state : null;
-      var localData = loadFromLocalStorage();
+  function cgDocRef(){ return cgDb.collection("journals").doc(cgUser.uid); }
 
-      var cloudTime = cloudData && cloudData.meta && cloudData.meta.lastSaved ? new Date(cloudData.meta.lastSaved) : null;
-      var localTime = localData && localData.meta && localData.meta.lastSaved ? new Date(localData.meta.lastSaved) : null;
+  function rootTime(r){ return r && r.meta && r.meta.lastSaved ? new Date(r.meta.lastSaved).getTime() : 0; }
 
-      if (cloudData && (!localTime || (cloudTime && cloudTime > localTime))) {
-        // Le cloud a une version plus récente (modifiée depuis un autre appareil) : on l'utilise.
-        cgApplyingRemote = true;
-        state = normalizeData(cloudData);
-        afterStateReady();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        idbSet(state);
-        cgApplyingRemote = false;
-      } else {
-        // Le local est à jour ou plus récent : on initialise normalement, puis on pousse vers le cloud.
-        initApp();
-        setTimeout(function(){ if (state) cgPushToCloud(); }, 800);
+  function cgStartCloudSync(user){
+    var uid = user.uid;
+    setSync("Synchronisation…");
+    var cloudP = cgDocRef().get()
+      .then(function(doc){ return { ok:true, data: doc.exists ? doc.data().state : null }; })
+      .catch(function(e){ console.error("Lecture cloud impossible :", e); return { ok:false, data:null }; });
+
+    Promise.all([cloudP, loadLocalBest()]).then(function(res){
+      if (!cgUser || cgUser.uid !== uid) return; // l'utilisateur a changé entre-temps
+      var cloud = res[0], local = res[1];
+      var cloudLegacy = !!(cloud.data && !Array.isArray(cloud.data.accounts));
+      var cloudRoot = cloud.data && isValidRoot(cloud.data) ? normalizeRoot(cloud.data) : null;
+      var localRoot = local ? normalizeRoot(local.data) : null;
+
+      if (!cloud.ok && !localRoot) {
+        // Impossible de savoir ce que contient le cloud : on évite de repartir sur un espace vide qui pourrait l'écraser.
+        pendingAuthError = "Impossible de charger tes données (connexion indisponible). Réessaie une fois en ligne.";
+        firebase.auth().signOut();
+        return;
       }
 
-      // Écoute en temps réel les changements faits depuis un autre appareil.
-      cgDocRef().onSnapshot(function(doc){
-        if (!doc.exists || cgApplyingRemote) return;
-        var remote = doc.data().state;
-        var remoteTime = remote && remote.meta && remote.meta.lastSaved ? new Date(remote.meta.lastSaved) : null;
-        var currentTime = state && state.meta && state.meta.lastSaved ? new Date(state.meta.lastSaved) : null;
-        if (remoteTime && (!currentTime || remoteTime > currentTime)) {
-          cgApplyingRemote = true;
-          state = normalizeData(remote);
-          afterStateReady();
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-          idbSet(state);
-          document.getElementById("cgSyncIndicator").textContent = "Mis à jour depuis un autre appareil";
-          cgApplyingRemote = false;
-        }
-      });
+      var cT = rootTime(cloudRoot), lT = rootTime(localRoot);
+      if (cloudRoot && (!localRoot || cT > lT)) {
+        root = cloudRoot;
+        writeLocalMirror();
+        setSync("Synchronisé");
+        if (cloudLegacy) persist(); // ancien format -> migré vers les comptes multiples
+      } else if (localRoot) {
+        root = localRoot;
+        if (local.source) recoveryPending = local.source;
+        writeLocalMirror();
+        setSync(cloud.ok ? "Synchronisé" : "Hors ligne (sauvegarde locale uniquement)");
+        if (cloud.ok && (!cloudRoot || lT > cT)) cgPushToCloud();
+      } else {
+        root = emptyRoot(); // nouvel utilisateur : système remis à zéro
+        setSync("Synchronisé");
+      }
 
-      document.getElementById("cgSyncIndicator").textContent = "Synchronisé";
-    }).catch(function(e){
-      console.error("Erreur de synchronisation cloud :", e);
-      document.getElementById("cgSyncIndicator").textContent = "Hors ligne (sauvegarde locale uniquement)";
-      initApp();
+      cgUnsub = cgDocRef().onSnapshot(function(doc){
+        if (!doc.exists || cgApplyingRemote || !root) return;
+        var remote = doc.data().state;
+        if (!remote || !isValidRoot(remote)) return;
+        if (rootTime(remote) > rootTime(root)) {
+          applyRemote(remote);
+          setSync("Mis à jour depuis un autre appareil");
+        }
+      }, function(e){ console.error("Écoute cloud interrompue :", e); });
+
+      enterPicker();
     });
   }
 
-  // Envoie l'état courant vers Firestore, avec un léger délai pour grouper les sauvegardes rapprochées.
+  function applyRemote(remote){
+    cgApplyingRemote = true;
+    var prevId = state ? state.id : null;
+    root = normalizeRoot(remote);
+    writeLocalMirror();
+    cgApplyingRemote = false;
+    state = prevId ? findAcc(prevId) : null;
+    var view = document.body.getAttribute("data-view");
+    if (view === "app") { if (state) refreshApp(); else enterPicker(); }
+    else if (view === "picker") { renderPicker(); }
+    else if (view === "setup" && setupIsFirst && root.accounts.length) { enterPicker(); }
+  }
+
   function cgPushToCloud(){
     if (!cgDb || !cgUser || cgApplyingRemote) return;
+    cgPending = true;
     clearTimeout(cgSyncTimer);
-    cgSyncTimer = setTimeout(function(){
-      cgDocRef().set({ state: JSON.parse(JSON.stringify(state)) })
-        .then(function(){
-          var el = document.getElementById("cgSyncIndicator");
-          if (el) el.textContent = "Synchronisé";
-        })
-        .catch(function(e){
-          console.error("Échec de synchronisation cloud :", e);
-          var el = document.getElementById("cgSyncIndicator");
-          if (el) el.textContent = "Échec de synchronisation (sauvegarde locale conservée)";
-        });
-    }, 1200);
+    cgSyncTimer = setTimeout(cgDoPush, 1200);
   }
-  viewYear = today.getFullYear();
-  viewMonth = today.getMonth();
-
-  var activeDayKey = null;   // yyyy-mm-dd currently open in day modal
-  var editingTradeId = null; // trade id being edited, or null for new
-
-  // ---------------- data integrity helpers ----------------
-  function isValidData(obj){
-    return !!obj && typeof obj === "object" && obj.account && typeof obj.account === "object" && Array.isArray(obj.trades);
-  }
-  function normalizeData(obj){
-    if(!obj.account) obj.account = JSON.parse(JSON.stringify(defaultData.account));
-    if(!obj.trades) obj.trades = [];
-    if(!obj.meta) obj.meta = { lastSaved:null, lastExport:null, changesSinceExport:0 };
-    if(obj.meta.changesSinceExport === undefined) obj.meta.changesSinceExport = 0;
-    return obj;
+  function cgDoPush(){
+    clearTimeout(cgSyncTimer);
+    if (!cgPending || !cgDb || !cgUser || !root) return Promise.resolve();
+    cgPending = false;
+    return cgDocRef().set({ state: clone(root) })
+      .then(function(){ setSync("Synchronisé"); })
+      .catch(function(e){
+        console.error("Échec de synchronisation cloud :", e);
+        setSync("Échec de synchronisation (sauvegarde locale conservée)");
+      });
   }
 
-  // ---------------- IndexedDB mirror (independent redundant store) ----------------
+  // =====================================================================
+  // Modèle de données
+  // =====================================================================
+  function newId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null, lastExport:null, changesSinceExport:0 } }; }
+  function defaultAccountSettings(){ return { broker:"", currency:"USD", initial:10000, leverage:"", risk:1 }; }
+
+  function isValidRoot(obj){
+    if(!obj || typeof obj !== "object") return false;
+    if(Array.isArray(obj.accounts)) return true;
+    return !!(obj.account && typeof obj.account === "object" && Array.isArray(obj.trades)); // ancien format (un seul carnet)
+  }
+
+  function normalizeRoot(obj){
+    var out;
+    if(Array.isArray(obj.accounts)){
+      out = obj;
+    } else {
+      // migration de l'ancien format : le carnet unique devient un compte
+      out = {
+        version:2,
+        accounts:[{
+          id:newId("a_"),
+          name: (obj.account && obj.account.broker) ? obj.account.broker : "Compte principal",
+          description:"Repris de votre ancien carnet.",
+          createdAt:new Date().toISOString(),
+          account: obj.account,
+          trades: obj.trades
+        }],
+        meta: obj.meta
+      };
+    }
+    out.version = 2;
+    if(!out.meta) out.meta = {};
+    if(out.meta.lastSaved === undefined) out.meta.lastSaved = null;
+    if(out.meta.lastExport === undefined) out.meta.lastExport = null;
+    if(out.meta.changesSinceExport === undefined) out.meta.changesSinceExport = 0;
+    out.accounts.forEach(function(a){
+      if(!a.id) a.id = newId("a_");
+      if(!a.name) a.name = "Compte";
+      if(a.description === undefined) a.description = "";
+      if(!a.createdAt) a.createdAt = new Date().toISOString();
+      if(!a.account || typeof a.account !== "object") a.account = defaultAccountSettings();
+      if(!Array.isArray(a.trades)) a.trades = [];
+    });
+    return out;
+  }
+
+  function findAcc(id){
+    for(var i=0;i<root.accounts.length;i++){ if(root.accounts[i].id === id) return root.accounts[i]; }
+    return null;
+  }
+  function totalTrades(){ return root.accounts.reduce(function(s,a){ return s + a.trades.length; }, 0); }
+
+  // =====================================================================
+  // Stockage local (par utilisateur) : localStorage + miroir IndexedDB + historique tournant
+  // =====================================================================
+  function lsKey(){ return LS_PREFIX + cgUser.uid; }
+  function histKey(i){ return LS_PREFIX + cgUser.uid + "_hist_" + i; }
+  function idbKey(){ return "ws_" + cgUser.uid; }
+
   function idbOpen(){
     return new Promise(function(resolve, reject){
       if(!window.indexedDB){ reject(new Error("IndexedDB indisponible")); return; }
@@ -741,132 +1024,117 @@
     });
   }
   function idbGet(){
+    if(!cgUser) return Promise.resolve(null);
+    var key = idbKey();
     return idbOpen().then(function(db){
       return new Promise(function(resolve, reject){
-        var tx = db.transaction(IDB_STORE, "readonly");
-        var req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+        var req = db.transaction(IDB_STORE, "readonly").objectStore(IDB_STORE).get(key);
         req.onsuccess = function(){ resolve(req.result || null); };
         req.onerror = function(){ reject(req.error); };
       });
     }).catch(function(e){ console.warn("IndexedDB indisponible en lecture :", e); return null; });
   }
   function idbSet(data){
+    if(!cgUser) return Promise.resolve(false);
+    var key = idbKey();
     return idbOpen().then(function(db){
       return new Promise(function(resolve, reject){
         var tx = db.transaction(IDB_STORE, "readwrite");
-        tx.objectStore(IDB_STORE).put(JSON.parse(JSON.stringify(data)), IDB_KEY);
+        tx.objectStore(IDB_STORE).put(clone(data), key);
         tx.oncomplete = function(){ resolve(true); };
         tx.onerror = function(){ reject(tx.error); };
       });
     }).catch(function(e){ console.warn("IndexedDB indisponible en écriture :", e); return false; });
   }
 
-  // ---------------- localStorage history (rotating manual-recovery snapshots) ----------------
   function rotateHistoryBeforeSave(){
     try{
       for(var i = HISTORY_SLOTS; i > 1; i--){
-        var prev = localStorage.getItem(HISTORY_PREFIX + (i-1));
-        if(prev !== null) localStorage.setItem(HISTORY_PREFIX + i, prev);
+        var prev = localStorage.getItem(histKey(i-1));
+        if(prev !== null) localStorage.setItem(histKey(i), prev);
       }
-      var currentMain = localStorage.getItem(STORAGE_KEY);
-      if(currentMain !== null) localStorage.setItem(HISTORY_PREFIX + 1, currentMain);
+      var currentMain = localStorage.getItem(lsKey());
+      if(currentMain !== null) localStorage.setItem(histKey(1), currentMain);
     }catch(e){
-      console.warn("Rotation de l'historique local échouée (espace de stockage insuffisant ?)", e);
+      console.warn("Rotation de l'historique local échouée", e);
     }
   }
   function listHistorySnapshots(){
     var out = [];
     for(var i = 1; i <= HISTORY_SLOTS; i++){
       try{
-        var raw = localStorage.getItem(HISTORY_PREFIX + i);
+        var raw = localStorage.getItem(histKey(i));
         if(!raw) continue;
         var parsed = JSON.parse(raw);
-        if(!isValidData(parsed)) continue;
-        out.push({ slot:i, data:parsed, ts: (parsed.meta && parsed.meta.lastSaved) || null, tradeCount: parsed.trades.length });
-      }catch(e){ /* slot corrompu, on l'ignore */ }
+        if(!isValidRoot(parsed)) continue;
+        var norm = normalizeRoot(parsed);
+        out.push({ slot:i, data:norm, ts: (norm.meta && norm.meta.lastSaved) || null,
+          tradeCount: norm.accounts.reduce(function(s,a){ return s + a.trades.length; }, 0),
+          accountCount: norm.accounts.length });
+      }catch(e){ /* slot corrompu, ignoré */ }
     }
     return out;
   }
 
-  // ---------------- load / init (with automatic recovery) ----------------
   function loadFromLocalStorage(){
     try{
-      var raw = localStorage.getItem(STORAGE_KEY);
+      var raw = localStorage.getItem(lsKey());
       if(!raw) return null;
       var parsed = JSON.parse(raw);
-      if(!isValidData(parsed)) return null;
-      return normalizeData(parsed);
+      if(!isValidRoot(parsed)) return null;
+      return normalizeRoot(parsed);
     }catch(e){
       console.error("localStorage principal illisible/corrompu :", e);
       return null;
     }
   }
 
-  function initApp(){
-    var fromLocal = loadFromLocalStorage();
-    if(fromLocal){
-      state = fromLocal;
-      afterStateReady();
-      idbSet(state); // maintien du miroir indépendant en arrière-plan
-      return;
-    }
-
-    // localStorage principal absent ou corrompu -> tentative de récupération automatique
-    var histSnaps = listHistorySnapshots();
-    var bestHistory = histSnaps.length ? histSnaps.sort(function(a,b){ return new Date(b.ts||0)-new Date(a.ts||0); })[0] : null;
-
-    idbGet().then(function(idbData){
-      var candidates = [];
-      if(bestHistory) candidates.push({ source:"historique local (slot " + bestHistory.slot + ")", data: bestHistory.data });
-      if(idbData && isValidData(idbData)) candidates.push({ source:"copie miroir IndexedDB", data: idbData });
-
-      if(candidates.length){
-        candidates.sort(function(a,b){
-          var ta = (a.data.meta && a.data.meta.lastSaved) ? new Date(a.data.meta.lastSaved) : 0;
-          var tb = (b.data.meta && b.data.meta.lastSaved) ? new Date(b.data.meta.lastSaved) : 0;
-          return tb - ta;
-        });
-        var chosen = candidates[0];
-        state = normalizeData(chosen.data);
-        afterStateReady();
-        persist();
-        showRecoveryBanner(chosen.source);
-      } else {
-        state = JSON.parse(JSON.stringify(defaultData));
-        afterStateReady();
-      }
+  // Charge la meilleure copie locale de CET utilisateur (principale, sinon récupération automatique).
+  function loadLocalBest(){
+    var main = loadFromLocalStorage();
+    if(main) return Promise.resolve({ data:main, source:null });
+    var snaps = listHistorySnapshots().sort(function(a,b){ return new Date(b.ts||0)-new Date(a.ts||0); });
+    var bestHist = snaps.length ? snaps[0] : null;
+    return idbGet().then(function(idbData){
+      var cands = [];
+      if(bestHist) cands.push({ source:"historique local (slot " + bestHist.slot + ")", data:bestHist.data });
+      if(idbData && isValidRoot(idbData)) cands.push({ source:"copie miroir IndexedDB", data:normalizeRoot(idbData) });
+      if(!cands.length) return null;
+      cands.sort(function(a,b){ return rootTime(b.data) - rootTime(a.data); });
+      return cands[0];
     });
   }
 
-  function afterStateReady(){
-    renderCalendar();
-    renderStatsGlobal();
-    updateSaveIndicator();
-    checkExportReminder();
+  function writeLocalMirror(){
+    try{ localStorage.setItem(lsKey(), JSON.stringify(root)); }catch(e){ console.warn("Écriture locale impossible", e); }
+    idbSet(root);
   }
 
-  // ---------------- save (main persistence + redundancy) ----------------
+  // =====================================================================
+  // Sauvegarde
+  // =====================================================================
   function persist(){
-    state.meta = state.meta || { lastSaved:null, lastExport:null, changesSinceExport:0 };
-    state.meta.lastSaved = new Date().toISOString();
+    if(!root || !cgUser) return false;
+    root.meta.lastSaved = new Date().toISOString();
 
     var json;
-    try{ json = JSON.stringify(state); }
+    try{ json = JSON.stringify(root); }
     catch(e){ alert("Erreur interne : les données n'ont pas pu être préparées pour la sauvegarde."); return false; }
 
     rotateHistoryBeforeSave();
 
     try{
-      localStorage.setItem(STORAGE_KEY, json);
+      localStorage.setItem(lsKey(), json);
     }catch(e){
       console.error("Échec d'écriture localStorage :", e);
-      alert("⚠️ La sauvegarde locale a échoué (espace de stockage plein ou navigation privée). Exportez immédiatement vos données via « Détails du compte → Exporter » pour ne rien perdre.");
-      idbSet(state);
+      alert("⚠️ La sauvegarde locale a échoué (espace de stockage plein ou navigation privée). Exportez vos données via « Détails du compte → Exporter ». La synchronisation cloud reste active.");
+      idbSet(root);
       updateSaveIndicator();
+      cgPushToCloud();
       return false;
     }
 
-    idbSet(state);
+    idbSet(root);
     updateSaveIndicator();
     cgPushToCloud();
     return true;
@@ -879,83 +1147,231 @@
   }
 
   function registerUnsavedChange(){
-    state.meta.changesSinceExport = (state.meta.changesSinceExport || 0) + 1;
+    root.meta.changesSinceExport = (root.meta.changesSinceExport || 0) + 1;
     checkExportReminder();
   }
 
   function updateSaveIndicator(){
-    var el = document.getElementById("saveIndicator");
-    if(!el) return;
-    if(state.meta && state.meta.lastSaved){
-      var d = new Date(state.meta.lastSaved);
-      el.textContent = "Sauvegardé localement à " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+    var el = $("saveIndicator");
+    if(!el || !root) return;
+    if(root.meta && root.meta.lastSaved){
+      var d = new Date(root.meta.lastSaved);
+      el.textContent = "Sauvegardé à " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
     } else {
-      el.textContent = "Aucune sauvegarde locale pour l'instant";
+      el.textContent = "Aucune sauvegarde pour l'instant";
     }
   }
 
   function checkExportReminder(){
-    var banner = document.getElementById("exportReminder");
-    if(!banner) return;
-    var changes = (state.meta && state.meta.changesSinceExport) || 0;
+    var banner = $("exportReminder");
+    if(!banner || !root) return;
+    var changes = root.meta.changesSinceExport || 0;
     var daysSince = null;
-    if(state.meta && state.meta.lastExport){
-      daysSince = (Date.now() - new Date(state.meta.lastExport).getTime()) / 86400000;
+    if(root.meta.lastExport){
+      daysSince = (Date.now() - new Date(root.meta.lastExport).getTime()) / 86400000;
     }
-    var shouldWarn = changes >= EXPORT_REMINDER_CHANGES || (daysSince !== null && daysSince >= EXPORT_REMINDER_DAYS) || (!state.meta.lastExport && state.trades.length >= 3);
+    var shouldWarn = changes >= EXPORT_REMINDER_CHANGES || (daysSince !== null && daysSince >= EXPORT_REMINDER_DAYS) || (!root.meta.lastExport && totalTrades() >= 3);
     banner.style.display = shouldWarn ? "flex" : "none";
     if(shouldWarn){
-      var msg = document.getElementById("exportReminderText");
+      var msg = $("exportReminderText");
       if(msg){
-        msg.textContent = state.meta.lastExport
-          ? changes + " modification(s) non sauvegardée(s) en fichier depuis le " + new Date(state.meta.lastExport).toLocaleDateString("fr-FR") + "."
-          : "Aucune sauvegarde en fichier n'a encore été faite. Vos données ne vivent que dans ce navigateur.";
+        msg.textContent = root.meta.lastExport
+          ? changes + " modification(s) non sauvegardée(s) en fichier depuis le " + new Date(root.meta.lastExport).toLocaleDateString("fr-FR") + "."
+          : "Aucune sauvegarde en fichier n'a encore été faite. Pense à exporter une copie de tes données.";
       }
     }
   }
   window.checkExportReminder = checkExportReminder;
 
   function showRecoveryBanner(source){
-    var el = document.getElementById("recoveryNotice");
+    var el = $("recoveryNotice");
     if(!el) return;
     el.textContent = "Vos données principales étaient introuvables ou corrompues : récupération automatique effectuée depuis " + source + ".";
     el.style.display = "block";
     setTimeout(function(){ el.style.display = "none"; }, 12000);
   }
 
+  // =====================================================================
+  // Utilitaires
+  // =====================================================================
   function escapeHtml(str){
     if(str === undefined || str === null) return "";
     return String(str)
       .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
       .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   }
-
-  function fmtMoney(n){
+  function fmtCur(n, cur, signed){
     if(n === undefined || n === null || isNaN(n)) return "—";
-    var cur = state.account.currency || "USD";
-    var sign = n > 0 ? "+" : "";
-    return sign + Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2, maximumFractionDigits:2}) + " " + cur;
+    var sign = signed && n > 0 ? "+" : "";
+    return sign + Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2, maximumFractionDigits:2}) + " " + (cur || "USD");
   }
+  function fmtMoney(n){ return fmtCur(n, state && state.account.currency, true); }
   function fmtMoneyPlain(n){
     if(n === undefined || n === null || isNaN(n)) return "0,00";
     return Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2, maximumFractionDigits:2});
   }
-
+  function fmtPct(n, signed){
+    if(n === null || n === undefined || !isFinite(n)) return "—";
+    return (signed && n > 0 ? "+" : "") + n.toFixed(1).replace(".", ",") + " %";
+  }
   function pad(n){ return n < 10 ? "0"+n : ""+n; }
   function dateKey(y,m,d){ return y + "-" + pad(m+1) + "-" + pad(d); }
-  function isToday(y,m,d){
-    return y===today.getFullYear() && m===today.getMonth() && d===today.getDate();
+  function isToday(y,m,d){ return y===today.getFullYear() && m===today.getMonth() && d===today.getDate(); }
+  function num(v){ var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+
+  function accStats(acc){
+    var s = { count:acc.trades.length, wins:0, losses:0, be:0, open:0, gp:0, gl:0, pnl:0 };
+    acc.trades.forEach(function(t){
+      if(t.status === "gagnant") s.wins++;
+      else if(t.status === "perdant") s.losses++;
+      else if(t.status === "breakeven") s.be++;
+      else s.open++;
+      var p = num(t.pnl);
+      s.pnl += p;
+      if(p > 0) s.gp += p; else if(p < 0) s.gl += -p;
+    });
+    var init = num(acc.account.initial);
+    s.initial = init;
+    s.balance = init + s.pnl;
+    s.ret = init > 0 ? (s.pnl / init) * 100 : null;
+    var closed = s.wins + s.losses;
+    s.winrate = closed ? Math.round((s.wins / closed) * 100) : null;
+    s.pf = s.gl > 0 ? s.gp / s.gl : (s.gp > 0 ? Infinity : null);
+    return s;
   }
 
-  // ---------------- calendar rendering ----------------
+  // =====================================================================
+  // Navigation entre vues : sélecteur de compte / création / carnet
+  // =====================================================================
+  function enterPicker(){
+    state = null;
+    activeDayKey = null; editingTradeId = null;
+    if(!root.accounts.length){ openSetup(true); return; }
+    renderPicker();
+    showView("picker");
+  }
+
+  function renderPicker(){
+    var grid = $("accGrid");
+    grid.innerHTML = "";
+    root.accounts.forEach(function(acc){
+      var s = accStats(acc);
+      var card = document.createElement("div");
+      card.className = "acc-card";
+      card.setAttribute("tabindex","0");
+      card.setAttribute("role","button");
+      card.setAttribute("data-open", acc.id);
+      var pnlCls = s.pnl > 0 ? "pos" : s.pnl < 0 ? "neg" : "";
+      card.innerHTML =
+        '<div class="acc-name">' + escapeHtml(acc.name) + '</div>' +
+        '<div class="acc-desc">' + (acc.description ? escapeHtml(acc.description) : "Aucune description") + '</div>' +
+        '<div class="acc-stats">' +
+          '<div><span class="k">Solde</span><span class="v">' + escapeHtml(fmtCur(s.balance, acc.account.currency, false)) + '</span></div>' +
+          '<div><span class="k">Rendement</span><span class="v ' + pnlCls + '">' + fmtPct(s.ret, true) + '</span></div>' +
+          '<div><span class="k">Trades</span><span class="v">' + s.count + '</span></div>' +
+          '<div><span class="k">Réussite</span><span class="v">' + (s.winrate === null ? "—" : s.winrate + " %") + '</span></div>' +
+        '</div>';
+      function open(){ openApp(acc.id); }
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); open(); } });
+      grid.appendChild(card);
+    });
+    var add = document.createElement("div");
+    add.className = "acc-card add";
+    add.setAttribute("tabindex","0");
+    add.setAttribute("role","button");
+    add.innerHTML = '<div><div class="plus">+</div><div>Ajouter un compte</div></div>';
+    function openNew(){ openSetup(false); }
+    add.addEventListener("click", openNew);
+    add.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openNew(); } });
+    grid.appendChild(add);
+  }
+
+  // ---- création d'un compte ----
+  function openSetup(isFirst){
+    setupIsFirst = isFirst;
+    $("s_name").value = "";
+    $("s_desc").value = "";
+    $("s_initial").value = "";
+    $("s_currency").value = "USD";
+    $("s_broker").value = "";
+    $("s_leverage").value = "";
+    $("s_risk").value = "1";
+    $("setupError").textContent = "";
+    $("setupTitle").textContent = isFirst ? "Bienvenue — configure ton premier compte" : "Nouveau compte";
+    $("setupSub").textContent = isFirst ? "ton espace est vide : renseigne les détails de ton compte de trading pour commencer" : "renseigne les détails de ce nouveau compte de trading";
+    $("setupCancelBtn").style.display = isFirst ? "none" : "inline-block";
+    $("setupLogoutBtn").style.display = isFirst ? "inline-block" : "none";
+    showView("setup");
+    setTimeout(function(){ $("s_name").focus(); }, 50);
+  }
+
+  $("setupCancelBtn").addEventListener("click", function(){ enterPicker(); });
+
+  $("setupCreateBtn").addEventListener("click", function(){
+    var name = $("s_name").value.trim();
+    var initialRaw = $("s_initial").value;
+    var initial = parseFloat(initialRaw);
+    var err = $("setupError");
+    if(!name){ err.textContent = "Donne un nom à ton compte."; $("s_name").focus(); return; }
+    if(initialRaw === "" || isNaN(initial) || initial <= 0){ err.textContent = "Renseigne un capital initial supérieur à 0."; $("s_initial").focus(); return; }
+    var acc = {
+      id: newId("a_"),
+      name: name,
+      description: $("s_desc").value.trim(),
+      createdAt: new Date().toISOString(),
+      account: {
+        broker: $("s_broker").value.trim(),
+        currency: $("s_currency").value,
+        initial: initial,
+        leverage: $("s_leverage").value.trim(),
+        risk: parseFloat($("s_risk").value) || 0
+      },
+      trades: []
+    };
+    root.accounts.push(acc);
+    registerUnsavedChange();
+    persist();
+    openApp(acc.id);
+  });
+
+  $("switchAccountBtn").addEventListener("click", function(){ enterPicker(); });
+
+  // ---- ouverture d'un compte (calendrier + journal) ----
+  function openApp(id){
+    var acc = findAcc(id);
+    if(!acc){ enterPicker(); return; }
+    state = acc;
+    viewYear = today.getFullYear();
+    viewMonth = today.getMonth();
+    refreshApp();
+    showView("app");
+    if(recoveryPending){ showRecoveryBanner(recoveryPending); recoveryPending = null; }
+  }
+
+  function refreshApp(){
+    renderBrand();
+    renderCalendar();
+    renderStatsGlobal();
+    updateSaveIndicator();
+    checkExportReminder();
+  }
+
+  function renderBrand(){
+    $("brandEyebrow").textContent = state.name;
+    $("brandDesc").textContent = state.description || "";
+  }
+
+  // =====================================================================
+  // Calendrier
+  // =====================================================================
   function renderCalendar(){
-    document.getElementById("monthLabel").textContent = MONTHS_FR[viewMonth] + " " + viewYear;
-    var grid = document.getElementById("daysGrid");
+    $("monthLabel").textContent = MONTHS_FR[viewMonth] + " " + viewYear;
+    var grid = $("daysGrid");
     grid.innerHTML = "";
 
     var firstOfMonth = new Date(viewYear, viewMonth, 1);
-    var jsFirstDay = firstOfMonth.getDay(); // 0=dim..6=sam
-    var offset = (jsFirstDay + 6) % 7; // convert to lundi=0
+    var offset = (firstOfMonth.getDay() + 6) % 7;
     var daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
 
     for(var i=0;i<offset;i++){
@@ -972,10 +1388,10 @@
       cell.className = "day-cell clickable" + (isToday(viewYear,viewMonth,d) ? " today" : "");
       cell.setAttribute("data-date", key);
 
-      var num = document.createElement("div");
-      num.className = "day-num";
-      num.textContent = d;
-      cell.appendChild(num);
+      var numEl = document.createElement("div");
+      numEl.className = "day-num";
+      numEl.textContent = d;
+      cell.appendChild(numEl);
 
       if(dayTrades.length){
         var dayPnl = dayTrades.reduce(function(sum,t){ return sum + (parseFloat(t.pnl)||0); },0);
@@ -994,9 +1410,7 @@
         cell.appendChild(pnlEl);
       }
 
-      cell.addEventListener("click", function(){
-        openDayModal(this.getAttribute("data-date"));
-      });
+      cell.addEventListener("click", function(){ openDayModal(this.getAttribute("data-date")); });
       grid.appendChild(cell);
     }
 
@@ -1013,30 +1427,114 @@
     var totalPnl = monthTrades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); },0);
     var winrate = closed.length ? Math.round((wins/closed.length)*100) : null;
 
-    document.getElementById("statCount").textContent = monthTrades.length;
-    document.getElementById("statWinrate").textContent = winrate===null ? "—" : winrate + "%";
-    var pnlEl = document.getElementById("statPnl");
+    $("statCount").textContent = monthTrades.length;
+    $("statWinrate").textContent = winrate===null ? "—" : winrate + "%";
+    var pnlEl = $("statPnl");
     pnlEl.textContent = fmtMoney(totalPnl);
     pnlEl.className = "v " + (totalPnl>0?"pos":totalPnl<0?"neg":"");
-    document.getElementById("statWins").textContent = wins;
-    document.getElementById("statLosses").textContent = losses;
-    document.getElementById("statOpen").textContent = open;
+    $("statWins").textContent = wins;
+    $("statLosses").textContent = losses;
+    $("statOpen").textContent = open;
   }
 
   function renderStatsGlobal(){
-    var totalPnl = state.trades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); },0);
-    var currentBalance = (parseFloat(state.account.initial)||0) + totalPnl;
-    document.getElementById("quickBalance").textContent = fmtMoneyPlain(currentBalance) + " " + (state.account.currency||"USD");
-    var pnlEl = document.getElementById("quickPnl");
-    pnlEl.textContent = fmtMoney(totalPnl);
-    pnlEl.className = "aq-value " + (totalPnl>0?"pos":totalPnl<0?"neg":"");
+    if(!state) return;
+    var s = accStats(state);
+    $("quickBalance").textContent = fmtMoneyPlain(s.balance) + " " + (state.account.currency||"USD");
+    var pnlEl = $("quickPnl");
+    pnlEl.textContent = fmtMoney(s.pnl);
+    pnlEl.className = "aq-value " + (s.pnl>0?"pos":s.pnl<0?"neg":"");
+    renderProfitCard(s);
   }
 
-  // ---------------- overlay / modal control ----------------
-  var overlay = document.getElementById("overlay");
-  var modalDay = document.getElementById("modalDay");
-  var modalForm = document.getElementById("modalForm");
-  var modalAccount = document.getElementById("modalAccount");
+  // =====================================================================
+  // Diagramme circulaire de rentabilité
+  // =====================================================================
+  function donutSVG(segs, mainTxt, subTxt, mainColor, label){
+    var R = 52, C = 2 * Math.PI * R;
+    var total = segs.reduce(function(a,s){ return a + s.v; }, 0);
+    var svg = '<svg class="donut" viewBox="0 0 140 140" role="img" aria-label="' + escapeHtml(label) + '">';
+    svg += '<circle cx="70" cy="70" r="' + R + '" fill="none" stroke-width="16" style="stroke:var(--border-soft)"/>';
+    if(total > 0){
+      var visible = segs.filter(function(s){ return s.v > 0; });
+      var gap = visible.length > 1 ? 2.5 : 0;
+      var offset = 0;
+      visible.forEach(function(s){
+        var len = (s.v / total) * C;
+        var dash = Math.max(len - gap, 0.5);
+        svg += '<circle cx="70" cy="70" r="' + R + '" fill="none" stroke-width="16" style="stroke:' + s.color + '"' +
+               ' stroke-dasharray="' + dash.toFixed(2) + ' ' + (C - dash).toFixed(2) + '"' +
+               ' stroke-dashoffset="' + (-offset).toFixed(2) + '" transform="rotate(-90 70 70)"/>';
+        offset += len;
+      });
+    }
+    svg += '<text x="70" y="72" text-anchor="middle" style="font-family:var(--mono); font-size:19px; font-weight:500; fill:' + mainColor + '">' + escapeHtml(mainTxt) + '</text>';
+    svg += '<text x="70" y="90" text-anchor="middle" style="font-family:var(--sans); font-size:8.5px; fill:var(--text-faint)">' + escapeHtml(subTxt) + '</text>';
+    svg += '</svg>';
+    return svg;
+  }
+
+  function legendRow(label, value, cls, dotColor){
+    return '<div class="stat-row"><span class="k">' +
+      (dotColor ? '<span class="legend-dot" style="background:' + dotColor + '"></span>' : '') + escapeHtml(label) +
+      '</span><span class="v ' + (cls||"") + '">' + escapeHtml(value) + '</span></div>';
+  }
+
+  function renderProfitCard(s){
+    if(!state) return;
+    s = s || accStats(state);
+    var cur = state.account.currency || "USD";
+    var wrap = $("donutWrap"), verdict = $("donutVerdict"), legend = $("donutLegend");
+    document.querySelectorAll("#profitCard .seg button").forEach(function(b){
+      b.classList.toggle("active", b.getAttribute("data-pv") === profitView);
+    });
+
+    if(profitView === "profit"){
+      var hasData = (s.gp + s.gl) > 0;
+      var retTxt = s.ret === null ? "—" : fmtPct(s.ret, true).replace(" %", "%");
+      var color = !hasData ? "var(--text-dim)" : (s.pnl > 0 ? "var(--green)" : s.pnl < 0 ? "var(--red)" : "var(--text-dim)");
+      wrap.innerHTML = donutSVG(
+        [{v:s.gp, color:"var(--green)"}, {v:s.gl, color:"var(--red)"}],
+        hasData ? retTxt : "—", "rendement net", color, "Gains contre pertes");
+      var vTxt, vCls;
+      if(!hasData){ vTxt = "En attente de résultats"; vCls = "status-en_cours"; }
+      else if(s.pnl > 0){ vTxt = "Compte rentable"; vCls = "status-gagnant"; }
+      else if(s.pnl < 0){ vTxt = "Compte non rentable"; vCls = "status-perdant"; }
+      else { vTxt = "À l'équilibre"; vCls = "status-breakeven"; }
+      verdict.innerHTML = '<span class="tag ' + vCls + '">' + vTxt + '</span>';
+      var pfTxt = s.pf === null ? "—" : (s.pf === Infinity ? "∞" : s.pf.toFixed(2).replace(".", ","));
+      legend.innerHTML =
+        legendRow("Gains bruts", fmtCur(s.gp, cur, true), "pos", "var(--green)") +
+        legendRow("Pertes brutes", fmtCur(-s.gl, cur, false), "neg", "var(--red)") +
+        legendRow("Résultat net", fmtCur(s.pnl, cur, true), s.pnl>0?"pos":s.pnl<0?"neg":"") +
+        legendRow("Profit factor", pfTxt, "");
+    } else {
+      var total = s.count;
+      wrap.innerHTML = donutSVG(
+        [{v:s.wins, color:"var(--green)"}, {v:s.losses, color:"var(--red)"}, {v:s.be, color:"var(--gray)"}, {v:s.open, color:"var(--blue)"}],
+        s.winrate === null ? "—" : s.winrate + "%", "taux de réussite",
+        s.winrate === null ? "var(--text-dim)" : (s.winrate >= 50 ? "var(--green)" : "var(--red)"), "Répartition des trades");
+      verdict.innerHTML = '<span class="tag">' + total + ' trade' + (total > 1 ? "s" : "") + ' au total</span>';
+      function pctOf(n){ return total ? " (" + Math.round(n/total*100) + "%)" : ""; }
+      legend.innerHTML =
+        legendRow("Gagnants", s.wins + pctOf(s.wins), "", "var(--green)") +
+        legendRow("Perdants", s.losses + pctOf(s.losses), "", "var(--red)") +
+        legendRow("Breakeven", s.be + pctOf(s.be), "", "var(--gray)") +
+        legendRow("En cours", s.open + pctOf(s.open), "", "var(--blue)");
+    }
+  }
+
+  document.querySelectorAll("#profitCard .seg button").forEach(function(b){
+    b.addEventListener("click", function(){ profitView = this.getAttribute("data-pv"); renderProfitCard(); });
+  });
+
+  // =====================================================================
+  // Overlay / modales
+  // =====================================================================
+  var overlay = $("overlay");
+  var modalDay = $("modalDay");
+  var modalForm = $("modalForm");
+  var modalAccount = $("modalAccount");
 
   function showOnly(modalEl){
     [modalDay, modalForm, modalAccount].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
@@ -1049,25 +1547,22 @@
   }
   overlay.addEventListener("click", function(e){ if(e.target === overlay) closeOverlay(); });
   window.closeOverlay = closeOverlay;
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeOverlay(); });
 
-  document.addEventListener("keydown", function(e){
-    if(e.key === "Escape") closeOverlay();
-  });
-
-  // ---------------- day modal ----------------
+  // ---- modale d'un jour ----
   function openDayModal(key){
     activeDayKey = key;
     var parts = key.split("-");
     var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
     var weekdayNames = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
-    document.getElementById("dayModalTitle").textContent = weekdayNames[d.getDay()] + " " + parseInt(parts[2]) + " " + MONTHS_FR[parseInt(parts[1])-1].toLowerCase() + " " + parts[0];
-    document.getElementById("dayModalSub").textContent = key;
+    $("dayModalTitle").textContent = weekdayNames[d.getDay()] + " " + parseInt(parts[2]) + " " + MONTHS_FR[parseInt(parts[1])-1].toLowerCase() + " " + parts[0];
+    $("dayModalSub").textContent = key;
     renderDayTradesList();
     showOnly(modalDay);
   }
 
   function renderDayTradesList(){
-    var listEl = document.getElementById("dayTradesList");
+    var listEl = $("dayTradesList");
     var trades = state.trades.filter(function(t){ return t.date === activeDayKey; });
     if(!trades.length){
       listEl.innerHTML = '<div class="empty-state">Aucun trade enregistré ce jour-là.</div>';
@@ -1089,12 +1584,12 @@
             ' · SL ' + escapeHtml(t.sl||"—") +
             ' · TP ' + escapeHtml(t.tp||"—") +
             (t.strategy ? ' · ' + escapeHtml(t.strategy) : "") +
-            (t.pnl!==undefined && t.pnl!=="" && t.pnl!==null ? ' · ' + fmtMoney(parseFloat(t.pnl)) : "") +
+            (t.pnl!==undefined && t.pnl!=="" && t.pnl!==null ? ' · ' + escapeHtml(fmtMoney(parseFloat(t.pnl))) : "") +
           '</div>' +
         '</div>' +
         '<div class="trade-actions">' +
-          '<button class="iconbtn" data-edit="' + t.id + '">Modifier</button>' +
-          '<button class="iconbtn danger" data-del="' + t.id + '">Suppr.</button>' +
+          '<button class="iconbtn" data-edit="' + escapeHtml(t.id) + '">Modifier</button>' +
+          '<button class="iconbtn danger" data-del="' + escapeHtml(t.id) + '">Suppr.</button>' +
         '</div>';
       listEl.appendChild(row);
     });
@@ -1116,30 +1611,15 @@
     });
   }
 
-  document.getElementById("addTradeBtn").addEventListener("click", function(){
-    openTradeForm(activeDayKey, null);
-  });
+  $("addTradeBtn").addEventListener("click", function(){ openTradeForm(activeDayKey, null); });
+  window.backToDayModal = function(){ if(activeDayKey){ openDayModal(activeDayKey); } else { closeOverlay(); } };
 
-  window.backToDayModal = function(){
-    if(activeDayKey){ openDayModal(activeDayKey); } else { closeOverlay(); }
-  };
-
-  // ---------------- trade form ----------------
-  var form = document.getElementById("tradeForm");
+  // ---- formulaire de trade ----
+  var form = $("tradeForm");
   var fields = {
-    pair: document.getElementById("f_pair"),
-    direction: document.getElementById("f_direction"),
-    strategy: document.getElementById("f_strategy"),
-    status: document.getElementById("f_status"),
-    lot: document.getElementById("f_lot"),
-    entry: document.getElementById("f_entry"),
-    sl: document.getElementById("f_sl"),
-    tp: document.getElementById("f_tp"),
-    exit: document.getElementById("f_exit"),
-    pnl: document.getElementById("f_pnl"),
-    geo: document.getElementById("f_geo"),
-    macro: document.getElementById("f_macro"),
-    evolution: document.getElementById("f_evolution")
+    pair: $("f_pair"), direction: $("f_direction"), strategy: $("f_strategy"), status: $("f_status"),
+    lot: $("f_lot"), entry: $("f_entry"), sl: $("f_sl"), tp: $("f_tp"), exit: $("f_exit"), pnl: $("f_pnl"),
+    geo: $("f_geo"), macro: $("f_macro"), evolution: $("f_evolution")
   };
 
   function openTradeForm(dayKey, tradeId){
@@ -1148,7 +1628,7 @@
     form.reset();
     fields.direction.value = "achat";
     fields.status.value = "en_cours";
-    document.getElementById("deleteTradeBtn").style.display = "none";
+    $("deleteTradeBtn").style.display = "none";
 
     if(tradeId){
       var t = state.trades.find(function(x){ return x.id === tradeId; });
@@ -1167,36 +1647,27 @@
         fields.macro.value = t.macro || "";
         fields.evolution.value = t.evolution || "";
       }
-      document.getElementById("formModalTitle").textContent = "Modifier le trade";
-      document.getElementById("deleteTradeBtn").style.display = "inline-block";
+      $("formModalTitle").textContent = "Modifier le trade";
+      $("deleteTradeBtn").style.display = "inline-block";
     } else {
-      document.getElementById("formModalTitle").textContent = "Nouveau trade";
+      $("formModalTitle").textContent = "Nouveau trade";
     }
-    document.getElementById("formModalSub").textContent = dayKey;
+    $("formModalSub").textContent = dayKey;
     showOnly(modalForm);
   }
   window.openTradeForm = openTradeForm;
 
-  document.getElementById("saveTradeBtn").addEventListener("click", function(){
-    if(!fields.pair.value.trim()){
-      fields.pair.focus();
-      return;
-    }
+  $("saveTradeBtn").addEventListener("click", function(){
+    if(!fields.pair.value.trim()){ fields.pair.focus(); return; }
     var payload = {
       date: activeDayKey,
       pair: fields.pair.value.trim(),
       direction: fields.direction.value,
       strategy: fields.strategy.value.trim(),
       status: fields.status.value,
-      lot: fields.lot.value,
-      entry: fields.entry.value,
-      sl: fields.sl.value,
-      tp: fields.tp.value,
-      exit: fields.exit.value,
-      pnl: fields.pnl.value,
-      geo: fields.geo.value.trim(),
-      macro: fields.macro.value.trim(),
-      evolution: fields.evolution.value.trim()
+      lot: fields.lot.value, entry: fields.entry.value, sl: fields.sl.value, tp: fields.tp.value,
+      exit: fields.exit.value, pnl: fields.pnl.value,
+      geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim()
     };
 
     if(editingTradeId){
@@ -1213,7 +1684,7 @@
     openDayModal(activeDayKey);
   });
 
-  document.getElementById("deleteTradeBtn").addEventListener("click", function(){
+  $("deleteTradeBtn").addEventListener("click", function(){
     if(!editingTradeId) return;
     if(confirm("Supprimer ce trade ? Cette action est irréversible.")){
       state.trades = state.trades.filter(function(t){ return t.id !== editingTradeId; });
@@ -1224,49 +1695,42 @@
     }
   });
 
-  // ---------------- account modal ----------------
+  // ---- modale « Détails du compte » ----
   function openAccountModal(){
-    document.getElementById("a_broker").value = state.account.broker || "";
-    document.getElementById("a_currency").value = state.account.currency || "USD";
-    document.getElementById("a_initial").value = state.account.initial !== undefined ? state.account.initial : "";
-    document.getElementById("a_leverage").value = state.account.leverage || "";
-    document.getElementById("a_risk").value = state.account.risk !== undefined ? state.account.risk : "";
+    if(!state) return;
+    $("a_name").value = state.name || "";
+    $("a_desc").value = state.description || "";
+    $("a_broker").value = state.account.broker || "";
+    $("a_currency").value = state.account.currency || "USD";
+    $("a_initial").value = state.account.initial !== undefined ? state.account.initial : "";
+    $("a_leverage").value = state.account.leverage || "";
+    $("a_risk").value = state.account.risk !== undefined ? state.account.risk : "";
 
-    var totalPnl = state.trades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); },0);
-    var currentBalance = (parseFloat(state.account.initial)||0) + totalPnl;
-    document.getElementById("a_currentDisplay").value = fmtMoneyPlain(currentBalance) + " " + (state.account.currency||"USD");
-
-    var closed = state.trades.filter(function(t){ return t.status==="gagnant" || t.status==="perdant"; });
-    var wins = state.trades.filter(function(t){ return t.status==="gagnant"; }).length;
-    var winrate = closed.length ? Math.round((wins/closed.length)*100) + "%" : "—";
-    document.getElementById("a_statTotal").value = state.trades.length;
-    document.getElementById("a_statWinrate").value = winrate;
-    document.getElementById("a_statPnl").value = fmtMoney(totalPnl);
+    var s = accStats(state);
+    $("a_currentDisplay").value = fmtMoneyPlain(s.balance) + " " + (state.account.currency||"USD");
+    $("a_statTotal").value = s.count;
+    $("a_statWinrate").value = s.winrate === null ? "—" : s.winrate + "%";
+    $("a_statPnl").value = fmtMoney(s.pnl);
 
     var withPnl = state.trades.filter(function(t){ return t.pnl!==undefined && t.pnl!=="" && t.pnl!==null; });
     if(withPnl.length){
       var best = withPnl.reduce(function(a,b){ return (parseFloat(b.pnl)>parseFloat(a.pnl))?b:a; });
       var worst = withPnl.reduce(function(a,b){ return (parseFloat(b.pnl)<parseFloat(a.pnl))?b:a; });
-      document.getElementById("a_statBestWorst").value = fmtMoney(parseFloat(best.pnl)) + " / " + fmtMoney(parseFloat(worst.pnl));
+      $("a_statBestWorst").value = fmtMoney(parseFloat(best.pnl)) + " / " + fmtMoney(parseFloat(worst.pnl));
     } else {
-      document.getElementById("a_statBestWorst").value = "—";
+      $("a_statBestWorst").value = "—";
     }
 
-    document.getElementById("a_lastExport").value = state.meta && state.meta.lastExport
-      ? new Date(state.meta.lastExport).toLocaleString("fr-FR")
-      : "jamais";
-    document.getElementById("a_lastSaved").value = state.meta && state.meta.lastSaved
-      ? new Date(state.meta.lastSaved).toLocaleString("fr-FR")
-      : "jamais";
+    $("a_lastExport").value = root.meta.lastExport ? new Date(root.meta.lastExport).toLocaleString("fr-FR") : "jamais";
+    $("a_lastSaved").value = root.meta.lastSaved ? new Date(root.meta.lastSaved).toLocaleString("fr-FR") : "jamais";
 
     renderHistoryList();
     showOnly(modalAccount);
   }
   window.openAccountModal = openAccountModal;
 
-  // ---------------- history / recovery UI ----------------
   function renderHistoryList(){
-    var el = document.getElementById("historyList");
+    var el = $("historyList");
     if(!el) return;
     var snaps = listHistorySnapshots().sort(function(a,b){ return new Date(b.ts||0) - new Date(a.ts||0); });
     if(!snaps.length){
@@ -1274,58 +1738,73 @@
       return;
     }
     el.innerHTML = "";
-    snaps.forEach(function(s){
+    snaps.forEach(function(sn){
       var row = document.createElement("div");
       row.className = "trade-row";
-      var when = s.ts ? new Date(s.ts).toLocaleString("fr-FR") : "date inconnue";
+      var when = sn.ts ? new Date(sn.ts).toLocaleString("fr-FR") : "date inconnue";
       row.innerHTML =
         '<div class="trade-main">' +
           '<div class="trade-pair" style="font-size:14px;">' + escapeHtml(when) + '</div>' +
-          '<div class="trade-meta">' + s.tradeCount + ' trade(s) dans cette version</div>' +
+          '<div class="trade-meta">' + sn.accountCount + ' compte(s) · ' + sn.tradeCount + ' trade(s)</div>' +
         '</div>' +
-        '<div class="trade-actions"><button class="iconbtn" data-restore="' + s.slot + '">Restaurer</button></div>';
+        '<div class="trade-actions"><button class="iconbtn" data-restore="' + sn.slot + '">Restaurer</button></div>';
       el.appendChild(row);
     });
     el.querySelectorAll("[data-restore]").forEach(function(btn){
       btn.addEventListener("click", function(){
         var slot = this.getAttribute("data-restore");
-        var snap = snaps.find(function(s){ return String(s.slot) === slot; });
+        var snap = snaps.find(function(x){ return String(x.slot) === slot; });
         if(!snap) return;
         if(confirm("Restaurer cette version du " + (snap.ts ? new Date(snap.ts).toLocaleString("fr-FR") : "slot "+slot) + " ? L'état actuel sera lui-même conservé dans l'historique.")){
-          state = normalizeData(JSON.parse(JSON.stringify(snap.data)));
+          var prevId = state ? state.id : null;
+          root = normalizeRoot(clone(snap.data));
+          state = prevId ? findAcc(prevId) : null;
           registerUnsavedChange();
-          save();
-          renderCalendar();
-          openAccountModal();
+          persist();
+          if(state){ refreshApp(); openAccountModal(); } else { enterPicker(); }
         }
       });
     });
   }
 
-  document.getElementById("saveAccountBtn").addEventListener("click", function(){
-    state.account.broker = document.getElementById("a_broker").value.trim();
-    state.account.currency = document.getElementById("a_currency").value;
-    state.account.initial = parseFloat(document.getElementById("a_initial").value) || 0;
-    state.account.leverage = document.getElementById("a_leverage").value.trim();
-    state.account.risk = parseFloat(document.getElementById("a_risk").value) || 0;
+  $("saveAccountBtn").addEventListener("click", function(){
+    var name = $("a_name").value.trim();
+    if(name) state.name = name;
+    state.description = $("a_desc").value.trim();
+    state.account.broker = $("a_broker").value.trim();
+    state.account.currency = $("a_currency").value;
+    state.account.initial = parseFloat($("a_initial").value) || 0;
+    state.account.leverage = $("a_leverage").value.trim();
+    state.account.risk = parseFloat($("a_risk").value) || 0;
     registerUnsavedChange();
     save();
+    renderBrand();
     renderCalendar();
-    renderHistoryList();
     closeOverlay();
   });
 
-  document.getElementById("resetBtn").addEventListener("click", function(){
-    if(confirm("Réinitialiser toutes les données (compte et trades) ? L'état actuel restera récupérable quelques sauvegardes via « Restaurer une version précédente », mais au-delà il sera définitivement perdu.")){
-      state = JSON.parse(JSON.stringify(defaultData));
-      save(); // rotation d'historique inclut automatiquement l'ancien état avant écrasement
+  $("resetBtn").addEventListener("click", function(){
+    if(confirm("Effacer tous les trades du compte « " + state.name + " » ? Les réglages du compte sont conservés. L'état actuel restera récupérable quelques sauvegardes via « Restaurer une version précédente », puis sera perdu.")){
+      state.trades = [];
+      registerUnsavedChange();
+      save();
       renderCalendar();
       closeOverlay();
     }
   });
 
+  $("deleteAccountBtn").addEventListener("click", function(){
+    if(confirm("Supprimer définitivement le compte « " + state.name + " » et tous ses trades ? Les autres comptes ne sont pas touchés.")){
+      var id = state.id;
+      root.accounts = root.accounts.filter(function(a){ return a.id !== id; });
+      registerUnsavedChange();
+      persist();
+      enterPicker();
+    }
+  });
+
   function doExport(){
-    var blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+    var blob = new Blob([JSON.stringify(root, null, 2)], {type:"application/json"});
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     var d = new Date();
@@ -1336,54 +1815,56 @@
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    state.meta.lastExport = new Date().toISOString();
-    state.meta.changesSinceExport = 0;
+    root.meta.lastExport = new Date().toISOString();
+    root.meta.changesSinceExport = 0;
     save();
     checkExportReminder();
   }
-  document.getElementById("exportBtn").addEventListener("click", doExport);
-  var reminderExportBtn = document.getElementById("exportReminderBtn");
-  if(reminderExportBtn) reminderExportBtn.addEventListener("click", doExport);
+  $("exportBtn").addEventListener("click", doExport);
+  $("exportReminderBtn").addEventListener("click", doExport);
 
-  document.getElementById("importBtn").addEventListener("click", function(){
-    document.getElementById("importFile").click();
-  });
-  document.getElementById("importFile").addEventListener("change", function(e){
+  $("importBtn").addEventListener("click", function(){ $("importFile").click(); });
+  $("importFile").addEventListener("change", function(e){
     var file = e.target.files[0];
     if(!file) return;
     var reader = new FileReader();
     reader.onload = function(ev){
       try{
         var parsed = JSON.parse(ev.target.result);
-        if(!isValidData(parsed)) throw new Error("Format invalide");
-        if(confirm("Importer ce fichier remplacera vos données actuelles (l'état actuel reste récupérable via l'historique). Continuer ?")){
-          state = normalizeData(parsed);
+        if(!isValidRoot(parsed)) throw new Error("Format invalide");
+        var isMulti = Array.isArray(parsed.accounts);
+        var msg = isMulti
+          ? "Importer ce fichier remplacera TOUS vos comptes actuels (l'état actuel reste récupérable via l'historique). Continuer ?"
+          : "Ce fichier provient de l'ancienne version : il sera ajouté comme un nouveau compte. Continuer ?";
+        if(confirm(msg)){
+          var conv = normalizeRoot(parsed);
+          var prevId = state ? state.id : null;
+          if(isMulti){
+            conv.meta = root.meta;
+            root = conv;
+          } else {
+            var added = conv.accounts[0];
+            added.id = newId("a_");
+            added.name = "Import — " + added.name;
+            root.accounts.push(added);
+          }
+          state = prevId ? findAcc(prevId) : null;
           registerUnsavedChange();
-          save();
-          renderCalendar();
-          openAccountModal();
+          persist();
+          if(state){ refreshApp(); openAccountModal(); } else { enterPicker(); }
         }
       }catch(err){
         alert("Fichier invalide. Merci d'importer une sauvegarde exportée depuis cette application.");
       }
-      document.getElementById("importFile").value = "";
+      $("importFile").value = "";
     };
     reader.readAsText(file);
   });
 
-  // ---------------- nav ----------------
-  document.getElementById("prevMonth").addEventListener("click", function(){
-    viewMonth--; if(viewMonth<0){ viewMonth=11; viewYear--; }
-    renderCalendar();
-  });
-  document.getElementById("nextMonth").addEventListener("click", function(){
-    viewMonth++; if(viewMonth>11){ viewMonth=0; viewYear++; }
-    renderCalendar();
-  });
-  document.getElementById("todayBtn").addEventListener("click", function(){
-    viewYear = today.getFullYear(); viewMonth = today.getMonth();
-    renderCalendar();
-  });
+  // ---- navigation mois ----
+  $("prevMonth").addEventListener("click", function(){ viewMonth--; if(viewMonth<0){ viewMonth=11; viewYear--; } renderCalendar(); });
+  $("nextMonth").addEventListener("click", function(){ viewMonth++; if(viewMonth>11){ viewMonth=0; viewYear++; } renderCalendar(); });
+  $("todayBtn").addEventListener("click", function(){ viewYear = today.getFullYear(); viewMonth = today.getMonth(); renderCalendar(); });
 
   // ---------------- PDF export (bilan mensuel) ----------------
   function generateMonthlyPdf(){
@@ -1432,7 +1913,7 @@
     doc.text("Carnet de Trading — Bilan mensuel", marginX, y);
     y += 7;
     doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(90);
-    var subLine = monthLabel + (state.account.broker ? "   ·   " + state.account.broker : "");
+    var subLine = monthLabel + "   ·   " + state.name + (state.account.broker ? "   ·   " + state.account.broker : "");
     doc.text(subLine, marginX, y);
     y += 5;
     doc.setFontSize(9);
@@ -1535,7 +2016,7 @@
     var fileMonth = MONTHS_FR[viewMonth].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     doc.save("bilan-trading-" + fileMonth + "-" + viewYear + ".pdf");
   }
-  document.getElementById("exportPdfBtn").addEventListener("click", generateMonthlyPdf);
+  $("exportPdfBtn").addEventListener("click", generateMonthlyPdf);
 
   // ---------------- init ----------------
   cgInitFirebase();
