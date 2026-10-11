@@ -379,6 +379,26 @@
   .cg-logout{font-family:var(--mono); font-size:11px; color:var(--text-faint); background:transparent; border:1px solid var(--border); border-radius:var(--r); padding:5px 10px;}
   .cg-logout:hover{color:var(--gold); border-color:var(--gold-soft);}
   #cgSyncIndicator{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
+
+  /* ---------- captures ---------- */
+  .shot-item{display:flex; gap:12px; border:1px solid var(--border-soft); border-radius:var(--r); padding:10px; margin-bottom:10px;}
+  .shot-thumb{width:104px; height:78px; flex-shrink:0; background:var(--bg-2); border:1px solid var(--border-soft); border-radius:2px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:10.5px; color:var(--text-faint); cursor:zoom-in; text-align:center;}
+  .shot-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .shot-fields{flex:1; display:flex; flex-direction:column; gap:8px; min-width:0;}
+  .shot-fields input{background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:8px 10px; width:100%; outline:none;}
+  .shot-fields input:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,155,74,0.12);}
+  .shot-actions{display:flex; gap:6px;}
+  .lightbox{position:fixed; inset:0; background:rgba(6,7,8,0.94); z-index:90; display:none; align-items:center; justify-content:center; gap:10px; padding:16px;}
+  .lightbox.show{display:flex;}
+  .lb-body{max-width:min(1100px,86vw); display:flex; flex-direction:column; align-items:center; gap:12px; min-width:0;}
+  .lb-body img{max-width:100%; max-height:74vh; border:1px solid var(--border); border-radius:var(--r); background:var(--bg-2); min-height:60px; min-width:60px;}
+  .lb-desc{color:var(--text); font-size:14px; text-align:center; max-width:760px; white-space:pre-wrap; word-break:break-word;}
+  .lb-count{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
+  .lb-close{position:absolute; top:14px; right:14px; background:transparent; border:1px solid var(--border); color:var(--text-dim); width:34px; height:34px; border-radius:var(--r); font-size:16px;}
+  .lb-close:hover{border-color:var(--red); color:var(--red);}
+  .lb-nav{background:transparent; border:1px solid var(--border); color:var(--text-dim); width:38px; height:54px; border-radius:var(--r); font-size:22px; flex-shrink:0;}
+  .lb-nav:hover{border-color:var(--gold-soft); color:var(--gold);}
+  @media (max-width:560px){ .lb-nav{width:30px;} .shot-thumb{width:84px; height:64px;} }
 </style>
 </head>
 <body data-view="loading">
@@ -479,15 +499,6 @@
     </div>
   </header>
 
-  <div class="banner recovery" id="recoveryNotice" style="display:none;"></div>
-
-  <div class="banner reminder" id="exportReminder" style="display:none;">
-    <span id="exportReminderText"></span>
-    <button class="btn primary" type="button" id="exportReminderBtn">Exporter maintenant</button>
-  </div>
-
-  <div class="save-indicator" id="saveIndicator">—</div>
-
   <main>
     <section class="card">
       <div class="cal-head">
@@ -528,7 +539,6 @@
     </aside>
   </main>
 
-  <footer class="pagefoot">Données synchronisées sur ton espace utilisateur et sauvegardées localement — pensez à exporter régulièrement depuis « Détails du compte ».</footer>
 </div>
 
 <!-- OVERLAY / MODALS -->
@@ -613,6 +623,12 @@
             <textarea id="f_evolution" placeholder="comment le trade a évolué, gestion, émotions, sorties partielles..."></textarea>
           </div>
         </div>
+
+        <div class="section-label">captures (facultatif)</div>
+        <div id="shotList"></div>
+        <button type="button" class="addbtn" id="addShotBtn">+ Ajouter une capture</button>
+        <input type="file" id="shotFile" class="file-input" accept="image/*" multiple>
+        <div class="hint">Capture du graphique (entrée, sortie, contexte…) avec une description. Les images sont compressées automatiquement et enregistrées dans ton espace.</div>
       </form>
     </div>
     <div class="modal-footer">
@@ -660,21 +676,7 @@
         <div class="field"><label>Meilleur / pire trade</label><input type="text" id="a_statBestWorst" disabled></div>
       </div>
 
-      <div class="section-label">fiabilité des données (tous vos comptes)</div>
-      <div class="form-grid">
-        <div class="field"><label>Dernière sauvegarde locale</label><input type="text" id="a_lastSaved" disabled></div>
-        <div class="field"><label>Dernier export fichier</label><input type="text" id="a_lastExport" disabled></div>
-      </div>
-      <div class="hint">La sauvegarde locale et cloud se fait automatiquement à chaque modification. L'export fichier (.json) contient tous vos comptes et reste votre protection ultime — pensez à l'utiliser régulièrement.</div>
-
-      <div class="section-label">restaurer une version précédente</div>
-      <div class="hint" style="margin-bottom:10px;">Les 5 dernières sauvegardes (tous comptes confondus) sont conservées automatiquement, indépendamment de vos exports manuels.</div>
-      <div id="historyList"></div>
-
       <div class="account-footer-actions">
-        <button class="btn" type="button" id="exportBtn">Exporter (sauvegarde .json)</button>
-        <button class="btn" type="button" id="importBtn">Importer une sauvegarde</button>
-        <input type="file" id="importFile" class="file-input" accept="application/json">
         <button class="btn danger-outline" type="button" id="resetBtn">Effacer les trades de ce compte</button>
         <button class="btn danger-outline" type="button" id="deleteAccountBtn">Supprimer ce compte</button>
       </div>
@@ -687,22 +689,28 @@
 
 </div>
 
+<!-- LIGHTBOX captures -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" type="button" id="lbClose" aria-label="Fermer">✕</button>
+  <button class="lb-nav lb-prev" type="button" id="lbPrev" aria-label="Précédente">‹</button>
+  <div class="lb-body">
+    <img id="lbImg" alt="">
+    <div class="lb-desc" id="lbDesc"></div>
+    <div class="lb-count" id="lbCount"></div>
+  </div>
+  <button class="lb-nav lb-next" type="button" id="lbNext" aria-label="Suivante">›</button>
+</div>
+
 <script>
 (function(){
   "use strict";
 
-  var LS_PREFIX = "carnetTrading_v2_";          // + uid  => données locales propres à chaque utilisateur
   var MONTHS_FR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
   var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"Breakeven"};
 
-  var HISTORY_SLOTS = 5; // sauvegardes tournantes, la plus récente = slot 1
-  var IDB_NAME = "tradingJournalDB";
-  var IDB_STORE = "state";
-  var EXPORT_REMINDER_CHANGES = 5;
-  var EXPORT_REMINDER_DAYS = 7;
 
   // Modèle de données (version 2) :
-  //   root  = { version:2, accounts:[ acc, ... ], meta:{ lastSaved, lastExport, changesSinceExport } }
+  //   root  = { version:2, accounts:[ acc, ... ], meta:{ lastSaved } }
   //   acc   = { id, name, description, createdAt, account:{broker,currency,initial,leverage,risk}, trades:[] }
   // `state` pointe toujours sur le compte actuellement ouvert (un élément de root.accounts).
   var root = null;
@@ -716,7 +724,6 @@
   var editingTradeId = null;
   var profitView = "profit";
   var setupIsFirst = false;
-  var recoveryPending = null;
 
   // =====================================================================
   // FIREBASE
@@ -790,7 +797,7 @@
     cgPending = false;
     if (cgUnsub) { try{ cgUnsub(); }catch(e){} cgUnsub = null; }
     root = null; state = null; cgUser = null;
-    activeDayKey = null; editingTradeId = null; recoveryPending = null;
+    activeDayKey = null; editingTradeId = null; shotCache = {};
     setSync("");
   }
 
@@ -840,44 +847,18 @@
   function cgStartCloudSync(user){
     var uid = user.uid;
     setSync("Synchronisation…");
-    var cloudP = cgDocRef().get()
-      .then(function(doc){ return { ok:true, data: doc.exists ? doc.data().state : null }; })
-      .catch(function(e){ console.error("Lecture cloud impossible :", e); return { ok:false, data:null }; });
-
-    Promise.all([cloudP, loadLocalBest()]).then(function(res){
+    cgDocRef().get().then(function(doc){
       if (!cgUser || cgUser.uid !== uid) return; // l'utilisateur a changé entre-temps
-      var cloud = res[0], local = res[1];
-      var cloudLegacy = !!(cloud.data && !Array.isArray(cloud.data.accounts));
-      var cloudRoot = cloud.data && isValidRoot(cloud.data) ? normalizeRoot(cloud.data) : null;
-      var localRoot = local ? normalizeRoot(local.data) : null;
+      var data = doc.exists ? doc.data().state : null;
+      if (doc.exists && !isValidRoot(data)) throw new Error("Document utilisateur illisible");
+      var legacy = !!(data && !Array.isArray(data.accounts));
+      root = data ? normalizeRoot(data) : emptyRoot(); // nouvel utilisateur : système remis à zéro
+      setSync("Synchronisé");
+      if (legacy) persist(); // ancien format -> migré vers les comptes multiples
 
-      if (!cloud.ok && !localRoot) {
-        // Impossible de savoir ce que contient le cloud : on évite de repartir sur un espace vide qui pourrait l'écraser.
-        pendingAuthError = "Impossible de charger tes données (connexion indisponible). Réessaie une fois en ligne.";
-        firebase.auth().signOut();
-        return;
-      }
-
-      var cT = rootTime(cloudRoot), lT = rootTime(localRoot);
-      if (cloudRoot && (!localRoot || cT > lT)) {
-        root = cloudRoot;
-        writeLocalMirror();
-        setSync("Synchronisé");
-        if (cloudLegacy) persist(); // ancien format -> migré vers les comptes multiples
-      } else if (localRoot) {
-        root = localRoot;
-        if (local.source) recoveryPending = local.source;
-        writeLocalMirror();
-        setSync(cloud.ok ? "Synchronisé" : "Hors ligne (sauvegarde locale uniquement)");
-        if (cloud.ok && (!cloudRoot || lT > cT)) cgPushToCloud();
-      } else {
-        root = emptyRoot(); // nouvel utilisateur : système remis à zéro
-        setSync("Synchronisé");
-      }
-
-      cgUnsub = cgDocRef().onSnapshot(function(doc){
-        if (!doc.exists || cgApplyingRemote || !root) return;
-        var remote = doc.data().state;
+      cgUnsub = cgDocRef().onSnapshot(function(snap){
+        if (!snap.exists || cgApplyingRemote || !root) return;
+        var remote = snap.data().state;
         if (!remote || !isValidRoot(remote)) return;
         if (rootTime(remote) > rootTime(root)) {
           applyRemote(remote);
@@ -886,6 +867,11 @@
       }, function(e){ console.error("Écoute cloud interrompue :", e); });
 
       enterPicker();
+    }).catch(function(e){
+      console.error("Chargement impossible :", e);
+      if (!cgUser || cgUser.uid !== uid) return;
+      pendingAuthError = "Impossible de charger tes données (connexion indisponible ou accès refusé). Réessaie.";
+      firebase.auth().signOut();
     });
   }
 
@@ -893,7 +879,6 @@
     cgApplyingRemote = true;
     var prevId = state ? state.id : null;
     root = normalizeRoot(remote);
-    writeLocalMirror();
     cgApplyingRemote = false;
     state = prevId ? findAcc(prevId) : null;
     var view = document.body.getAttribute("data-view");
@@ -906,7 +891,7 @@
     if (!cgDb || !cgUser || cgApplyingRemote) return;
     cgPending = true;
     clearTimeout(cgSyncTimer);
-    cgSyncTimer = setTimeout(cgDoPush, 1200);
+    cgSyncTimer = setTimeout(cgDoPush, 700);
   }
   function cgDoPush(){
     clearTimeout(cgSyncTimer);
@@ -916,7 +901,10 @@
       .then(function(){ setSync("Synchronisé"); })
       .catch(function(e){
         console.error("Échec de synchronisation cloud :", e);
-        setSync("Échec de synchronisation (sauvegarde locale conservée)");
+        setSync("Échec de synchronisation — nouvelle tentative…");
+        cgPending = true;
+        clearTimeout(cgSyncTimer);
+        cgSyncTimer = setTimeout(cgDoPush, 5000);
       });
   }
 
@@ -924,7 +912,7 @@
   // Modèle de données
   // =====================================================================
   function newId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null, lastExport:null, changesSinceExport:0 } }; }
+  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null } }; }
   function defaultAccountSettings(){ return { broker:"", currency:"USD", initial:10000, leverage:"", risk:1 }; }
 
   function isValidRoot(obj){
@@ -955,8 +943,6 @@
     out.version = 2;
     if(!out.meta) out.meta = {};
     if(out.meta.lastSaved === undefined) out.meta.lastSaved = null;
-    if(out.meta.lastExport === undefined) out.meta.lastExport = null;
-    if(out.meta.changesSinceExport === undefined) out.meta.changesSinceExport = 0;
     out.accounts.forEach(function(a){
       if(!a.id) a.id = newId("a_");
       if(!a.name) a.name = "Compte";
@@ -975,187 +961,85 @@
   function totalTrades(){ return root.accounts.reduce(function(s,a){ return s + a.trades.length; }, 0); }
 
   // =====================================================================
-  // Stockage local (par utilisateur) : localStorage + miroir IndexedDB + historique tournant
-  // =====================================================================
-  function lsKey(){ return LS_PREFIX + cgUser.uid; }
-  function histKey(i){ return LS_PREFIX + cgUser.uid + "_hist_" + i; }
-  function idbKey(){ return "ws_" + cgUser.uid; }
-
-  function idbOpen(){
-    return new Promise(function(resolve, reject){
-      if(!window.indexedDB){ reject(new Error("IndexedDB indisponible")); return; }
-      var req = indexedDB.open(IDB_NAME, 1);
-      req.onupgradeneeded = function(){ req.result.createObjectStore(IDB_STORE); };
-      req.onsuccess = function(){ resolve(req.result); };
-      req.onerror = function(){ reject(req.error); };
-    });
-  }
-  function idbGet(){
-    if(!cgUser) return Promise.resolve(null);
-    var key = idbKey();
-    return idbOpen().then(function(db){
-      return new Promise(function(resolve, reject){
-        var req = db.transaction(IDB_STORE, "readonly").objectStore(IDB_STORE).get(key);
-        req.onsuccess = function(){ resolve(req.result || null); };
-        req.onerror = function(){ reject(req.error); };
-      });
-    }).catch(function(e){ console.warn("IndexedDB indisponible en lecture :", e); return null; });
-  }
-  function idbSet(data){
-    if(!cgUser) return Promise.resolve(false);
-    var key = idbKey();
-    return idbOpen().then(function(db){
-      return new Promise(function(resolve, reject){
-        var tx = db.transaction(IDB_STORE, "readwrite");
-        tx.objectStore(IDB_STORE).put(clone(data), key);
-        tx.oncomplete = function(){ resolve(true); };
-        tx.onerror = function(){ reject(tx.error); };
-      });
-    }).catch(function(e){ console.warn("IndexedDB indisponible en écriture :", e); return false; });
-  }
-
-  function rotateHistoryBeforeSave(){
-    try{
-      for(var i = HISTORY_SLOTS; i > 1; i--){
-        var prev = localStorage.getItem(histKey(i-1));
-        if(prev !== null) localStorage.setItem(histKey(i), prev);
-      }
-      var currentMain = localStorage.getItem(lsKey());
-      if(currentMain !== null) localStorage.setItem(histKey(1), currentMain);
-    }catch(e){
-      console.warn("Rotation de l'historique local échouée", e);
-    }
-  }
-  function listHistorySnapshots(){
-    var out = [];
-    for(var i = 1; i <= HISTORY_SLOTS; i++){
-      try{
-        var raw = localStorage.getItem(histKey(i));
-        if(!raw) continue;
-        var parsed = JSON.parse(raw);
-        if(!isValidRoot(parsed)) continue;
-        var norm = normalizeRoot(parsed);
-        out.push({ slot:i, data:norm, ts: (norm.meta && norm.meta.lastSaved) || null,
-          tradeCount: norm.accounts.reduce(function(s,a){ return s + a.trades.length; }, 0),
-          accountCount: norm.accounts.length });
-      }catch(e){ /* slot corrompu, ignoré */ }
-    }
-    return out;
-  }
-
-  function loadFromLocalStorage(){
-    try{
-      var raw = localStorage.getItem(lsKey());
-      if(!raw) return null;
-      var parsed = JSON.parse(raw);
-      if(!isValidRoot(parsed)) return null;
-      return normalizeRoot(parsed);
-    }catch(e){
-      console.error("localStorage principal illisible/corrompu :", e);
-      return null;
-    }
-  }
-
-  // Charge la meilleure copie locale de CET utilisateur (principale, sinon récupération automatique).
-  function loadLocalBest(){
-    var main = loadFromLocalStorage();
-    if(main) return Promise.resolve({ data:main, source:null });
-    var snaps = listHistorySnapshots().sort(function(a,b){ return new Date(b.ts||0)-new Date(a.ts||0); });
-    var bestHist = snaps.length ? snaps[0] : null;
-    return idbGet().then(function(idbData){
-      var cands = [];
-      if(bestHist) cands.push({ source:"historique local (slot " + bestHist.slot + ")", data:bestHist.data });
-      if(idbData && isValidRoot(idbData)) cands.push({ source:"copie miroir IndexedDB", data:normalizeRoot(idbData) });
-      if(!cands.length) return null;
-      cands.sort(function(a,b){ return rootTime(b.data) - rootTime(a.data); });
-      return cands[0];
-    });
-  }
-
-  function writeLocalMirror(){
-    try{ localStorage.setItem(lsKey(), JSON.stringify(root)); }catch(e){ console.warn("Écriture locale impossible", e); }
-    idbSet(root);
-  }
-
-  // =====================================================================
-  // Sauvegarde
+  // Sauvegarde : tout est enregistré automatiquement dans Firebase
   // =====================================================================
   function persist(){
     if(!root || !cgUser) return false;
     root.meta.lastSaved = new Date().toISOString();
-
-    var json;
-    try{ json = JSON.stringify(root); }
-    catch(e){ alert("Erreur interne : les données n'ont pas pu être préparées pour la sauvegarde."); return false; }
-
-    rotateHistoryBeforeSave();
-
-    try{
-      localStorage.setItem(lsKey(), json);
-    }catch(e){
-      console.error("Échec d'écriture localStorage :", e);
-      alert("⚠️ La sauvegarde locale a échoué (espace de stockage plein ou navigation privée). Exportez vos données via « Détails du compte → Exporter ». La synchronisation cloud reste active.");
-      idbSet(root);
-      updateSaveIndicator();
-      cgPushToCloud();
-      return false;
-    }
-
-    idbSet(root);
-    updateSaveIndicator();
     cgPushToCloud();
     return true;
   }
-
   function save(){
     var ok = persist();
     renderStatsGlobal();
     return ok;
   }
 
-  function registerUnsavedChange(){
-    root.meta.changesSinceExport = (root.meta.changesSinceExport || 0) + 1;
-    checkExportReminder();
+  // =====================================================================
+  // Captures de trade : une image compressée par document Firestore
+  // (journals/{uid}/shots/{id}) ; le trade ne garde que {id, desc}.
+  // =====================================================================
+  var MAX_SHOTS = 8;
+  var shotCache = {};
+  function shotsCol(){ return cgDocRef().collection("shots"); }
+  function allShotIds(acc){
+    var ids = [];
+    acc.trades.forEach(function(t){ (t.shots || []).forEach(function(sh){ ids.push(sh.id); }); });
+    return ids;
   }
-
-  function updateSaveIndicator(){
-    var el = $("saveIndicator");
-    if(!el || !root) return;
-    if(root.meta && root.meta.lastSaved){
-      var d = new Date(root.meta.lastSaved);
-      el.textContent = "Sauvegardé à " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
-    } else {
-      el.textContent = "Aucune sauvegarde pour l'instant";
-    }
+  function deleteShots(ids){
+    if(!ids || !ids.length || !cgDb || !cgUser) return Promise.resolve();
+    return Promise.all(ids.map(function(id){
+      delete shotCache[id];
+      return shotsCol().doc(id).delete().catch(function(e){ console.warn("Suppression de capture échouée :", e); });
+    }));
   }
-
-  function checkExportReminder(){
-    var banner = $("exportReminder");
-    if(!banner || !root) return;
-    var changes = root.meta.changesSinceExport || 0;
-    var daysSince = null;
-    if(root.meta.lastExport){
-      daysSince = (Date.now() - new Date(root.meta.lastExport).getTime()) / 86400000;
-    }
-    var shouldWarn = changes >= EXPORT_REMINDER_CHANGES || (daysSince !== null && daysSince >= EXPORT_REMINDER_DAYS) || (!root.meta.lastExport && totalTrades() >= 3);
-    banner.style.display = shouldWarn ? "flex" : "none";
-    if(shouldWarn){
-      var msg = $("exportReminderText");
-      if(msg){
-        msg.textContent = root.meta.lastExport
-          ? changes + " modification(s) non sauvegardée(s) en fichier depuis le " + new Date(root.meta.lastExport).toLocaleDateString("fr-FR") + "."
-          : "Aucune sauvegarde en fichier n'a encore été faite. Pense à exporter une copie de tes données.";
-      }
-    }
+  function uploadShot(sh){
+    return shotsCol().doc(sh.id).set({ data: sh.dataUrl, createdAt: new Date().toISOString() })
+      .then(function(){ shotCache[sh.id] = sh.dataUrl; sh.isNew = false; });
   }
-  window.checkExportReminder = checkExportReminder;
-
-  function showRecoveryBanner(source){
-    var el = $("recoveryNotice");
-    if(!el) return;
-    el.textContent = "Vos données principales étaient introuvables ou corrompues : récupération automatique effectuée depuis " + source + ".";
-    el.style.display = "block";
-    setTimeout(function(){ el.style.display = "none"; }, 12000);
+  function loadShotUrl(sh){
+    if(sh.dataUrl) return Promise.resolve(sh.dataUrl);
+    if(shotCache[sh.id]) return Promise.resolve(shotCache[sh.id]);
+    return shotsCol().doc(sh.id).get().then(function(doc){
+      if(!doc.exists) throw new Error("Capture introuvable");
+      var d = doc.data().data;
+      shotCache[sh.id] = d;
+      return d;
+    });
+  }
+  function removeTrade(id){
+    var t = state.trades.find(function(x){ return x.id === id; });
+    if(t) deleteShots((t.shots || []).map(function(sh){ return sh.id; }));
+    state.trades = state.trades.filter(function(x){ return x.id !== id; });
+  }
+  // Réduit l'image (max 1400 px, JPEG) pour rester sous la limite d'1 Mo d'un document Firestore.
+  function compressImage(file){
+    return new Promise(function(resolve, reject){
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function(){
+        var scales = [1, 0.8, 0.65, 0.5], quals = [0.78, 0.65, 0.5], out = null;
+        var base = Math.min(1, 1400 / Math.max(img.width, img.height));
+        for(var i=0;i<scales.length && !out;i++){
+          var w = Math.max(1, Math.round(img.width * base * scales[i]));
+          var h = Math.max(1, Math.round(img.height * base * scales[i]));
+          var c = document.createElement("canvas");
+          c.width = w; c.height = h;
+          var ctx = c.getContext("2d");
+          ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          for(var j=0;j<quals.length;j++){
+            var d = c.toDataURL("image/jpeg", quals[j]);
+            if(d.length <= 800000){ out = d; break; }
+          }
+        }
+        URL.revokeObjectURL(url);
+        if(out) resolve(out); else reject(new Error("Image trop lourde"));
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error("Image illisible")); };
+      img.src = url;
+    });
   }
 
   // =====================================================================
@@ -1265,8 +1149,8 @@
     var acc = findAcc(id);
     if(!acc) return;
     if(confirm("Supprimer définitivement le compte « " + acc.name + " » et tous ses trades ? Les autres comptes ne sont pas touchés.")){
+      deleteShots(allShotIds(acc));
       root.accounts = root.accounts.filter(function(a){ return a.id !== id; });
-      registerUnsavedChange();
       persist();
       enterPicker();
     }
@@ -1315,7 +1199,6 @@
       trades: []
     };
     root.accounts.push(acc);
-    registerUnsavedChange();
     persist();
     openApp(acc.id);
   });
@@ -1331,15 +1214,12 @@
     viewMonth = today.getMonth();
     refreshApp();
     showView("app");
-    if(recoveryPending){ showRecoveryBanner(recoveryPending); recoveryPending = null; }
   }
 
   function refreshApp(){
     renderBrand();
     renderCalendar();
     renderStatsGlobal();
-    updateSaveIndicator();
-    checkExportReminder();
   }
 
   function renderBrand(){
@@ -1532,7 +1412,15 @@
   }
   overlay.addEventListener("click", function(e){ if(e.target === overlay) closeOverlay(); });
   window.closeOverlay = closeOverlay;
-  document.addEventListener("keydown", function(e){ if(e.key === "Escape") closeOverlay(); });
+  document.addEventListener("keydown", function(e){
+    if(lightboxOpen()){
+      if(e.key === "Escape") closeLightbox();
+      else if(e.key === "ArrowLeft") lbStep(-1);
+      else if(e.key === "ArrowRight") lbStep(1);
+      return;
+    }
+    if(e.key === "Escape") closeOverlay();
+  });
 
   // ---- modale d'un jour ----
   function openDayModal(key){
@@ -1569,16 +1457,25 @@
             ' · SL ' + escapeHtml(t.sl||"—") +
             ' · TP ' + escapeHtml(t.tp||"—") +
             (t.strategy ? ' · ' + escapeHtml(t.strategy) : "") +
+            (t.shots && t.shots.length ? ' · ' + t.shots.length + ' capture' + (t.shots.length>1?'s':'') : "") +
             (t.pnl!==undefined && t.pnl!=="" && t.pnl!==null ? ' · ' + escapeHtml(fmtMoney(parseFloat(t.pnl))) : "") +
           '</div>' +
         '</div>' +
         '<div class="trade-actions">' +
+          (t.shots && t.shots.length ? '<button class="iconbtn" data-shots="' + escapeHtml(t.id) + '">Captures</button>' : '') +
           '<button class="iconbtn" data-edit="' + escapeHtml(t.id) + '">Modifier</button>' +
           '<button class="iconbtn danger" data-del="' + escapeHtml(t.id) + '">Suppr.</button>' +
         '</div>';
       listEl.appendChild(row);
     });
 
+    listEl.querySelectorAll("[data-shots]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var id = this.getAttribute("data-shots");
+        var t = state.trades.find(function(x){ return x.id === id; });
+        if(t && t.shots && t.shots.length) openLightbox(t.shots, 0);
+      });
+    });
     listEl.querySelectorAll("[data-edit]").forEach(function(btn){
       btn.addEventListener("click", function(){ openTradeForm(activeDayKey, this.getAttribute("data-edit")); });
     });
@@ -1586,8 +1483,7 @@
       btn.addEventListener("click", function(){
         var id = this.getAttribute("data-del");
         if(confirm("Supprimer ce trade ? Cette action est irréversible.")){
-          state.trades = state.trades.filter(function(t){ return t.id !== id; });
-          registerUnsavedChange();
+          removeTrade(id);
           save();
           renderDayTradesList();
           renderCalendar();
@@ -1601,11 +1497,76 @@
 
   // ---- formulaire de trade ----
   var form = $("tradeForm");
+  form.addEventListener("submit", function(e){ e.preventDefault(); });
   var fields = {
     pair: $("f_pair"), direction: $("f_direction"), strategy: $("f_strategy"), status: $("f_status"),
     lot: $("f_lot"), entry: $("f_entry"), sl: $("f_sl"), tp: $("f_tp"), exit: $("f_exit"), pnl: $("f_pnl"),
     geo: $("f_geo"), macro: $("f_macro"), evolution: $("f_evolution")
   };
+  var formShots = [];    // captures du formulaire : {id, desc, dataUrl|null, isNew}
+  var formRemoved = [];  // ids de captures existantes retirées (supprimées à l'enregistrement)
+
+  function renderShotList(){
+    var list = $("shotList");
+    list.innerHTML = "";
+    formShots.forEach(function(sh){
+      var item = document.createElement("div");
+      item.className = "shot-item";
+
+      var thumb = document.createElement("div");
+      thumb.className = "shot-thumb";
+      thumb.textContent = "Chargement…";
+      thumb.addEventListener("click", function(){ openLightbox(formShots, formShots.indexOf(sh)); });
+
+      var right = document.createElement("div");
+      right.className = "shot-fields";
+      var inp = document.createElement("input");
+      inp.type = "text"; inp.maxLength = 300; inp.value = sh.desc || "";
+      inp.placeholder = "Description (ex : entrée sur retest, sortie au TP1…)";
+      inp.addEventListener("input", function(){ sh.desc = inp.value; });
+
+      var actions = document.createElement("div");
+      actions.className = "shot-actions";
+      var viewBtn = document.createElement("button");
+      viewBtn.type = "button"; viewBtn.className = "iconbtn"; viewBtn.textContent = "Agrandir";
+      viewBtn.addEventListener("click", function(){ openLightbox(formShots, formShots.indexOf(sh)); });
+      var rmBtn = document.createElement("button");
+      rmBtn.type = "button"; rmBtn.className = "iconbtn danger"; rmBtn.textContent = "Retirer";
+      rmBtn.addEventListener("click", function(){
+        var i = formShots.indexOf(sh);
+        if(i > -1) formShots.splice(i, 1);
+        if(!sh.isNew) formRemoved.push(sh.id);
+        renderShotList();
+      });
+      actions.appendChild(viewBtn); actions.appendChild(rmBtn);
+      right.appendChild(inp); right.appendChild(actions);
+      item.appendChild(thumb); item.appendChild(right);
+      list.appendChild(item);
+
+      loadShotUrl(sh).then(function(url){
+        var img = document.createElement("img");
+        img.src = url; img.alt = sh.desc || "Capture";
+        thumb.textContent = "";
+        thumb.appendChild(img);
+      }).catch(function(){ thumb.textContent = "Image indisponible"; });
+    });
+    $("addShotBtn").style.display = formShots.length >= MAX_SHOTS ? "none" : "block";
+  }
+
+  $("addShotBtn").addEventListener("click", function(){ $("shotFile").click(); });
+  $("shotFile").addEventListener("change", function(e){
+    var files = Array.prototype.slice.call(e.target.files || []);
+    e.target.value = "";
+    files = files.slice(0, Math.max(0, MAX_SHOTS - formShots.length));
+    files.reduce(function(chain, f){
+      return chain.then(function(){
+        return compressImage(f).then(function(url){
+          formShots.push({ id:newId("s_"), desc:"", dataUrl:url, isNew:true });
+          renderShotList();
+        }).catch(function(){ alert("Impossible de lire « " + f.name + " » comme image."); });
+      });
+    }, Promise.resolve());
+  });
 
   function openTradeForm(dayKey, tradeId){
     activeDayKey = dayKey;
@@ -1614,6 +1575,8 @@
     fields.direction.value = "achat";
     fields.status.value = "en_cours";
     $("deleteTradeBtn").style.display = "none";
+    formShots = [];
+    formRemoved = [];
 
     if(tradeId){
       var t = state.trades.find(function(x){ return x.id === tradeId; });
@@ -1631,6 +1594,7 @@
         fields.geo.value = t.geo || "";
         fields.macro.value = t.macro || "";
         fields.evolution.value = t.evolution || "";
+        formShots = (t.shots || []).map(function(sh){ return { id:sh.id, desc:sh.desc || "", dataUrl:null, isNew:false }; });
       }
       $("formModalTitle").textContent = "Modifier le trade";
       $("deleteTradeBtn").style.display = "inline-block";
@@ -1638,47 +1602,92 @@
       $("formModalTitle").textContent = "Nouveau trade";
     }
     $("formModalSub").textContent = dayKey;
+    renderShotList();
     showOnly(modalForm);
   }
   window.openTradeForm = openTradeForm;
 
   $("saveTradeBtn").addEventListener("click", function(){
     if(!fields.pair.value.trim()){ fields.pair.focus(); return; }
-    var payload = {
-      date: activeDayKey,
-      pair: fields.pair.value.trim(),
-      direction: fields.direction.value,
-      strategy: fields.strategy.value.trim(),
-      status: fields.status.value,
-      lot: fields.lot.value, entry: fields.entry.value, sl: fields.sl.value, tp: fields.tp.value,
-      exit: fields.exit.value, pnl: fields.pnl.value,
-      geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim()
-    };
+    var btn = this;
+    var dayKey = activeDayKey;
+    var newOnes = formShots.filter(function(sh){ return sh.isNew; });
+    btn.disabled = true;
+    btn.textContent = newOnes.length ? "Envoi des captures…" : "Enregistrement…";
 
-    if(editingTradeId){
-      var idx = state.trades.findIndex(function(x){ return x.id === editingTradeId; });
-      if(idx > -1) state.trades[idx] = Object.assign(state.trades[idx], payload);
-    } else {
-      payload.id = "t_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
-      payload.createdAt = new Date().toISOString();
-      state.trades.push(payload);
-    }
-    registerUnsavedChange();
-    save();
-    renderCalendar();
-    openDayModal(activeDayKey);
+    Promise.all(newOnes.map(uploadShot)).then(function(){
+      var payload = {
+        date: dayKey,
+        pair: fields.pair.value.trim(),
+        direction: fields.direction.value,
+        strategy: fields.strategy.value.trim(),
+        status: fields.status.value,
+        lot: fields.lot.value, entry: fields.entry.value, sl: fields.sl.value, tp: fields.tp.value,
+        exit: fields.exit.value, pnl: fields.pnl.value,
+        geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim(),
+        shots: formShots.map(function(sh){ return { id:sh.id, desc:(sh.desc || "").trim() }; })
+      };
+      if(editingTradeId){
+        var idx = state.trades.findIndex(function(x){ return x.id === editingTradeId; });
+        if(idx > -1) state.trades[idx] = Object.assign(state.trades[idx], payload);
+      } else {
+        payload.id = "t_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
+        payload.createdAt = new Date().toISOString();
+        state.trades.push(payload);
+      }
+      deleteShots(formRemoved);
+      formRemoved = [];
+      save();
+      renderCalendar();
+      openDayModal(dayKey);
+    }).catch(function(e){
+      console.error("Envoi des captures échoué :", e);
+      deleteShots(newOnes.map(function(sh){ return sh.id; })); // nettoie d'éventuels envois partiels
+      alert("Impossible d'enregistrer les captures. Vérifie ta connexion et que les règles Firestore autorisent journals/{uid}/shots.");
+    }).then(function(){
+      btn.disabled = false;
+      btn.textContent = "Enregistrer";
+    });
   });
 
   $("deleteTradeBtn").addEventListener("click", function(){
     if(!editingTradeId) return;
     if(confirm("Supprimer ce trade ? Cette action est irréversible.")){
-      state.trades = state.trades.filter(function(t){ return t.id !== editingTradeId; });
-      registerUnsavedChange();
+      removeTrade(editingTradeId);
       save();
       renderCalendar();
       openDayModal(activeDayKey);
     }
   });
+
+  // ---- visionneuse de captures ----
+  var lbItems = [], lbIndex = 0;
+  function lightboxOpen(){ return $("lightbox").classList.contains("show"); }
+  function openLightbox(items, idx){
+    if(!items || !items.length) return;
+    lbItems = items; lbIndex = Math.max(0, Math.min(idx, items.length - 1));
+    $("lightbox").classList.add("show");
+    showLightbox();
+  }
+  function closeLightbox(){ $("lightbox").classList.remove("show"); $("lbImg").removeAttribute("src"); }
+  function showLightbox(){
+    var sh = lbItems[lbIndex], cur = lbIndex;
+    $("lbDesc").textContent = sh.desc || "(sans description)";
+    $("lbCount").textContent = (lbIndex + 1) + " / " + lbItems.length;
+    $("lbPrev").style.visibility = lbItems.length > 1 ? "visible" : "hidden";
+    $("lbNext").style.visibility = lbItems.length > 1 ? "visible" : "hidden";
+    $("lbImg").removeAttribute("src");
+    loadShotUrl(sh).then(function(url){
+      if(lightboxOpen() && cur === lbIndex) $("lbImg").src = url;
+    }).catch(function(){
+      if(lightboxOpen() && cur === lbIndex) $("lbDesc").textContent = "Image indisponible.";
+    });
+  }
+  function lbStep(d){ if(lbItems.length < 2) return; lbIndex = (lbIndex + d + lbItems.length) % lbItems.length; showLightbox(); }
+  $("lbClose").addEventListener("click", closeLightbox);
+  $("lbPrev").addEventListener("click", function(){ lbStep(-1); });
+  $("lbNext").addEventListener("click", function(){ lbStep(1); });
+  $("lightbox").addEventListener("click", function(e){ if(e.target === $("lightbox")) closeLightbox(); });
 
   // ---- modale « Détails du compte » ----
   function openAccountModal(){
@@ -1706,51 +1715,10 @@
       $("a_statBestWorst").value = "—";
     }
 
-    $("a_lastExport").value = root.meta.lastExport ? new Date(root.meta.lastExport).toLocaleString("fr-FR") : "jamais";
-    $("a_lastSaved").value = root.meta.lastSaved ? new Date(root.meta.lastSaved).toLocaleString("fr-FR") : "jamais";
 
-    renderHistoryList();
     showOnly(modalAccount);
   }
   window.openAccountModal = openAccountModal;
-
-  function renderHistoryList(){
-    var el = $("historyList");
-    if(!el) return;
-    var snaps = listHistorySnapshots().sort(function(a,b){ return new Date(b.ts||0) - new Date(a.ts||0); });
-    if(!snaps.length){
-      el.innerHTML = '<div class="empty-state" style="padding:14px 0;">Aucune version antérieure enregistrée pour l\'instant.</div>';
-      return;
-    }
-    el.innerHTML = "";
-    snaps.forEach(function(sn){
-      var row = document.createElement("div");
-      row.className = "trade-row";
-      var when = sn.ts ? new Date(sn.ts).toLocaleString("fr-FR") : "date inconnue";
-      row.innerHTML =
-        '<div class="trade-main">' +
-          '<div class="trade-pair" style="font-size:14px;">' + escapeHtml(when) + '</div>' +
-          '<div class="trade-meta">' + sn.accountCount + ' compte(s) · ' + sn.tradeCount + ' trade(s)</div>' +
-        '</div>' +
-        '<div class="trade-actions"><button class="iconbtn" data-restore="' + sn.slot + '">Restaurer</button></div>';
-      el.appendChild(row);
-    });
-    el.querySelectorAll("[data-restore]").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        var slot = this.getAttribute("data-restore");
-        var snap = snaps.find(function(x){ return String(x.slot) === slot; });
-        if(!snap) return;
-        if(confirm("Restaurer cette version du " + (snap.ts ? new Date(snap.ts).toLocaleString("fr-FR") : "slot "+slot) + " ? L'état actuel sera lui-même conservé dans l'historique.")){
-          var prevId = state ? state.id : null;
-          root = normalizeRoot(clone(snap.data));
-          state = prevId ? findAcc(prevId) : null;
-          registerUnsavedChange();
-          persist();
-          if(state){ refreshApp(); openAccountModal(); } else { enterPicker(); }
-        }
-      });
-    });
-  }
 
   $("saveAccountBtn").addEventListener("click", function(){
     var name = $("a_name").value.trim();
@@ -1761,7 +1729,6 @@
     state.account.initial = parseFloat($("a_initial").value) || 0;
     state.account.leverage = $("a_leverage").value.trim();
     state.account.risk = parseFloat($("a_risk").value) || 0;
-    registerUnsavedChange();
     save();
     renderBrand();
     renderCalendar();
@@ -1770,8 +1737,8 @@
 
   $("resetBtn").addEventListener("click", function(){
     if(confirm("Effacer tous les trades du compte « " + state.name + " » ? Les réglages du compte sont conservés. L'état actuel restera récupérable quelques sauvegardes via « Restaurer une version précédente », puis sera perdu.")){
+      deleteShots(allShotIds(state));
       state.trades = [];
-      registerUnsavedChange();
       save();
       renderCalendar();
       closeOverlay();
@@ -1780,71 +1747,61 @@
 
   $("deleteAccountBtn").addEventListener("click", function(){ if(state) deleteAccount(state.id); });
 
-  function doExport(){
-    var blob = new Blob([JSON.stringify(root, null, 2)], {type:"application/json"});
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement("a");
-    var d = new Date();
-    a.href = url;
-    a.download = "carnet-trading-sauvegarde-" + d.toISOString().slice(0,10) + "-" + d.getHours() + "h" + pad(d.getMinutes()) + ".json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    root.meta.lastExport = new Date().toISOString();
-    root.meta.changesSinceExport = 0;
-    save();
-    checkExportReminder();
-  }
-  $("exportBtn").addEventListener("click", doExport);
-  $("exportReminderBtn").addEventListener("click", doExport);
-
-  $("importBtn").addEventListener("click", function(){ $("importFile").click(); });
-  $("importFile").addEventListener("change", function(e){
-    var file = e.target.files[0];
-    if(!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev){
-      try{
-        var parsed = JSON.parse(ev.target.result);
-        if(!isValidRoot(parsed)) throw new Error("Format invalide");
-        var isMulti = Array.isArray(parsed.accounts);
-        var msg = isMulti
-          ? "Importer ce fichier remplacera TOUS vos comptes actuels (l'état actuel reste récupérable via l'historique). Continuer ?"
-          : "Ce fichier provient de l'ancienne version : il sera ajouté comme un nouveau compte. Continuer ?";
-        if(confirm(msg)){
-          var conv = normalizeRoot(parsed);
-          var prevId = state ? state.id : null;
-          if(isMulti){
-            conv.meta = root.meta;
-            root = conv;
-          } else {
-            var added = conv.accounts[0];
-            added.id = newId("a_");
-            added.name = "Import — " + added.name;
-            root.accounts.push(added);
-          }
-          state = prevId ? findAcc(prevId) : null;
-          registerUnsavedChange();
-          persist();
-          if(state){ refreshApp(); openAccountModal(); } else { enterPicker(); }
-        }
-      }catch(err){
-        alert("Fichier invalide. Merci d'importer une sauvegarde exportée depuis cette application.");
-      }
-      $("importFile").value = "";
-    };
-    reader.readAsText(file);
-  });
-
   // ---- navigation mois ----
   $("prevMonth").addEventListener("click", function(){ viewMonth--; if(viewMonth<0){ viewMonth=11; viewYear--; } renderCalendar(); });
   $("nextMonth").addEventListener("click", function(){ viewMonth++; if(viewMonth>11){ viewMonth=0; viewYear++; } renderCalendar(); });
   $("todayBtn").addEventListener("click", function(){ viewYear = today.getFullYear(); viewMonth = today.getMonth(); renderCalendar(); });
 
   // ---------------- PDF export (bilan mensuel) ----------------
+  // --- helpers PDF : la police standard du PDF ne sait pas afficher les espaces insécables/fines produites par toLocaleString("fr-FR") ---
+  function fmtPdfNum(n){
+    var neg = n < 0;
+    var parts = Math.abs(n).toFixed(2).split(".");
+    var intPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    return (neg ? "-" : "") + intPart + "," + parts[1];
+  }
+  function pdfText(str){
+    if(str === undefined || str === null) return "";
+    return String(str)
+      .replace(/[\u00a0\u202f\u2009\u2007]/g, " ")
+      .replace(/[^\x20-\x7E\u00A1-\u00FF\u2013\u2014\u2018\u2019\u201C\u201D\u2026\u20AC\u2022\n]/g, "");
+  }
+  function pdfNow(){
+    var d = new Date();
+    return pad(d.getDate()) + "/" + pad(d.getMonth()+1) + "/" + d.getFullYear() + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
   function generateMonthlyPdf(){
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      alert("La bibliothèque de génération PDF n'a pas pu se charger (vérifiez votre connexion internet, elle est chargée depuis un CDN).");
+      return;
+    }
+    var btn = $("exportPdfBtn");
+    var prefix = viewYear + "-" + pad(viewMonth+1);
+    var shotItems = [];
+    state.trades.forEach(function(t){
+      if(t.date && t.date.indexOf(prefix) === 0 && t.shots){
+        t.shots.forEach(function(sh){ shotItems.push(sh); });
+      }
+    });
+    var oldLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = shotItems.length ? "Chargement des captures…" : "Génération…";
+    var urls = {};
+    Promise.all(shotItems.map(function(sh){
+      return loadShotUrl(sh).then(function(u){ urls[sh.id] = u; }).catch(function(){ urls[sh.id] = null; });
+    })).then(function(){
+      buildMonthlyPdf(urls);
+    }).catch(function(e){
+      console.error("Génération du PDF échouée :", e);
+      alert("La génération du PDF a échoué.");
+    }).then(function(){
+      btn.disabled = false;
+      btn.textContent = oldLabel;
+    });
+  }
+
+  function buildMonthlyPdf(shotUrls){
     if(!window.jspdf || !window.jspdf.jsPDF){
       alert("La bibliothèque de génération PDF n'a pas pu se charger (vérifiez votre connexion internet, elle est chargée depuis un CDN).");
       return;
@@ -1874,10 +1831,10 @@
     var winrate = closedCount ? Math.round((wins/closedCount)*100) + "%" : "—";
     var pnlMonth = monthTrades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); }, 0);
 
-    function fmtPdfMoney(n){
+    function fmtPdfMoney(n, plain){
       if(n===undefined || n===null || isNaN(n)) return "—";
-      var sign = n > 0 ? "+" : "";
-      return sign + Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2, maximumFractionDigits:2}) + " " + cur;
+      var sign = (n > 0 && !plain) ? "+" : "";
+      return sign + fmtPdfNum(n) + " " + pdfText(cur);
     }
     function dmy(iso){
       if(!iso) return "";
@@ -1890,11 +1847,11 @@
     doc.text("Carnet de Trading — Bilan mensuel", marginX, y);
     y += 7;
     doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(90);
-    var subLine = monthLabel + "   ·   " + state.name + (state.account.broker ? "   ·   " + state.account.broker : "");
+    var subLine = monthLabel + "   ·   " + pdfText(state.name) + (state.account.broker ? "   ·   " + pdfText(state.account.broker) : "");
     doc.text(subLine, marginX, y);
     y += 5;
     doc.setFontSize(9);
-    doc.text("Devise : " + cur + "   ·   Généré le " + new Date().toLocaleString("fr-FR"), marginX, y);
+    doc.text("Devise : " + cur + "   ·   Généré le " + pdfNow(), marginX, y);
     doc.setTextColor(20);
     y += 9;
 
@@ -1905,8 +1862,8 @@
       styles: { fontSize: 10, cellPadding: 1.6 },
       columnStyles: { 0: { fontStyle: "bold", cellWidth: 75 } },
       body: [
-        ["Solde actuel du compte", fmtPdfMoney(currentBalance)],
-        ["Capital initial", fmtPdfMoney(parseFloat(state.account.initial)||0)],
+        ["Solde actuel du compte", fmtPdfMoney(currentBalance, true)],
+        ["Capital initial", fmtPdfMoney(parseFloat(state.account.initial)||0, true)],
         ["Trades ce mois-ci", String(monthTrades.length)],
         ["Taux de réussite (mois)", winrate],
         ["Résultat du mois", fmtPdfMoney(pnlMonth)],
@@ -1930,19 +1887,20 @@
         body: monthTrades.map(function(t){
           return [
             dmy(t.date),
-            t.pair || "",
+            pdfText(t.pair),
             t.direction === "vente" ? "Vente" : "Achat",
             STATUS_LABEL[t.status] || "",
-            t.lot || "",
-            t.entry || "",
-            t.sl || "",
-            t.tp || "",
-            t.exit || "",
+            pdfText(t.lot),
+            pdfText(t.entry),
+            pdfText(t.sl),
+            pdfText(t.tp),
+            pdfText(t.exit),
             (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null) ? fmtPdfMoney(parseFloat(t.pnl)) : "",
-            t.strategy || ""
+            pdfText(t.strategy)
           ];
         }),
         styles: { fontSize: 7.5, cellPadding: 1.8 },
+        columnStyles: { 9: { cellWidth: "wrap" } },
         headStyles: { fillColor: [23,27,29], textColor: 255, fontStyle: "bold" },
         alternateRowStyles: { fillColor: [244,242,236] },
         margin: { left: marginX, right: marginX }
@@ -1962,7 +1920,7 @@
         withContext.forEach(function(t){
           if(y > pageHeight - 25){ doc.addPage(); y = 18; }
           doc.setFont("helvetica","bold"); doc.setFontSize(10);
-          var title = dmy(t.date) + " — " + (t.pair||"") + " (" + (t.direction==="vente"?"Vente":"Achat") + ", " + (STATUS_LABEL[t.status]||"") + ")";
+          var title = dmy(t.date) + " — " + pdfText(t.pair) + " (" + (t.direction==="vente"?"Vente":"Achat") + ", " + (STATUS_LABEL[t.status]||"") + ")";
           doc.text(title, marginX, y);
           y += 5;
 
@@ -1970,7 +1928,7 @@
           [["Contexte géopolitique", t.geo], ["Contexte macroéconomique", t.macro], ["Évolution du trade", t.evolution]].forEach(function(pair){
             var label = pair[0], val = pair[1];
             if(!val || !val.trim()) return;
-            var lines = doc.splitTextToSize(label + " : " + val, pageWidth - 2*marginX);
+            var lines = doc.splitTextToSize(pdfText(label + " : " + val), pageWidth - 2*marginX);
             lines.forEach(function(line){
               if(y > pageHeight - 15){ doc.addPage(); y = 18; }
               doc.text(line, marginX, y);
@@ -1980,6 +1938,66 @@
           y += 4;
         });
       }
+    }
+
+    // ---- captures par trade ----
+    var shotTrades = monthTrades.filter(function(t){ return t.shots && t.shots.length; });
+    if(shotTrades.length){
+      var usableW = pageWidth - 2*marginX;
+      var gap = 6;
+      var colW = (usableW - gap) / 2;
+      var maxImgH = 70;
+
+      doc.addPage(); y = 18;
+      doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(20);
+      doc.text("Captures des trades", marginX, y);
+      y += 8;
+
+      shotTrades.forEach(function(t){
+        // prépare les cellules (image + légende) du trade
+        var cells = t.shots.map(function(sh, i){
+          var url = shotUrls[sh.id] || null;
+          var w = colW, h = 0;
+          if(url){
+            try{
+              var props = doc.getImageProperties(url);
+              h = colW * props.height / props.width;
+              if(h > maxImgH){ w = colW * (maxImgH / h); h = maxImgH; }
+            }catch(e){ url = null; }
+          }
+          var caption = (i + 1) + ". " + (sh.desc ? pdfText(sh.desc) : "(sans description)") + (url ? "" : "  [image indisponible]");
+          doc.setFont("helvetica","normal"); doc.setFontSize(8.5);
+          var lines = doc.splitTextToSize(caption, colW);
+          return { url:url, w:w, h:h, lines:lines, capH: lines.length * 3.8 };
+        });
+
+        var title = dmy(t.date) + " — " + pdfText(t.pair) + " (" + (t.direction==="vente"?"Vente":"Achat") + ", " + (STATUS_LABEL[t.status]||"") + ")" +
+          (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null ? "   " + fmtPdfMoney(parseFloat(t.pnl)) : "");
+
+        for(var r = 0; r < cells.length; r += 2){
+          var row = cells.slice(r, r + 2);
+          var rowH = Math.max.apply(null, row.map(function(c){ return c.h + 2 + c.capH; })) + 6;
+          var needed = rowH + (r === 0 ? 8 : 0);
+          if(y + needed > pageHeight - 15){ doc.addPage(); y = 18; }
+          if(r === 0){
+            doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(20);
+            doc.text(title, marginX, y);
+            y += 5;
+          }
+          row.forEach(function(c, k){
+            var x = marginX + k * (colW + gap);
+            if(c.url){
+              doc.addImage(c.url, "JPEG", x, y, c.w, c.h);
+              doc.setDrawColor(200); doc.rect(x, y, c.w, c.h);
+            }
+            doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(70);
+            doc.text(c.lines, x, y + c.h + 4);
+          });
+          doc.setTextColor(20);
+          y += rowH;
+        }
+        y += 2;
+      });
     }
 
     // ---- footer page numbers ----
@@ -1996,6 +2014,12 @@
   $("exportPdfBtn").addEventListener("click", generateMonthlyPdf);
 
   // ---------------- init ----------------
+  window.addEventListener("beforeunload", function(e){
+    if(cgPending){ cgDoPush(); e.preventDefault(); e.returnValue = ""; }
+  });
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "hidden") cgDoPush();
+  });
   cgInitFirebase();
 
 })();
