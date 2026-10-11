@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carnet — Journal de Trading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{
+    --bg:#0E1113;
+    --bg-2:#0B0D0E;
+    --panel:#171B1D;
+    --panel-2:#1D2224;
+    --border:#2A3033;
+    --border-soft:#22282a;
+    --text:#E9E5DD;
+    --text-dim:#9CA3A8;
+    --text-faint:#5C6367;
+    --gold:#C89B4A;
+    --gold-soft:#8C6B34;
+    --green:#74A88B;
+    --green-soft:rgba(116,168,139,0.14);
+    --red:#C1695C;
+    --red-soft:rgba(193,105,92,0.14);
+    --blue:#7096B5;
+    --blue-soft:rgba(112,150,181,0.14);
+    --gray:#6B7076;
+    --gray-soft:rgba(107,112,118,0.14);
+    --serif:'Fraunces', Georgia, serif;
+    --sans:'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono:'IBM Plex Mono', 'Courier New', monospace;
+    --r:3px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(200,155,74,0.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.5;
+    min-height:100vh;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+
+  a,button{font-family:inherit;}
+  button{cursor:pointer;}
+  input,select,textarea{font-family:inherit; font-size:14px;}
+
+  ::selection{background:var(--gold-soft); color:#fff;}
+
+  /* ---------- layout ---------- */
+  .wrap{max-width:1080px; margin:0 auto; padding:28px 20px 80px;}
+
+  .topbar{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:16px; padding-bottom:22px; margin-bottom:26px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .brand{display:flex; flex-direction:column; gap:4px;}
+  .brand .eyebrow{
+    font-family:var(--mono); font-size:11px; letter-spacing:.04em;
+    color:var(--gold); text-transform:lowercase;
+  }
+  .brand h1{
+    font-family:var(--serif); font-weight:500; font-size:30px; margin:0;
+    letter-spacing:-0.01em;
+  }
+
+  .account-quick{
+    display:flex; align-items:center; gap:18px;
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:var(--r); padding:10px 16px; cursor:pointer;
+  }
+  .account-quick:hover{border-color:var(--gold-soft);}
+  .account-quick .aq-block{display:flex; flex-direction:column; gap:2px; text-align:right;}
+  .account-quick .aq-label{font-size:11px; color:var(--text-faint);}
+  .account-quick .aq-value{font-family:var(--mono); font-size:17px; color:var(--text);}
+  .account-quick .aq-value.pos{color:var(--green);}
+  .account-quick .aq-value.neg{color:var(--red);}
+  .account-quick .aq-divider{width:1px; height:30px; background:var(--border);}
+  .account-quick .aq-btn{
+    font-size:12px; color:var(--text-dim); border:1px solid var(--border);
+    background:transparent; border-radius:var(--r); padding:6px 10px;
+  }
+  .account-quick .aq-btn:hover{color:var(--gold); border-color:var(--gold-soft);}
+
+  .banner{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    border-radius:var(--r); padding:11px 16px; font-size:13px; margin-bottom:14px;
+  }
+  .banner.recovery{
+    display:block; background:var(--blue-soft); border:1px solid var(--blue); color:var(--text);
+  }
+  .banner.reminder{
+    background:var(--gold-soft); background:rgba(200,155,74,0.14); border:1px solid var(--gold-soft); color:var(--text);
+    flex-wrap:wrap;
+  }
+  .banner.reminder .btn{padding:7px 14px; font-size:12.5px;}
+  .save-indicator{
+    font-family:var(--mono); font-size:11px; color:var(--text-faint); text-align:right;
+    margin-bottom:14px; margin-top:-6px;
+  }
+
+  main{display:grid; grid-template-columns: 1fr 260px; gap:20px; align-items:start;}
+  @media (max-width: 860px){ main{grid-template-columns:1fr;} }
+
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:var(--r);
+  }
+
+  /* ---------- calendar ---------- */
+  .cal-head{
+    display:flex; align-items:center; gap:10px; padding:18px 20px;
+    border-bottom:1px solid var(--border-soft); flex-wrap:wrap;
+  }
+  @media (max-width:560px){
+    .cal-head h2{ order:-1; width:100%; margin-bottom:6px; }
+  }
+  .cal-head h2{
+    font-family:var(--serif); font-weight:500; font-size:20px; margin:0;
+    flex:1; text-align:center; color:var(--text);
+  }
+  .navbtn{
+    background:transparent; border:1px solid var(--border); color:var(--text-dim);
+    width:32px; height:32px; border-radius:var(--r); font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .navbtn:hover{border-color:var(--gold-soft); color:var(--gold);}
+  .todaybtn{
+    background:transparent; border:1px solid var(--border); color:var(--text-dim);
+    border-radius:var(--r); padding:7px 12px; font-size:12.5px;
+  }
+  .todaybtn:hover{border-color:var(--gold-soft); color:var(--gold);}
+
+  .weekdays{
+    display:grid; grid-template-columns:repeat(7,1fr);
+    padding:10px 10px 0; font-size:11px; color:var(--text-faint);
+    font-family:var(--mono); text-align:center;
+  }
+  .days-grid{
+    display:grid; grid-template-columns:repeat(7,1fr);
+    gap:6px; padding:10px;
+  }
+  .day-cell{
+    aspect-ratio:1/0.82; border:1px solid var(--border-soft); border-radius:var(--r);
+    padding:7px 8px; display:flex; flex-direction:column; justify-content:space-between;
+    background:var(--bg-2); position:relative;
+  }
+  .day-cell.clickable{cursor:pointer;}
+  .day-cell.clickable:hover{border-color:var(--gold-soft); background:var(--panel-2);}
+  .day-cell.empty{background:transparent; border-color:transparent;}
+  .day-cell.today{border-color:var(--gold);}
+  .day-num{font-family:var(--mono); font-size:12.5px; color:var(--text-dim);}
+  .day-cell.today .day-num{color:var(--gold);}
+  .day-dots{display:flex; gap:4px; flex-wrap:wrap;}
+  .dot{width:6px; height:6px; border-radius:50%;}
+  .dot.gagnant{background:var(--green);}
+  .dot.perdant{background:var(--red);}
+  .dot.en_cours{background:var(--blue);}
+  .dot.breakeven{background:var(--gray);}
+  .day-pnl{font-family:var(--mono); font-size:10.5px;}
+  .day-pnl.pos{color:var(--green);}
+  .day-pnl.neg{color:var(--red);}
+
+  /* ---------- stats side card ---------- */
+  .stats-card{padding:18px 18px;}
+  .stats-card h3{
+    font-family:var(--serif); font-weight:500; font-size:15px; margin:0 0 14px;
+    color:var(--text-dim);
+  }
+  .stat-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:9px 0; border-bottom:1px solid var(--border-soft);
+  }
+  .stat-row:last-child{border-bottom:none;}
+  .stat-row .k{font-size:12.5px; color:var(--text-faint);}
+  .stat-row .v{font-family:var(--mono); font-size:14px; color:var(--text);}
+  .stat-row .v.pos{color:var(--green);}
+  .stat-row .v.neg{color:var(--red);}
+
+  /* ---------- modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(6,7,8,0.72);
+    display:none; align-items:flex-start; justify-content:center;
+    padding:5vh 16px; overflow-y:auto; z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--panel); border:1px solid var(--border); border-radius:var(--r);
+    width:100%; max-width:560px; margin-bottom:5vh;
+  }
+  .modal-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 22px; border-bottom:1px solid var(--border-soft);
+  }
+  .modal-header h3{
+    font-family:var(--serif); font-weight:500; font-size:19px; margin:0;
+  }
+  .modal-header .sub{font-size:12px; color:var(--text-faint); font-family:var(--mono); margin-top:2px;}
+  .closebtn{
+    background:transparent; border:1px solid var(--border); color:var(--text-dim);
+    width:28px; height:28px; border-radius:var(--r); font-size:15px; line-height:1;
+  }
+  .closebtn:hover{border-color:var(--red); color:var(--red);}
+  .modal-body{padding:20px 22px;}
+  .modal-footer{
+    padding:16px 22px; border-top:1px solid var(--border-soft);
+    display:flex; justify-content:flex-end; gap:10px;
+  }
+
+  /* trade list inside day modal */
+  .trade-row{
+    border:1px solid var(--border-soft); border-radius:var(--r);
+    padding:12px 14px; margin-bottom:10px; display:flex; justify-content:space-between; gap:12px;
+    align-items:flex-start;
+  }
+  .trade-row:hover{border-color:var(--gold-soft);}
+  .trade-main{display:flex; flex-direction:column; gap:5px;}
+  .trade-tags{display:flex; gap:6px; align-items:center; flex-wrap:wrap;}
+  .tag{
+    font-family:var(--mono); font-size:11px; padding:2px 7px; border-radius:2px;
+    border:1px solid var(--border);
+  }
+  .tag.dir-achat{color:var(--green); border-color:var(--green-soft);}
+  .tag.dir-vente{color:var(--red); border-color:var(--red-soft);}
+  .tag.status-gagnant{background:var(--green-soft); color:var(--green); border-color:transparent;}
+  .tag.status-perdant{background:var(--red-soft); color:var(--red); border-color:transparent;}
+  .tag.status-en_cours{background:var(--blue-soft); color:var(--blue); border-color:transparent;}
+  .tag.status-breakeven{background:var(--gray-soft); color:var(--gray); border-color:transparent;}
+  .trade-pair{font-family:var(--serif); font-size:16px;}
+  .trade-meta{font-size:12px; color:var(--text-faint); font-family:var(--mono);}
+  .trade-actions{display:flex; gap:6px; flex-shrink:0;}
+  .iconbtn{
+    background:transparent; border:1px solid var(--border); color:var(--text-dim);
+    border-radius:var(--r); padding:5px 9px; font-size:12px;
+  }
+  .iconbtn:hover{border-color:var(--gold-soft); color:var(--gold);}
+  .iconbtn.danger:hover{border-color:var(--red); color:var(--red);}
+  .empty-state{
+    text-align:center; padding:30px 10px; color:var(--text-faint); font-size:13px;
+  }
+
+  .addbtn{
+    width:100%; padding:11px; background:transparent; border:1px dashed var(--border);
+    color:var(--text-dim); border-radius:var(--r); font-size:13px; margin-top:4px;
+  }
+  .addbtn:hover{border-color:var(--gold); color:var(--gold);}
+
+  /* form */
+  .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .form-grid.full{grid-template-columns:1fr;}
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .field.span2{grid-column:1/-1;}
+  .field label{font-size:11.5px; color:var(--text-faint); font-family:var(--mono);}
+  .field input, .field select, .field textarea{
+    background:var(--bg-2); border:1px solid var(--border); color:var(--text);
+    border-radius:var(--r); padding:9px 10px; width:100%; outline:none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,155,74,0.12);
+  }
+  .field textarea{resize:vertical; min-height:56px; line-height:1.45;}
+  .field.num input{font-family:var(--mono);}
+  .section-label{
+    font-family:var(--mono); font-size:11px; color:var(--gold); text-transform:lowercase;
+    margin:18px 0 10px; padding-top:14px; border-top:1px solid var(--border-soft);
+  }
+  .section-label:first-child{margin-top:0; padding-top:0; border-top:none;}
+
+  .btn{
+    border-radius:var(--r); padding:10px 18px; font-size:13.5px; border:1px solid var(--border);
+    background:transparent; color:var(--text-dim);
+  }
+  .btn:hover{border-color:var(--text-dim); color:var(--text);}
+  .btn.primary{background:var(--gold); border-color:var(--gold); color:#1a1206; font-weight:500;}
+  .btn.primary:hover{background:#d6a655;}
+  .btn.danger-outline{border-color:var(--red); color:var(--red);}
+  .btn.danger-outline:hover{background:var(--red-soft);}
+
+  .hint{font-size:11.5px; color:var(--text-faint); margin-top:4px;}
+  .account-footer-actions{display:flex; gap:10px; flex-wrap:wrap; padding-top:14px; border-top:1px solid var(--border-soft); margin-top:6px;}
+  .file-input{display:none;}
+
+  footer.pagefoot{
+    text-align:center; color:var(--text-faint); font-size:11.5px; margin-top:34px; font-family:var(--mono);
+  }
+
+  @media (max-width:520px){
+    .form-grid{grid-template-columns:1fr;}
+    .day-cell{aspect-ratio:1/0.9;}
+    .account-quick{gap:10px; padding:8px 12px;}
+    .account-quick .aq-divider{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <span class="eyebrow">journal personnel</span>
+      <h1>Carnet de Trading</h1>
+    </div>
+    <div class="account-quick" onclick="openAccountModal()">
+      <div class="aq-block">
+        <span class="aq-label">Solde actuel</span>
+        <span class="aq-value" id="quickBalance">—</span>
+      </div>
+      <div class="aq-divider"></div>
+      <div class="aq-block">
+        <span class="aq-label">Résultat total</span>
+        <span class="aq-value" id="quickPnl">—</span>
+      </div>
+      <button class="aq-btn" type="button">Détails du compte ›</button>
+    </div>
+  </header>
+
+  <div class="banner recovery" id="recoveryNotice" style="display:none;"></div>
+
+  <div class="banner reminder" id="exportReminder" style="display:none;">
+    <span id="exportReminderText"></span>
+    <button class="btn primary" type="button" id="exportReminderBtn">Exporter maintenant</button>
+  </div>
+
+  <div class="save-indicator" id="saveIndicator">—</div>
+
+  <main>
+    <section class="card">
+      <div class="cal-head">
+        <button class="navbtn" id="prevMonth" aria-label="Mois précédent">‹</button>
+        <h2 id="monthLabel"></h2>
+        <button class="navbtn" id="nextMonth" aria-label="Mois suivant">›</button>
+        <button class="todaybtn" id="todayBtn">Aujourd'hui</button>
+        <button class="todaybtn" id="exportPdfBtn">Bilan PDF du mois</button>
+      </div>
+      <div class="weekdays">
+        <span>lun</span><span>mar</span><span>mer</span><span>jeu</span><span>ven</span><span>sam</span><span>dim</span>
+      </div>
+      <div class="days-grid" id="daysGrid"></div>
+    </section>
+
+    <aside class="card stats-card" id="statsCard">
+      <h3>Ce mois-ci</h3>
+      <div class="stat-row"><span class="k">Trades</span><span class="v" id="statCount">0</span></div>
+      <div class="stat-row"><span class="k">Taux de réussite</span><span class="v" id="statWinrate">—</span></div>
+      <div class="stat-row"><span class="k">Résultat</span><span class="v" id="statPnl">—</span></div>
+      <div class="stat-row"><span class="k">Gagnants</span><span class="v" id="statWins">0</span></div>
+      <div class="stat-row"><span class="k">Perdants</span><span class="v" id="statLosses">0</span></div>
+      <div class="stat-row"><span class="k">En cours</span><span class="v" id="statOpen">0</span></div>
+    </aside>
+  </main>
+
+  <footer class="pagefoot">Données stockées localement dans ce navigateur — pensez à exporter régulièrement depuis « Détails du compte ».</footer>
+</div>
+
+<!-- OVERLAY / MODALS -->
+<div class="overlay" id="overlay">
+
+  <!-- Day modal: list of trades -->
+  <div class="modal" id="modalDay" style="display:none;">
+    <div class="modal-header">
+      <div>
+        <h3 id="dayModalTitle">Jour</h3>
+        <div class="sub" id="dayModalSub"></div>
+      </div>
+      <button class="closebtn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="dayTradesList"></div>
+      <button class="addbtn" id="addTradeBtn">+ Ajouter un trade ce jour-là</button>
+    </div>
+  </div>
+
+  <!-- Trade form modal -->
+  <div class="modal" id="modalForm" style="display:none;">
+    <div class="modal-header">
+      <div>
+        <h3 id="formModalTitle">Nouveau trade</h3>
+        <div class="sub" id="formModalSub"></div>
+      </div>
+      <button class="closebtn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form id="tradeForm">
+        <div class="section-label">identification</div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="f_pair">Paire / Actif</label>
+            <input type="text" id="f_pair" placeholder="EUR/USD" required>
+          </div>
+          <div class="field">
+            <label for="f_direction">Sens</label>
+            <select id="f_direction">
+              <option value="achat">Achat (long)</option>
+              <option value="vente">Vente (short)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f_strategy">Stratégie technique (si utilisée)</label>
+            <input type="text" id="f_strategy" placeholder="ex : cassure de range, OB H4...">
+          </div>
+          <div class="field">
+            <label for="f_status">Statut</label>
+            <select id="f_status">
+              <option value="en_cours">En cours</option>
+              <option value="gagnant">Gagnant</option>
+              <option value="perdant">Perdant</option>
+              <option value="breakeven">Breakeven</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section-label">exécution</div>
+        <div class="form-grid">
+          <div class="field num"><label for="f_lot">Lot</label><input type="number" step="0.01" id="f_lot" placeholder="0.50"></div>
+          <div class="field num"><label for="f_entry">Prix d'entrée</label><input type="number" step="any" id="f_entry"></div>
+          <div class="field num"><label for="f_sl">Stop Loss</label><input type="number" step="any" id="f_sl"></div>
+          <div class="field num"><label for="f_tp">Take Profit</label><input type="number" step="any" id="f_tp"></div>
+          <div class="field num"><label for="f_exit">Prix de sortie (optionnel)</label><input type="number" step="any" id="f_exit"></div>
+          <div class="field num"><label for="f_pnl">Résultat (P&amp;L)</label><input type="number" step="any" id="f_pnl" placeholder="en devise du compte"></div>
+        </div>
+
+        <div class="section-label">contexte</div>
+        <div class="form-grid full">
+          <div class="field">
+            <label for="f_geo">Contexte géopolitique</label>
+            <textarea id="f_geo" placeholder="tensions, élections, décisions politiques..."></textarea>
+          </div>
+          <div class="field">
+            <label for="f_macro">Contexte macroéconomique</label>
+            <textarea id="f_macro" placeholder="taux directeurs, inflation, NFP, données à venir..."></textarea>
+          </div>
+          <div class="field">
+            <label for="f_evolution">Évolution du trade</label>
+            <textarea id="f_evolution" placeholder="comment le trade a évolué, gestion, émotions, sorties partielles..."></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn danger-outline" id="deleteTradeBtn" type="button" style="display:none;">Supprimer</button>
+      <div style="flex:1;"></div>
+      <button class="btn" type="button" onclick="backToDayModal()">Annuler</button>
+      <button class="btn primary" type="button" id="saveTradeBtn">Enregistrer</button>
+    </div>
+  </div>
+
+  <!-- Account modal -->
+  <div class="modal" id="modalAccount" style="display:none;">
+    <div class="modal-header">
+      <div>
+        <h3>Détails du compte</h3>
+        <div class="sub">calculé automatiquement à partir de vos trades</div>
+      </div>
+      <button class="closebtn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field"><label for="a_broker">Broker</label><input type="text" id="a_broker" placeholder="ex : IC Markets"></div>
+        <div class="field"><label for="a_currency">Devise</label>
+          <select id="a_currency">
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="GBP">GBP</option>
+            <option value="MAD">MAD</option>
+            <option value="CHF">CHF</option>
+          </select>
+        </div>
+        <div class="field num"><label for="a_initial">Capital initial</label><input type="number" step="any" id="a_initial"></div>
+        <div class="field num"><label for="a_leverage">Effet de levier</label><input type="text" id="a_leverage" placeholder="1:100"></div>
+        <div class="field num"><label for="a_risk">Risque par trade (%)</label><input type="number" step="any" id="a_risk"></div>
+        <div class="field"><label>Solde actuel (auto)</label><input type="text" id="a_currentDisplay" disabled></div>
+      </div>
+
+      <div class="section-label">statistiques globales</div>
+      <div class="form-grid">
+        <div class="field"><label>Trades enregistrés</label><input type="text" id="a_statTotal" disabled></div>
+        <div class="field"><label>Taux de réussite</label><input type="text" id="a_statWinrate" disabled></div>
+        <div class="field"><label>Résultat total</label><input type="text" id="a_statPnl" disabled></div>
+        <div class="field"><label>Meilleur / pire trade</label><input type="text" id="a_statBestWorst" disabled></div>
+      </div>
+
+      <div class="section-label">fiabilité des données</div>
+      <div class="form-grid">
+        <div class="field"><label>Dernière sauvegarde locale</label><input type="text" id="a_lastSaved" disabled></div>
+        <div class="field"><label>Dernier export fichier</label><input type="text" id="a_lastExport" disabled></div>
+      </div>
+      <div class="hint">La sauvegarde locale se fait automatiquement à chaque modification. L'export fichier (.json) est votre seule protection en cas de vidage du navigateur — pensez à l'utiliser régulièrement.</div>
+
+      <div class="section-label">restaurer une version précédente</div>
+      <div class="hint" style="margin-bottom:10px;">Les 5 dernières sauvegardes sont conservées automatiquement, indépendamment de vos exports manuels.</div>
+      <div id="historyList"></div>
+
+      <div class="account-footer-actions">
+        <button class="btn" type="button" id="exportBtn">Exporter (sauvegarde .json)</button>
+        <button class="btn" type="button" id="importBtn">Importer une sauvegarde</button>
+        <input type="file" id="importFile" class="file-input" accept="application/json">
+        <button class="btn danger-outline" type="button" id="resetBtn">Réinitialiser toutes les données</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" type="button" onclick="closeOverlay()">Fermer</button>
+      <button class="btn primary" type="button" id="saveAccountBtn">Enregistrer</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "tradingJournalData_v1";
+  var MONTHS_FR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"Breakeven"};
+
+  var HISTORY_PREFIX = "tradingJournalData_v1_hist_";
+  var HISTORY_SLOTS = 5; // rotating backups, most recent = slot 1
+  var IDB_NAME = "tradingJournalDB";
+  var IDB_STORE = "state";
+  var IDB_KEY = "main";
+  var EXPORT_REMINDER_CHANGES = 5;   // show banner after N unsaved-to-file changes
+  var EXPORT_REMINDER_DAYS = 7;      // or after N days since last export
+
+  var defaultData = {
+    account:{ broker:"", currency:"USD", initial:10000, leverage:"", risk:1 },
+    trades:[],
+    meta:{ lastSaved:null, lastExport:null, changesSinceExport:0 }
+  };
+
+  var state = null;
+  var viewYear, viewMonth; // 0-indexed month
+  var today = new Date();
+  viewYear = today.getFullYear();
+  viewMonth = today.getMonth();
+
+  var activeDayKey = null;   // yyyy-mm-dd currently open in day modal
+  var editingTradeId = null; // trade id being edited, or null for new
+
+  // ---------------- data integrity helpers ----------------
+  function isValidData(obj){
+    return !!obj && typeof obj === "object" && obj.account && typeof obj.account === "object" && Array.isArray(obj.trades);
+  }
+  function normalizeData(obj){
+    if(!obj.account) obj.account = JSON.parse(JSON.stringify(defaultData.account));
+    if(!obj.trades) obj.trades = [];
+    if(!obj.meta) obj.meta = { lastSaved:null, lastExport:null, changesSinceExport:0 };
+    if(obj.meta.changesSinceExport === undefined) obj.meta.changesSinceExport = 0;
+    return obj;
+  }
+
+  // ---------------- IndexedDB mirror (independent redundant store) ----------------
+  function idbOpen(){
+    return new Promise(function(resolve, reject){
+      if(!window.indexedDB){ reject(new Error("IndexedDB indisponible")); return; }
+      var req = indexedDB.open(IDB_NAME, 1);
+      req.onupgradeneeded = function(){ req.result.createObjectStore(IDB_STORE); };
+      req.onsuccess = function(){ resolve(req.result); };
+      req.onerror = function(){ reject(req.error); };
+    });
+  }
+  function idbGet(){
+    return idbOpen().then(function(db){
+      return new Promise(function(resolve, reject){
+        var tx = db.transaction(IDB_STORE, "readonly");
+        var req = tx.objectStore(IDB_STORE).get(IDB_KEY);
+        req.onsuccess = function(){ resolve(req.result || null); };
+        req.onerror = function(){ reject(req.error); };
+      });
+    }).catch(function(e){ console.warn("IndexedDB indisponible en lecture :", e); return null; });
+  }
+  function idbSet(data){
+    return idbOpen().then(function(db){
+      return new Promise(function(resolve, reject){
+        var tx = db.transaction(IDB_STORE, "readwrite");
+        tx.objectStore(IDB_STORE).put(JSON.parse(JSON.stringify(data)), IDB_KEY);
+        tx.oncomplete = function(){ resolve(true); };
+        tx.onerror = function(){ reject(tx.error); };
+      });
+    }).catch(function(e){ console.warn("IndexedDB indisponible en écriture :", e); return false; });
+  }
+
+  // ---------------- localStorage history (rotating manual-recovery snapshots) ----------------
+  function rotateHistoryBeforeSave(){
+    try{
+      for(var i = HISTORY_SLOTS; i > 1; i--){
+        var prev = localStorage.getItem(HISTORY_PREFIX + (i-1));
+        if(prev !== null) localStorage.setItem(HISTORY_PREFIX + i, prev);
+      }
+      var currentMain = localStorage.getItem(STORAGE_KEY);
+      if(currentMain !== null) localStorage.setItem(HISTORY_PREFIX + 1, currentMain);
+    }catch(e){
+      console.warn("Rotation de l'historique local échouée (espace de stockage insuffisant ?)", e);
+    }
+  }
+  function listHistorySnapshots(){
+    var out = [];
+    for(var i = 1; i <= HISTORY_SLOTS; i++){
+      try{
+        var raw = localStorage.getItem(HISTORY_PREFIX + i);
+        if(!raw) continue;
+        var parsed = JSON.parse(raw);
+        if(!isValidData(parsed)) continue;
+        out.push({ slot:i, data:parsed, ts: (parsed.meta && parsed.meta.lastSaved) || null, tradeCount: parsed.trades.length });
+      }catch(e){ /* slot corrompu, on l'ignore */ }
+    }
+    return out;
+  }
+
+  // ---------------- load / init (with automatic recovery) ----------------
+  function loadFromLocalStorage(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return null;
+      var parsed = JSON.parse(raw);
+      if(!isValidData(parsed)) return null;
+      return normalizeData(parsed);
+    }catch(e){
+      console.error("localStorage principal illisible/corrompu :", e);
+      return null;
+    }
+  }
+
+  function initApp(){
+    var fromLocal = loadFromLocalStorage();
+    if(fromLocal){
+      state = fromLocal;
+      afterStateReady();
+      idbSet(state); // maintien du miroir indépendant en arrière-plan
+      return;
+    }
+
+    // localStorage principal absent ou corrompu -> tentative de récupération automatique
+    var histSnaps = listHistorySnapshots();
+    var bestHistory = histSnaps.length ? histSnaps.sort(function(a,b){ return new Date(b.ts||0)-new Date(a.ts||0); })[0] : null;
+
+    idbGet().then(function(idbData){
+      var candidates = [];
+      if(bestHistory) candidates.push({ source:"historique local (slot " + bestHistory.slot + ")", data: bestHistory.data });
+      if(idbData && isValidData(idbData)) candidates.push({ source:"copie miroir IndexedDB", data: idbData });
+
+      if(candidates.length){
+        candidates.sort(function(a,b){
+          var ta = (a.data.meta && a.data.meta.lastSaved) ? new Date(a.data.meta.lastSaved) : 0;
+          var tb = (b.data.meta && b.data.meta.lastSaved) ? new Date(b.data.meta.lastSaved) : 0;
+          return tb - ta;
+        });
+        var chosen = candidates[0];
+        state = normalizeData(chosen.data);
+        afterStateReady();
+        persist();
+        showRecoveryBanner(chosen.source);
+      } else {
+        state = JSON.parse(JSON.stringify(defaultData));
+        afterStateReady();
+      }
+    });
+  }
+
+  function afterStateReady(){
+    renderCalendar();
+    renderStatsGlobal();
+    updateSaveIndicator();
+    checkExportReminder();
+  }
+
+  // ---------------- save (main persistence + redundancy) ----------------
+  function persist(){
+    state.meta = state.meta || { lastSaved:null, lastExport:null, changesSinceExport:0 };
+    state.meta.lastSaved = new Date().toISOString();
+
+    var json;
+    try{ json = JSON.stringify(state); }
+    catch(e){ alert("Erreur interne : les données n'ont pas pu être préparées pour la sauvegarde."); return false; }
+
+    rotateHistoryBeforeSave();
+
+    try{
+      localStorage.setItem(STORAGE_KEY, json);
+    }catch(e){
+      console.error("Échec d'écriture localStorage :", e);
+      alert("⚠️ La sauvegarde locale a échoué (espace de stockage plein ou navigation privée). Exportez immédiatement vos données via « Détails du compte → Exporter » pour ne rien perdre.");
+      idbSet(state);
+      updateSaveIndicator();
+      return false;
+    }
+
+    idbSet(state);
+    updateSaveIndicator();
+    return true;
+  }
+
+  function save(){
+    var ok = persist();
+    renderStatsGlobal();
+    return ok;
+  }
+
+  function registerUnsavedChange(){
+    state.meta.changesSinceExport = (state.meta.changesSinceExport || 0) + 1;
+    checkExportReminder();
+  }
+
+  function updateSaveIndicator(){
+    var el = document.getElementById("saveIndicator");
+    if(!el) return;
+    if(state.meta && state.meta.lastSaved){
+      var d = new Date(state.meta.lastSaved);
+      el.textContent = "Sauvegardé localement à " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+    } else {
+      el.textContent = "Aucune sauvegarde locale pour l'instant";
+    }
+  }
+
+  function checkExportReminder(){
+    var banner = document.getElementById("exportReminder");
+    if(!banner) return;
+    var changes = (state.meta && state.meta.changesSinceExport) || 0;
+    var daysSince = null;
+    if(state.meta && state.meta.lastExport){
+      daysSince = (Date.now() - new Date(state.meta.lastExport).getTime()) / 86400000;
+    }
+    var shouldWarn = changes >= EXPORT_REMINDER_CHANGES || (daysSince !== null && daysSince >= EXPORT_REMINDER_DAYS) || (!state.meta.lastExport && state.trades.length >= 3);
+    banner.style.display = shouldWarn ? "flex" : "none";
+    if(shouldWarn){
+      var msg = document.getElementById("exportReminderText");
+      if(msg){
+        msg.textContent = state.meta.lastExport
+          ? changes + " modification(s) non sauvegardée(s) en fichier depuis le " + new Date(state.meta.lastExport).toLocaleDateString("fr-FR") + "."
+          : "Aucune sauvegarde en fichier n'a encore été faite. Vos données ne vivent que dans ce navigateur.";
+      }
+    }
+  }
+  window.checkExportReminder = checkExportReminder;
+
+  function showRecoveryBanner(source){
+    var el = document.getElementById("recoveryNotice");
+    if(!el) return;
+    el.textContent = "Vos données principales étaient introuvables ou corrompues : récupération automatique effectuée depuis " + source + ".";
+    el.style.display = "block";
+    setTimeout(function(){ el.style.display = "none"; }, 12000);
+  }
+
+  function escapeHtml(str){
+    if(str === undefined || str === null) return "";
+    return String(str)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+  }
+
+  function fmtMoney(n){
+    if(n === undefined || n === null || isNaN(n)) return "—";
+    var cur = state.account.currency || "USD";
+    var sign = n > 0 ? "+" : "";
+    return sign + Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2, maximumFractionDigits:2}) + " " + cur;
+  }
+  function fmtMoneyPlain(n){
+    if(n === undefined || n === null || isNaN(n)) return "0,00";
+    return Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function pad(n){ return n < 10 ? "0"+n : ""+n; }
+  function dateKey(y,m,d){ return y + "-" + pad(m+1) + "-" + pad(d); }
+  function isToday(y,m,d){
+    return y===today.getFullYear() && m===today.getMonth() && d===today.getDate();
+  }
+
+  // ---------------- calendar rendering ----------------
+  function renderCalendar(){
+    document.getElementById("monthLabel").textContent = MONTHS_FR[viewMonth] + " " + viewYear;
+    var grid = document.getElementById("daysGrid");
+    grid.innerHTML = "";
+
+    var firstOfMonth = new Date(viewYear, viewMonth, 1);
+    var jsFirstDay = firstOfMonth.getDay(); // 0=dim..6=sam
+    var offset = (jsFirstDay + 6) % 7; // convert to lundi=0
+    var daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+
+    for(var i=0;i<offset;i++){
+      var empty = document.createElement("div");
+      empty.className = "day-cell empty";
+      grid.appendChild(empty);
+    }
+
+    for(var d=1; d<=daysInMonth; d++){
+      var key = dateKey(viewYear, viewMonth, d);
+      var dayTrades = state.trades.filter(function(t){ return t.date === key; });
+
+      var cell = document.createElement("div");
+      cell.className = "day-cell clickable" + (isToday(viewYear,viewMonth,d) ? " today" : "");
+      cell.setAttribute("data-date", key);
+
+      var num = document.createElement("div");
+      num.className = "day-num";
+      num.textContent = d;
+      cell.appendChild(num);
+
+      if(dayTrades.length){
+        var dayPnl = dayTrades.reduce(function(sum,t){ return sum + (parseFloat(t.pnl)||0); },0);
+        var dots = document.createElement("div");
+        dots.className = "day-dots";
+        dayTrades.slice(0,6).forEach(function(t){
+          var dot = document.createElement("span");
+          dot.className = "dot " + (t.status || "en_cours");
+          dots.appendChild(dot);
+        });
+        cell.appendChild(dots);
+
+        var pnlEl = document.createElement("div");
+        pnlEl.className = "day-pnl " + (dayPnl > 0 ? "pos" : dayPnl < 0 ? "neg" : "");
+        pnlEl.textContent = dayTrades.some(function(t){return t.pnl!==undefined && t.pnl!=="" && t.pnl!==null;}) ? fmtMoneyPlain(dayPnl) : (dayTrades.length + " trade" + (dayTrades.length>1?"s":""));
+        cell.appendChild(pnlEl);
+      }
+
+      cell.addEventListener("click", function(){
+        openDayModal(this.getAttribute("data-date"));
+      });
+      grid.appendChild(cell);
+    }
+
+    renderStatsMonth();
+  }
+
+  function renderStatsMonth(){
+    var prefix = viewYear + "-" + pad(viewMonth+1);
+    var monthTrades = state.trades.filter(function(t){ return t.date && t.date.indexOf(prefix)===0; });
+    var closed = monthTrades.filter(function(t){ return t.status==="gagnant" || t.status==="perdant"; });
+    var wins = monthTrades.filter(function(t){ return t.status==="gagnant"; }).length;
+    var losses = monthTrades.filter(function(t){ return t.status==="perdant"; }).length;
+    var open = monthTrades.filter(function(t){ return t.status==="en_cours"; }).length;
+    var totalPnl = monthTrades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); },0);
+    var winrate = closed.length ? Math.round((wins/closed.length)*100) : null;
+
+    document.getElementById("statCount").textContent = monthTrades.length;
+    document.getElementById("statWinrate").textContent = winrate===null ? "—" : winrate + "%";
+    var pnlEl = document.getElementById("statPnl");
+    pnlEl.textContent = fmtMoney(totalPnl);
+    pnlEl.className = "v " + (totalPnl>0?"pos":totalPnl<0?"neg":"");
+    document.getElementById("statWins").textContent = wins;
+    document.getElementById("statLosses").textContent = losses;
+    document.getElementById("statOpen").textContent = open;
+  }
+
+  function renderStatsGlobal(){
+    var totalPnl = state.trades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); },0);
+    var currentBalance = (parseFloat(state.account.initial)||0) + totalPnl;
+    document.getElementById("quickBalance").textContent = fmtMoneyPlain(currentBalance) + " " + (state.account.currency||"USD");
+    var pnlEl = document.getElementById("quickPnl");
+    pnlEl.textContent = fmtMoney(totalPnl);
+    pnlEl.className = "aq-value " + (totalPnl>0?"pos":totalPnl<0?"neg":"");
+  }
+
+  // ---------------- overlay / modal control ----------------
+  var overlay = document.getElementById("overlay");
+  var modalDay = document.getElementById("modalDay");
+  var modalForm = document.getElementById("modalForm");
+  var modalAccount = document.getElementById("modalAccount");
+
+  function showOnly(modalEl){
+    [modalDay, modalForm, modalAccount].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
+    overlay.classList.add("show");
+  }
+  function closeOverlay(){
+    overlay.classList.remove("show");
+    activeDayKey = null;
+    editingTradeId = null;
+  }
+  overlay.addEventListener("click", function(e){ if(e.target === overlay) closeOverlay(); });
+  window.closeOverlay = closeOverlay;
+
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape") closeOverlay();
+  });
+
+  // ---------------- day modal ----------------
+  function openDayModal(key){
+    activeDayKey = key;
+    var parts = key.split("-");
+    var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+    var weekdayNames = ["dimanche","lundi","mardi","mercredi","jeudi","vendredi","samedi"];
+    document.getElementById("dayModalTitle").textContent = weekdayNames[d.getDay()] + " " + parseInt(parts[2]) + " " + MONTHS_FR[parseInt(parts[1])-1].toLowerCase() + " " + parts[0];
+    document.getElementById("dayModalSub").textContent = key;
+    renderDayTradesList();
+    showOnly(modalDay);
+  }
+
+  function renderDayTradesList(){
+    var listEl = document.getElementById("dayTradesList");
+    var trades = state.trades.filter(function(t){ return t.date === activeDayKey; });
+    if(!trades.length){
+      listEl.innerHTML = '<div class="empty-state">Aucun trade enregistré ce jour-là.</div>';
+      return;
+    }
+    listEl.innerHTML = "";
+    trades.forEach(function(t){
+      var row = document.createElement("div");
+      row.className = "trade-row";
+      row.innerHTML =
+        '<div class="trade-main">' +
+          '<div class="trade-tags">' +
+            '<span class="trade-pair">' + escapeHtml(t.pair||"—") + '</span>' +
+            '<span class="tag dir-' + (t.direction||"achat") + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' +
+            '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' +
+          '</div>' +
+          '<div class="trade-meta">' +
+            'Lot ' + escapeHtml(t.lot||"—") +
+            ' · SL ' + escapeHtml(t.sl||"—") +
+            ' · TP ' + escapeHtml(t.tp||"—") +
+            (t.strategy ? ' · ' + escapeHtml(t.strategy) : "") +
+            (t.pnl!==undefined && t.pnl!=="" && t.pnl!==null ? ' · ' + fmtMoney(parseFloat(t.pnl)) : "") +
+          '</div>' +
+        '</div>' +
+        '<div class="trade-actions">' +
+          '<button class="iconbtn" data-edit="' + t.id + '">Modifier</button>' +
+          '<button class="iconbtn danger" data-del="' + t.id + '">Suppr.</button>' +
+        '</div>';
+      listEl.appendChild(row);
+    });
+
+    listEl.querySelectorAll("[data-edit]").forEach(function(btn){
+      btn.addEventListener("click", function(){ openTradeForm(activeDayKey, this.getAttribute("data-edit")); });
+    });
+    listEl.querySelectorAll("[data-del]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var id = this.getAttribute("data-del");
+        if(confirm("Supprimer ce trade ? Cette action est irréversible.")){
+          state.trades = state.trades.filter(function(t){ return t.id !== id; });
+          registerUnsavedChange();
+          save();
+          renderDayTradesList();
+          renderCalendar();
+        }
+      });
+    });
+  }
+
+  document.getElementById("addTradeBtn").addEventListener("click", function(){
+    openTradeForm(activeDayKey, null);
+  });
+
+  window.backToDayModal = function(){
+    if(activeDayKey){ openDayModal(activeDayKey); } else { closeOverlay(); }
+  };
+
+  // ---------------- trade form ----------------
+  var form = document.getElementById("tradeForm");
+  var fields = {
+    pair: document.getElementById("f_pair"),
+    direction: document.getElementById("f_direction"),
+    strategy: document.getElementById("f_strategy"),
+    status: document.getElementById("f_status"),
+    lot: document.getElementById("f_lot"),
+    entry: document.getElementById("f_entry"),
+    sl: document.getElementById("f_sl"),
+    tp: document.getElementById("f_tp"),
+    exit: document.getElementById("f_exit"),
+    pnl: document.getElementById("f_pnl"),
+    geo: document.getElementById("f_geo"),
+    macro: document.getElementById("f_macro"),
+    evolution: document.getElementById("f_evolution")
+  };
+
+  function openTradeForm(dayKey, tradeId){
+    activeDayKey = dayKey;
+    editingTradeId = tradeId;
+    form.reset();
+    fields.direction.value = "achat";
+    fields.status.value = "en_cours";
+    document.getElementById("deleteTradeBtn").style.display = "none";
+
+    if(tradeId){
+      var t = state.trades.find(function(x){ return x.id === tradeId; });
+      if(t){
+        fields.pair.value = t.pair || "";
+        fields.direction.value = t.direction || "achat";
+        fields.strategy.value = t.strategy || "";
+        fields.status.value = t.status || "en_cours";
+        fields.lot.value = t.lot !== undefined ? t.lot : "";
+        fields.entry.value = t.entry !== undefined ? t.entry : "";
+        fields.sl.value = t.sl !== undefined ? t.sl : "";
+        fields.tp.value = t.tp !== undefined ? t.tp : "";
+        fields.exit.value = t.exit !== undefined ? t.exit : "";
+        fields.pnl.value = t.pnl !== undefined ? t.pnl : "";
+        fields.geo.value = t.geo || "";
+        fields.macro.value = t.macro || "";
+        fields.evolution.value = t.evolution || "";
+      }
+      document.getElementById("formModalTitle").textContent = "Modifier le trade";
+      document.getElementById("deleteTradeBtn").style.display = "inline-block";
+    } else {
+      document.getElementById("formModalTitle").textContent = "Nouveau trade";
+    }
+    document.getElementById("formModalSub").textContent = dayKey;
+    showOnly(modalForm);
+  }
+  window.openTradeForm = openTradeForm;
+
+  document.getElementById("saveTradeBtn").addEventListener("click", function(){
+    if(!fields.pair.value.trim()){
+      fields.pair.focus();
+      return;
+    }
+    var payload = {
+      date: activeDayKey,
+      pair: fields.pair.value.trim(),
+      direction: fields.direction.value,
+      strategy: fields.strategy.value.trim(),
+      status: fields.status.value,
+      lot: fields.lot.value,
+      entry: fields.entry.value,
+      sl: fields.sl.value,
+      tp: fields.tp.value,
+      exit: fields.exit.value,
+      pnl: fields.pnl.value,
+      geo: fields.geo.value.trim(),
+      macro: fields.macro.value.trim(),
+      evolution: fields.evolution.value.trim()
+    };
+
+    if(editingTradeId){
+      var idx = state.trades.findIndex(function(x){ return x.id === editingTradeId; });
+      if(idx > -1) state.trades[idx] = Object.assign(state.trades[idx], payload);
+    } else {
+      payload.id = "t_" + Date.now() + "_" + Math.random().toString(36).slice(2,8);
+      payload.createdAt = new Date().toISOString();
+      state.trades.push(payload);
+    }
+    registerUnsavedChange();
+    save();
+    renderCalendar();
+    openDayModal(activeDayKey);
+  });
+
+  document.getElementById("deleteTradeBtn").addEventListener("click", function(){
+    if(!editingTradeId) return;
+    if(confirm("Supprimer ce trade ? Cette action est irréversible.")){
+      state.trades = state.trades.filter(function(t){ return t.id !== editingTradeId; });
+      registerUnsavedChange();
+      save();
+      renderCalendar();
+      openDayModal(activeDayKey);
+    }
+  });
+
+  // ---------------- account modal ----------------
+  function openAccountModal(){
+    document.getElementById("a_broker").value = state.account.broker || "";
+    document.getElementById("a_currency").value = state.account.currency || "USD";
+    document.getElementById("a_initial").value = state.account.initial !== undefined ? state.account.initial : "";
+    document.getElementById("a_leverage").value = state.account.leverage || "";
+    document.getElementById("a_risk").value = state.account.risk !== undefined ? state.account.risk : "";
+
+    var totalPnl = state.trades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); },0);
+    var currentBalance = (parseFloat(state.account.initial)||0) + totalPnl;
+    document.getElementById("a_currentDisplay").value = fmtMoneyPlain(currentBalance) + " " + (state.account.currency||"USD");
+
+    var closed = state.trades.filter(function(t){ return t.status==="gagnant" || t.status==="perdant"; });
+    var wins = state.trades.filter(function(t){ return t.status==="gagnant"; }).length;
+    var winrate = closed.length ? Math.round((wins/closed.length)*100) + "%" : "—";
+    document.getElementById("a_statTotal").value = state.trades.length;
+    document.getElementById("a_statWinrate").value = winrate;
+    document.getElementById("a_statPnl").value = fmtMoney(totalPnl);
+
+    var withPnl = state.trades.filter(function(t){ return t.pnl!==undefined && t.pnl!=="" && t.pnl!==null; });
+    if(withPnl.length){
+      var best = withPnl.reduce(function(a,b){ return (parseFloat(b.pnl)>parseFloat(a.pnl))?b:a; });
+      var worst = withPnl.reduce(function(a,b){ return (parseFloat(b.pnl)<parseFloat(a.pnl))?b:a; });
+      document.getElementById("a_statBestWorst").value = fmtMoney(parseFloat(best.pnl)) + " / " + fmtMoney(parseFloat(worst.pnl));
+    } else {
+      document.getElementById("a_statBestWorst").value = "—";
+    }
+
+    document.getElementById("a_lastExport").value = state.meta && state.meta.lastExport
+      ? new Date(state.meta.lastExport).toLocaleString("fr-FR")
+      : "jamais";
+    document.getElementById("a_lastSaved").value = state.meta && state.meta.lastSaved
+      ? new Date(state.meta.lastSaved).toLocaleString("fr-FR")
+      : "jamais";
+
+    renderHistoryList();
+    showOnly(modalAccount);
+  }
+  window.openAccountModal = openAccountModal;
+
+  // ---------------- history / recovery UI ----------------
+  function renderHistoryList(){
+    var el = document.getElementById("historyList");
+    if(!el) return;
+    var snaps = listHistorySnapshots().sort(function(a,b){ return new Date(b.ts||0) - new Date(a.ts||0); });
+    if(!snaps.length){
+      el.innerHTML = '<div class="empty-state" style="padding:14px 0;">Aucune version antérieure enregistrée pour l\'instant.</div>';
+      return;
+    }
+    el.innerHTML = "";
+    snaps.forEach(function(s){
+      var row = document.createElement("div");
+      row.className = "trade-row";
+      var when = s.ts ? new Date(s.ts).toLocaleString("fr-FR") : "date inconnue";
+      row.innerHTML =
+        '<div class="trade-main">' +
+          '<div class="trade-pair" style="font-size:14px;">' + escapeHtml(when) + '</div>' +
+          '<div class="trade-meta">' + s.tradeCount + ' trade(s) dans cette version</div>' +
+        '</div>' +
+        '<div class="trade-actions"><button class="iconbtn" data-restore="' + s.slot + '">Restaurer</button></div>';
+      el.appendChild(row);
+    });
+    el.querySelectorAll("[data-restore]").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var slot = this.getAttribute("data-restore");
+        var snap = snaps.find(function(s){ return String(s.slot) === slot; });
+        if(!snap) return;
+        if(confirm("Restaurer cette version du " + (snap.ts ? new Date(snap.ts).toLocaleString("fr-FR") : "slot "+slot) + " ? L'état actuel sera lui-même conservé dans l'historique.")){
+          state = normalizeData(JSON.parse(JSON.stringify(snap.data)));
+          registerUnsavedChange();
+          save();
+          renderCalendar();
+          openAccountModal();
+        }
+      });
+    });
+  }
+
+  document.getElementById("saveAccountBtn").addEventListener("click", function(){
+    state.account.broker = document.getElementById("a_broker").value.trim();
+    state.account.currency = document.getElementById("a_currency").value;
+    state.account.initial = parseFloat(document.getElementById("a_initial").value) || 0;
+    state.account.leverage = document.getElementById("a_leverage").value.trim();
+    state.account.risk = parseFloat(document.getElementById("a_risk").value) || 0;
+    registerUnsavedChange();
+    save();
+    renderCalendar();
+    renderHistoryList();
+    closeOverlay();
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    if(confirm("Réinitialiser toutes les données (compte et trades) ? L'état actuel restera récupérable quelques sauvegardes via « Restaurer une version précédente », mais au-delà il sera définitivement perdu.")){
+      state = JSON.parse(JSON.stringify(defaultData));
+      save(); // rotation d'historique inclut automatiquement l'ancien état avant écrasement
+      renderCalendar();
+      closeOverlay();
+    }
+  });
+
+  function doExport(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    var d = new Date();
+    a.href = url;
+    a.download = "carnet-trading-sauvegarde-" + d.toISOString().slice(0,10) + "-" + d.getHours() + "h" + pad(d.getMinutes()) + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    state.meta.lastExport = new Date().toISOString();
+    state.meta.changesSinceExport = 0;
+    save();
+    checkExportReminder();
+  }
+  document.getElementById("exportBtn").addEventListener("click", doExport);
+  var reminderExportBtn = document.getElementById("exportReminderBtn");
+  if(reminderExportBtn) reminderExportBtn.addEventListener("click", doExport);
+
+  document.getElementById("importBtn").addEventListener("click", function(){
+    document.getElementById("importFile").click();
+  });
+  document.getElementById("importFile").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        var parsed = JSON.parse(ev.target.result);
+        if(!isValidData(parsed)) throw new Error("Format invalide");
+        if(confirm("Importer ce fichier remplacera vos données actuelles (l'état actuel reste récupérable via l'historique). Continuer ?")){
+          state = normalizeData(parsed);
+          registerUnsavedChange();
+          save();
+          renderCalendar();
+          openAccountModal();
+        }
+      }catch(err){
+        alert("Fichier invalide. Merci d'importer une sauvegarde exportée depuis cette application.");
+      }
+      document.getElementById("importFile").value = "";
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------------- nav ----------------
+  document.getElementById("prevMonth").addEventListener("click", function(){
+    viewMonth--; if(viewMonth<0){ viewMonth=11; viewYear--; }
+    renderCalendar();
+  });
+  document.getElementById("nextMonth").addEventListener("click", function(){
+    viewMonth++; if(viewMonth>11){ viewMonth=0; viewYear++; }
+    renderCalendar();
+  });
+  document.getElementById("todayBtn").addEventListener("click", function(){
+    viewYear = today.getFullYear(); viewMonth = today.getMonth();
+    renderCalendar();
+  });
+
+  // ---------------- PDF export (bilan mensuel) ----------------
+  function generateMonthlyPdf(){
+    if(!window.jspdf || !window.jspdf.jsPDF){
+      alert("La bibliothèque de génération PDF n'a pas pu se charger (vérifiez votre connexion internet, elle est chargée depuis un CDN).");
+      return;
+    }
+    var jsPDFCtor = window.jspdf.jsPDF;
+    var doc = new jsPDFCtor({ unit:"mm", format:"a4" });
+    var marginX = 15;
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var pageHeight = doc.internal.pageSize.getHeight();
+    var y = 18;
+
+    var monthLabel = MONTHS_FR[viewMonth] + " " + viewYear;
+    var prefix = viewYear + "-" + pad(viewMonth+1);
+    var monthTrades = state.trades
+      .filter(function(t){ return t.date && t.date.indexOf(prefix) === 0; })
+      .sort(function(a,b){ return a.date.localeCompare(b.date); });
+
+    var cur = state.account.currency || "USD";
+    var totalPnlAll = state.trades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); }, 0);
+    var currentBalance = (parseFloat(state.account.initial)||0) + totalPnlAll;
+
+    var wins = monthTrades.filter(function(t){ return t.status==="gagnant"; }).length;
+    var losses = monthTrades.filter(function(t){ return t.status==="perdant"; }).length;
+    var open = monthTrades.filter(function(t){ return t.status==="en_cours"; }).length;
+    var be = monthTrades.filter(function(t){ return t.status==="breakeven"; }).length;
+    var closedCount = wins + losses;
+    var winrate = closedCount ? Math.round((wins/closedCount)*100) + "%" : "—";
+    var pnlMonth = monthTrades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); }, 0);
+
+    function fmtPdfMoney(n){
+      if(n===undefined || n===null || isNaN(n)) return "—";
+      var sign = n > 0 ? "+" : "";
+      return sign + Number(n).toLocaleString("fr-FR",{minimumFractionDigits:2, maximumFractionDigits:2}) + " " + cur;
+    }
+    function dmy(iso){
+      if(!iso) return "";
+      var p = iso.split("-");
+      return p[2] + "/" + p[1] + "/" + p[0];
+    }
+
+    // ---- header ----
+    doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(20);
+    doc.text("Carnet de Trading — Bilan mensuel", marginX, y);
+    y += 7;
+    doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(90);
+    var subLine = monthLabel + (state.account.broker ? "   ·   " + state.account.broker : "");
+    doc.text(subLine, marginX, y);
+    y += 5;
+    doc.setFontSize(9);
+    doc.text("Devise : " + cur + "   ·   Généré le " + new Date().toLocaleString("fr-FR"), marginX, y);
+    doc.setTextColor(20);
+    y += 9;
+
+    // ---- account & month summary ----
+    doc.autoTable({
+      startY: y,
+      theme: "plain",
+      styles: { fontSize: 10, cellPadding: 1.6 },
+      columnStyles: { 0: { fontStyle: "bold", cellWidth: 75 } },
+      body: [
+        ["Solde actuel du compte", fmtPdfMoney(currentBalance)],
+        ["Capital initial", fmtPdfMoney(parseFloat(state.account.initial)||0)],
+        ["Trades ce mois-ci", String(monthTrades.length)],
+        ["Taux de réussite (mois)", winrate],
+        ["Résultat du mois", fmtPdfMoney(pnlMonth)],
+        ["Gagnants / Perdants / En cours / Breakeven", wins + " / " + losses + " / " + open + " / " + be]
+      ],
+      margin: { left: marginX, right: marginX }
+    });
+    y = doc.lastAutoTable.finalY + 9;
+
+    if(!monthTrades.length){
+      doc.setFont("helvetica","italic"); doc.setFontSize(11);
+      doc.text("Aucun trade enregistré pour ce mois.", marginX, y);
+    } else {
+      doc.setFont("helvetica","bold"); doc.setFontSize(12);
+      doc.text("Détail des trades", marginX, y);
+      y += 3;
+
+      doc.autoTable({
+        startY: y,
+        head: [["Date","Paire","Sens","Statut","Lot","Entrée","SL","TP","Sortie","P&L","Stratégie"]],
+        body: monthTrades.map(function(t){
+          return [
+            dmy(t.date),
+            t.pair || "",
+            t.direction === "vente" ? "Vente" : "Achat",
+            STATUS_LABEL[t.status] || "",
+            t.lot || "",
+            t.entry || "",
+            t.sl || "",
+            t.tp || "",
+            t.exit || "",
+            (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null) ? fmtPdfMoney(parseFloat(t.pnl)) : "",
+            t.strategy || ""
+          ];
+        }),
+        styles: { fontSize: 7.5, cellPadding: 1.8 },
+        headStyles: { fillColor: [23,27,29], textColor: 255, fontStyle: "bold" },
+        alternateRowStyles: { fillColor: [244,242,236] },
+        margin: { left: marginX, right: marginX }
+      });
+      y = doc.lastAutoTable.finalY + 10;
+
+      var withContext = monthTrades.filter(function(t){
+        return (t.geo && t.geo.trim()) || (t.macro && t.macro.trim()) || (t.evolution && t.evolution.trim());
+      });
+
+      if(withContext.length){
+        if(y > pageHeight - 30){ doc.addPage(); y = 18; }
+        doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(20);
+        doc.text("Contexte et évolution par trade", marginX, y);
+        y += 8;
+
+        withContext.forEach(function(t){
+          if(y > pageHeight - 25){ doc.addPage(); y = 18; }
+          doc.setFont("helvetica","bold"); doc.setFontSize(10);
+          var title = dmy(t.date) + " — " + (t.pair||"") + " (" + (t.direction==="vente"?"Vente":"Achat") + ", " + (STATUS_LABEL[t.status]||"") + ")";
+          doc.text(title, marginX, y);
+          y += 5;
+
+          doc.setFont("helvetica","normal"); doc.setFontSize(9);
+          [["Contexte géopolitique", t.geo], ["Contexte macroéconomique", t.macro], ["Évolution du trade", t.evolution]].forEach(function(pair){
+            var label = pair[0], val = pair[1];
+            if(!val || !val.trim()) return;
+            var lines = doc.splitTextToSize(label + " : " + val, pageWidth - 2*marginX);
+            lines.forEach(function(line){
+              if(y > pageHeight - 15){ doc.addPage(); y = 18; }
+              doc.text(line, marginX, y);
+              y += 4.2;
+            });
+          });
+          y += 4;
+        });
+      }
+    }
+
+    // ---- footer page numbers ----
+    var pageCount = doc.internal.getNumberOfPages();
+    for(var p = 1; p <= pageCount; p++){
+      doc.setPage(p);
+      doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(150);
+      doc.text("Page " + p + " / " + pageCount, pageWidth - marginX, pageHeight - 8, { align: "right" });
+    }
+
+    var fileMonth = MONTHS_FR[viewMonth].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    doc.save("bilan-trading-" + fileMonth + "-" + viewYear + ".pdf");
+  }
+  document.getElementById("exportPdfBtn").addEventListener("click", generateMonthlyPdf);
+
+  // ---------------- init ----------------
+  initApp();
+
+})();
+</script>
+</body>
+</html>
