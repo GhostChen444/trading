@@ -390,19 +390,11 @@
 <div class="screen" id="cgAuthOverlay">
   <div class="cg-box">
     <h2>Carnet de Trading</h2>
-    <p class="sub">Connecte-toi pour accéder à ton journal, synchronisé sur tous tes appareils. Chaque utilisateur a son propre espace.</p>
-    <div class="cg-tabs">
-      <button type="button" id="cgTabLogin" class="active">Connexion</button>
-      <button type="button" id="cgTabSignup">Nouvel utilisateur</button>
-    </div>
+    <p class="sub">Connecte-toi pour accéder à ton journal, synchronisé sur tous tes appareils.</p>
     <label for="cgEmail">Email</label>
     <input id="cgEmail" type="email" autocomplete="username">
     <label for="cgPass">Mot de passe</label>
     <input id="cgPass" type="password" autocomplete="current-password">
-    <div id="cgConfirmWrap" style="display:none;">
-      <label for="cgPass2">Confirmer le mot de passe</label>
-      <input id="cgPass2" type="password" autocomplete="new-password">
-    </div>
     <button id="cgSubmitBtn" class="cg-submit" type="button">Se connecter</button>
     <button id="cgForgotBtn" class="cg-link" type="button">Mot de passe oublié ?</button>
     <div class="cg-error" id="cgError"></div>
@@ -744,7 +736,6 @@
   var cgPending = false;
   var cgUnsub = null;
   var cgApplyingRemote = false;
-  var cgAuthMode = "login";
   var pendingAuthError = "";
 
   function $(id){ return document.getElementById(id); }
@@ -758,7 +749,7 @@
 
   function cgInitFirebase(){
     if (FIREBASE_CONFIG.apiKey === "COLLE_TA_CLE_ICI") {
-      $("cgAuthOverlay").innerHTML = '<div class="cg-box"><h2>Configuration requise</h2><p class="sub">La config Firebase n\'a pas encore été renseignée dans le code (FIREBASE_CONFIG). Les comptes utilisateurs nécessitent Firebase.</p></div>';
+      $("cgAuthOverlay").innerHTML = '<div class="cg-box"><h2>Configuration requise</h2><p class="sub">La config Firebase n\'a pas encore été renseignée dans le code (FIREBASE_CONFIG). La connexion nécessite Firebase.</p></div>';
       showView("auth");
       return;
     }
@@ -769,7 +760,7 @@
       cgTeardown();
       if (user) {
         cgUser = user;
-        $("cgPass").value = ""; $("cgPass2").value = "";
+        $("cgPass").value = "";
         $("userEmail").textContent = user.email || "";
         $("pickEmail").textContent = user.email || "";
         showView("loading");
@@ -783,11 +774,9 @@
       }
     });
 
-    $("cgTabLogin").addEventListener("click", function(){ cgSetMode("login"); });
-    $("cgTabSignup").addEventListener("click", function(){ cgSetMode("signup"); });
     $("cgSubmitBtn").addEventListener("click", cgHandleSubmit);
     $("cgForgotBtn").addEventListener("click", cgHandleForgot);
-    ["cgEmail","cgPass","cgPass2"].forEach(function(id){
+    ["cgEmail","cgPass"].forEach(function(id){
       $(id).addEventListener("keydown", function(e){ if(e.key === "Enter") cgHandleSubmit(); });
     });
     $("cgLogoutBtn").addEventListener("click", cgLogout);
@@ -809,30 +798,15 @@
     cgDoPush().then(function(){ return firebase.auth().signOut(); }, function(){ return firebase.auth().signOut(); });
   }
 
-  function cgSetMode(mode){
-    cgAuthMode = mode;
-    var signup = mode === "signup";
-    $("cgTabLogin").classList.toggle("active", !signup);
-    $("cgTabSignup").classList.toggle("active", signup);
-    $("cgConfirmWrap").style.display = signup ? "block" : "none";
-    $("cgForgotBtn").style.display = signup ? "none" : "inline";
-    $("cgSubmitBtn").textContent = signup ? "Créer mon espace" : "Se connecter";
-    $("cgPass").setAttribute("autocomplete", signup ? "new-password" : "current-password");
-    var err = $("cgError"); err.className = "cg-error"; err.textContent = "";
-  }
-
   function cgErrMsg(e){
     switch(e && e.code){
       case "auth/invalid-credential":
       case "auth/invalid-login-credentials":
       case "auth/wrong-password":
       case "auth/user-not-found": return "Email ou mot de passe incorrect.";
-      case "auth/email-already-in-use": return "Un utilisateur existe déjà avec cet email. Utilise l'onglet Connexion.";
-      case "auth/weak-password": return "Mot de passe trop court (6 caractères minimum).";
       case "auth/invalid-email": return "Adresse email invalide.";
       case "auth/too-many-requests": return "Trop de tentatives, réessaie dans quelques minutes.";
       case "auth/network-request-failed": return "Problème de connexion réseau.";
-      case "auth/operation-not-allowed": return "L'inscription par email n'est pas activée dans la console Firebase.";
       default: return "Erreur d'authentification.";
     }
   }
@@ -843,14 +817,7 @@
     var errEl = $("cgError");
     errEl.className = "cg-error"; errEl.textContent = "";
     if (!email || !pass) { errEl.textContent = "Entre ton email et ton mot de passe."; return; }
-    var p;
-    if (cgAuthMode === "signup") {
-      if (pass.length < 6) { errEl.textContent = "Mot de passe trop court (6 caractères minimum)."; return; }
-      if (pass !== $("cgPass2").value) { errEl.textContent = "Les deux mots de passe ne correspondent pas."; return; }
-      p = firebase.auth().createUserWithEmailAndPassword(email, pass);
-    } else {
-      p = firebase.auth().signInWithEmailAndPassword(email, pass);
-    }
+    var p = firebase.auth().signInWithEmailAndPassword(email, pass);
     var btn = $("cgSubmitBtn");
     btn.disabled = true;
     p.then(function(){ btn.disabled = false; })
@@ -1263,7 +1230,10 @@
       card.setAttribute("data-open", acc.id);
       var pnlCls = s.pnl > 0 ? "pos" : s.pnl < 0 ? "neg" : "";
       card.innerHTML =
-        '<div class="acc-name">' + escapeHtml(acc.name) + '</div>' +
+        '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">' +
+          '<div class="acc-name">' + escapeHtml(acc.name) + '</div>' +
+          '<button class="iconbtn danger" type="button" data-delacc="1" style="flex-shrink:0;">Supprimer</button>' +
+        '</div>' +
         '<div class="acc-desc">' + (acc.description ? escapeHtml(acc.description) : "Aucune description") + '</div>' +
         '<div class="acc-stats">' +
           '<div><span class="k">Solde</span><span class="v">' + escapeHtml(fmtCur(s.balance, acc.account.currency, false)) + '</span></div>' +
@@ -1273,7 +1243,11 @@
         '</div>';
       function open(){ openApp(acc.id); }
       card.addEventListener("click", open);
-      card.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); open(); } });
+      card.addEventListener("keydown", function(e){ if(e.target !== card) return; if(e.key === "Enter" || e.key === " "){ e.preventDefault(); open(); } });
+      card.querySelector("[data-delacc]").addEventListener("click", function(e){
+        e.stopPropagation();
+        deleteAccount(acc.id);
+      });
       grid.appendChild(card);
     });
     var add = document.createElement("div");
@@ -1285,6 +1259,17 @@
     add.addEventListener("click", openNew);
     add.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openNew(); } });
     grid.appendChild(add);
+  }
+
+  function deleteAccount(id){
+    var acc = findAcc(id);
+    if(!acc) return;
+    if(confirm("Supprimer définitivement le compte « " + acc.name + " » et tous ses trades ? Les autres comptes ne sont pas touchés.")){
+      root.accounts = root.accounts.filter(function(a){ return a.id !== id; });
+      registerUnsavedChange();
+      persist();
+      enterPicker();
+    }
   }
 
   // ---- création d'un compte ----
@@ -1793,15 +1778,7 @@
     }
   });
 
-  $("deleteAccountBtn").addEventListener("click", function(){
-    if(confirm("Supprimer définitivement le compte « " + state.name + " » et tous ses trades ? Les autres comptes ne sont pas touchés.")){
-      var id = state.id;
-      root.accounts = root.accounts.filter(function(a){ return a.id !== id; });
-      registerUnsavedChange();
-      persist();
-      enterPicker();
-    }
-  });
+  $("deleteAccountBtn").addEventListener("click", function(){ if(state) deleteAccount(state.id); });
 
   function doExport(){
     var blob = new Blob([JSON.stringify(root, null, 2)], {type:"application/json"});
