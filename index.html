@@ -117,8 +117,9 @@
     margin-bottom:14px; margin-top:-6px;
   }
 
-  main{display:grid; grid-template-columns: 1fr 260px; gap:20px; align-items:start;}
-  @media (max-width: 860px){ main{grid-template-columns:1fr;} }
+  main{display:grid; grid-template-columns: minmax(0,1fr) 260px; gap:20px; align-items:start;}
+  main > *{min-width:0;}
+  @media (max-width: 860px){ main{grid-template-columns:minmax(0,1fr);} }
 
   .card{
     background:var(--panel); border:1px solid var(--border); border-radius:var(--r);
@@ -149,19 +150,20 @@
   .todaybtn:hover{border-color:var(--gold-soft); color:var(--gold);}
 
   .weekdays{
-    display:grid; grid-template-columns:repeat(7,1fr);
+    display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px;
     padding:10px 10px 0; font-size:11px; color:var(--text-faint);
     font-family:var(--mono); text-align:center;
   }
   .days-grid{
-    display:grid; grid-template-columns:repeat(7,1fr);
+    display:grid; grid-template-columns:repeat(7,minmax(0,1fr));
     gap:6px; padding:10px;
   }
   .day-cell{
     aspect-ratio:1/0.82; border:1px solid var(--border-soft); border-radius:var(--r);
     padding:7px 8px; display:flex; flex-direction:column; justify-content:space-between;
-    background:var(--bg-2); position:relative;
+    background:var(--bg-2); position:relative; min-width:0; overflow:hidden;
   }
+  .day-pnl{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .day-cell.clickable{cursor:pointer;}
   .day-cell.clickable:hover{border-color:var(--gold-soft); background:var(--panel-2);}
   .day-cell.empty{background:transparent; border-color:transparent;}
@@ -305,7 +307,15 @@
 
   @media (max-width:520px){
     .form-grid{grid-template-columns:1fr;}
-    .day-cell{aspect-ratio:1/0.9;}
+    .wrap{padding:20px 12px 80px;}
+    .cal-head{padding:14px 12px;}
+    .days-grid{gap:4px; padding:8px 6px;}
+    .weekdays{gap:4px; padding:8px 6px 0; font-size:10px;}
+    .day-cell{aspect-ratio:auto; min-height:52px; padding:4px 4px;}
+    .day-num{font-size:11.5px;}
+    .day-pnl{font-size:9px; letter-spacing:-.2px;}
+    .dot{width:5px; height:5px;}
+    .day-dots{gap:3px;}
     .account-quick{gap:10px; padding:8px 12px;}
     .account-quick .aq-divider{display:none;}
   }
@@ -2078,100 +2088,3 @@
             var label = pair[0], val = pair[1];
             if(!val || !val.trim()) return;
             var lines = doc.splitTextToSize(pdfText(label + " : " + val), pageWidth - 2*marginX);
-            lines.forEach(function(line){
-              if(y > pageHeight - 15){ doc.addPage(); y = 18; }
-              doc.text(line, marginX, y);
-              y += 4.2;
-            });
-          });
-          y += 4;
-        });
-      }
-    }
-
-    // ---- captures par trade ----
-    var shotTrades = monthTrades.filter(function(t){ return t.shots && t.shots.length; });
-    if(shotTrades.length){
-      var usableW = pageWidth - 2*marginX;
-      var gap = 6;
-      var colW = (usableW - gap) / 2;
-      var maxImgH = 70;
-
-      doc.addPage(); y = 18;
-      doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(20);
-      doc.text("Captures des trades", marginX, y);
-      y += 8;
-
-      shotTrades.forEach(function(t){
-        // prépare les cellules (image + légende) du trade
-        var cells = t.shots.map(function(sh, i){
-          var url = shotUrls[sh.id] || null;
-          var w = colW, h = 0;
-          if(url){
-            try{
-              var props = doc.getImageProperties(url);
-              h = colW * props.height / props.width;
-              if(h > maxImgH){ w = colW * (maxImgH / h); h = maxImgH; }
-            }catch(e){ url = null; }
-          }
-          var caption = (i + 1) + ". " + (sh.desc ? pdfText(sh.desc) : "(sans description)") + (url ? "" : "  [image indisponible]");
-          doc.setFont("helvetica","normal"); doc.setFontSize(8.5);
-          var lines = doc.splitTextToSize(caption, colW);
-          return { url:url, w:w, h:h, lines:lines, capH: lines.length * 3.8 };
-        });
-
-        var title = dmy(t.date) + " — " + pdfText(t.pair) + " (" + pdfTag(t) + ")" +
-          (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null ? "   " + fmtPdfMoney(parseFloat(t.pnl)) : "");
-
-        for(var r = 0; r < cells.length; r += 2){
-          var row = cells.slice(r, r + 2);
-          var rowH = Math.max.apply(null, row.map(function(c){ return c.h + 2 + c.capH; })) + 6;
-          var needed = rowH + (r === 0 ? 8 : 0);
-          if(y + needed > pageHeight - 15){ doc.addPage(); y = 18; }
-          if(r === 0){
-            doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(20);
-            doc.text(title, marginX, y);
-            y += 5;
-          }
-          row.forEach(function(c, k){
-            var x = marginX + k * (colW + gap);
-            if(c.url){
-              doc.addImage(c.url, "JPEG", x, y, c.w, c.h);
-              doc.setDrawColor(200); doc.rect(x, y, c.w, c.h);
-            }
-            doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(70);
-            doc.text(c.lines, x, y + c.h + 4);
-          });
-          doc.setTextColor(20);
-          y += rowH;
-        }
-        y += 2;
-      });
-    }
-
-    // ---- footer page numbers ----
-    var pageCount = doc.internal.getNumberOfPages();
-    for(var p = 1; p <= pageCount; p++){
-      doc.setPage(p);
-      doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(150);
-      doc.text("Page " + p + " / " + pageCount, pageWidth - marginX, pageHeight - 8, { align: "right" });
-    }
-
-    var fileMonth = MONTHS_FR[viewMonth].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
-    doc.save("bilan-trading-" + fileMonth + "-" + viewYear + ".pdf");
-  }
-  $("exportPdfBtn").addEventListener("click", generateMonthlyPdf);
-
-  // ---------------- init ----------------
-  window.addEventListener("beforeunload", function(e){
-    if(cgPending){ cgDoPush(); e.preventDefault(); e.returnValue = ""; }
-  });
-  document.addEventListener("visibilitychange", function(){
-    if(document.visibilityState === "hidden") cgDoPush();
-  });
-  cgInitFirebase();
-
-})();
-</script>
-</body>
-</html>
