@@ -59,6 +59,9 @@
   button{cursor:pointer;}
   input,select,textarea{font-family:inherit; font-size:14px;}
 
+
+  /* zones de texte flexibles : la hauteur s'adapte au contenu */
+  textarea{field-sizing:content; max-height:60vh;}
   ::selection{background:var(--gold-soft); color:#fff;}
 
   /* ---------- layout ---------- */
@@ -171,6 +174,7 @@
   .dot.perdant{background:var(--red);}
   .dot.en_cours{background:var(--blue);}
   .dot.breakeven{background:var(--gray);}
+  .dot.observation{background:transparent; border:1.5px solid var(--gold);}
   .day-pnl{font-family:var(--mono); font-size:10.5px;}
   .day-pnl.pos{color:var(--green);}
   .day-pnl.neg{color:var(--red);}
@@ -240,6 +244,7 @@
   .tag.status-perdant{background:var(--red-soft); color:var(--red); border-color:transparent;}
   .tag.status-en_cours{background:var(--blue-soft); color:var(--blue); border-color:transparent;}
   .tag.status-breakeven{background:var(--gray-soft); color:var(--gray); border-color:transparent;}
+  .tag.status-observation{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
   .trade-pair{font-family:var(--serif); font-size:16px;}
   .trade-meta{font-size:12px; color:var(--text-faint); font-family:var(--mono);}
   .trade-actions{display:flex; gap:6px; flex-shrink:0;}
@@ -385,8 +390,9 @@
   .shot-thumb{width:104px; height:78px; flex-shrink:0; background:var(--bg-2); border:1px solid var(--border-soft); border-radius:2px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:10.5px; color:var(--text-faint); cursor:zoom-in; text-align:center;}
   .shot-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
   .shot-fields{flex:1; display:flex; flex-direction:column; gap:8px; min-width:0;}
-  .shot-fields input{background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:8px 10px; width:100%; outline:none;}
-  .shot-fields input:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,155,74,0.12);}
+  .shot-fields input, .shot-fields textarea{background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:8px 10px; width:100%; outline:none;}
+  .shot-fields textarea{resize:vertical; min-height:60px; line-height:1.45; font-family:inherit; font-size:14px;}
+  .shot-fields input:focus, .shot-fields textarea:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,155,74,0.12);}
   .shot-actions{display:flex; gap:6px;}
   .lightbox{position:fixed; inset:0; background:rgba(6,7,8,0.94); z-index:90; display:none; align-items:center; justify-content:center; gap:10px; padding:16px;}
   .lightbox.show{display:flex;}
@@ -432,8 +438,8 @@
     </div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="field span2"><label for="s_name">Nom du compte <span class="req">*</span></label><input type="text" id="s_name" placeholder="ex : Compte réel IC Markets" maxlength="80"></div>
-        <div class="field span2"><label for="s_desc">Description</label><textarea id="s_desc" placeholder="objectif du compte, stratégie, remarques…" maxlength="400"></textarea></div>
+        <div class="field span2"><label for="s_name">Nom du compte <span class="req">*</span></label><input type="text" id="s_name" placeholder="ex : Compte réel IC Markets"></div>
+        <div class="field span2"><label for="s_desc">Description</label><textarea id="s_desc" placeholder="objectif du compte, stratégie, remarques…"></textarea></div>
         <div class="field num"><label for="s_initial">Capital initial <span class="req">*</span></label><input type="number" step="any" min="0" id="s_initial" placeholder="10000"></div>
         <div class="field"><label for="s_currency">Devise</label>
           <select id="s_currency"><option value="USD">USD</option><option value="EUR">EUR</option><option value="GBP">GBP</option><option value="MAD">MAD</option><option value="CHF">CHF</option></select>
@@ -523,6 +529,7 @@
         <div class="stat-row"><span class="k">Gagnants</span><span class="v" id="statWins">0</span></div>
         <div class="stat-row"><span class="k">Perdants</span><span class="v" id="statLosses">0</span></div>
         <div class="stat-row"><span class="k">En cours</span><span class="v" id="statOpen">0</span></div>
+        <div class="stat-row"><span class="k">Observations</span><span class="v" id="statObs">0</span></div>
       </section>
 
       <section class="card stats-card" id="profitCard">
@@ -555,7 +562,7 @@
     </div>
     <div class="modal-body">
       <div id="dayTradesList"></div>
-      <button class="addbtn" id="addTradeBtn">+ Ajouter un trade ce jour-là</button>
+      <button class="addbtn" id="addTradeBtn">+ Ajouter un trade ou une observation</button>
     </div>
   </div>
 
@@ -571,12 +578,20 @@
     <div class="modal-body">
       <form id="tradeForm">
         <div class="section-label">identification</div>
+        <div class="field" style="margin-bottom:14px;">
+          <label>Type d'entrée</label>
+          <div class="seg" id="typeSeg" style="margin-bottom:0;">
+            <button type="button" class="active" data-type="trade">Trade pris</button>
+            <button type="button" data-type="observation">Aucun trade (observation)</button>
+          </div>
+          <div class="hint" id="typeHint"></div>
+        </div>
         <div class="form-grid">
           <div class="field">
-            <label for="f_pair">Paire / Actif</label>
+            <label for="f_pair" id="f_pairLabel">Paire / Actif <span class="req">*</span></label>
             <input type="text" id="f_pair" placeholder="EUR/USD" required>
           </div>
-          <div class="field">
+          <div class="field" id="wrapDirection">
             <label for="f_direction">Sens</label>
             <select id="f_direction">
               <option value="achat">Achat (long)</option>
@@ -587,7 +602,7 @@
             <label for="f_strategy">Stratégie technique (si utilisée)</label>
             <input type="text" id="f_strategy" placeholder="ex : cassure de range, OB H4...">
           </div>
-          <div class="field">
+          <div class="field" id="wrapStatus">
             <label for="f_status">Statut</label>
             <select id="f_status">
               <option value="en_cours">En cours</option>
@@ -598,6 +613,7 @@
           </div>
         </div>
 
+        <div id="execBlock">
         <div class="section-label">exécution</div>
         <div class="form-grid">
           <div class="field num"><label for="f_lot">Lot</label><input type="number" step="0.01" id="f_lot" placeholder="0.50"></div>
@@ -606,6 +622,8 @@
           <div class="field num"><label for="f_tp">Take Profit</label><input type="number" step="any" id="f_tp"></div>
           <div class="field num"><label for="f_exit">Prix de sortie (optionnel)</label><input type="number" step="any" id="f_exit"></div>
           <div class="field num"><label for="f_pnl">Résultat (P&amp;L)</label><input type="number" step="any" id="f_pnl" placeholder="en devise du compte"></div>
+        </div>
+
         </div>
 
         <div class="section-label">contexte</div>
@@ -650,8 +668,8 @@
     </div>
     <div class="modal-body">
       <div class="form-grid">
-        <div class="field span2"><label for="a_name">Nom du compte</label><input type="text" id="a_name" maxlength="80"></div>
-        <div class="field span2"><label for="a_desc">Description</label><textarea id="a_desc" maxlength="400"></textarea></div>
+        <div class="field span2"><label for="a_name">Nom du compte</label><input type="text" id="a_name"></div>
+        <div class="field span2"><label for="a_desc">Description</label><textarea id="a_desc"></textarea></div>
         <div class="field"><label for="a_broker">Broker</label><input type="text" id="a_broker" placeholder="ex : IC Markets"></div>
         <div class="field"><label for="a_currency">Devise</label>
           <select id="a_currency">
@@ -706,7 +724,18 @@
   "use strict";
 
   var MONTHS_FR = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
-  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"Breakeven"};
+
+  // Fallback auto-agrandissement pour les navigateurs sans field-sizing
+  document.addEventListener("input", function(e){
+    var el = e.target;
+    if(el && el.tagName === "TEXTAREA" && !(window.CSS && CSS.supports && CSS.supports("field-sizing","content"))){
+      el.style.height = "auto";
+      if(el.scrollHeight > 0) el.style.height = Math.min(el.scrollHeight + 2, window.innerHeight * 0.6) + "px";
+    }
+  });
+  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"Breakeven", observation:"Observation"};
+  function isObs(t){ return !!(t && (t.observation === true || t.status === "observation")); }
+  function pdfTag(t){ return isObs(t) ? "Observation" : ((t.direction === "vente" ? "Vente" : "Achat") + ", " + (STATUS_LABEL[t.status] || "")); }
 
 
   // Modèle de données (version 2) :
@@ -1071,8 +1100,9 @@
   function num(v){ var n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
   function accStats(acc){
-    var s = { count:acc.trades.length, wins:0, losses:0, be:0, open:0, gp:0, gl:0, pnl:0 };
+    var s = { count:acc.trades.filter(function(t){ return !isObs(t); }).length, obs:0, wins:0, losses:0, be:0, open:0, gp:0, gl:0, pnl:0 };
     acc.trades.forEach(function(t){
+      if(isObs(t)){ s.obs++; return; }
       if(t.status === "gagnant") s.wins++;
       else if(t.status === "perdant") s.losses++;
       else if(t.status === "breakeven") s.be++;
@@ -1271,7 +1301,9 @@
 
         var pnlEl = document.createElement("div");
         pnlEl.className = "day-pnl " + (dayPnl > 0 ? "pos" : dayPnl < 0 ? "neg" : "");
-        pnlEl.textContent = dayTrades.some(function(t){return t.pnl!==undefined && t.pnl!=="" && t.pnl!==null;}) ? fmtMoneyPlain(dayPnl) : (dayTrades.length + " trade" + (dayTrades.length>1?"s":""));
+        var dayReal = dayTrades.filter(function(t){ return !isObs(t); }).length;
+        var dayObs = dayTrades.length - dayReal;
+        pnlEl.textContent = dayTrades.some(function(t){return !isObs(t) && t.pnl!==undefined && t.pnl!=="" && t.pnl!==null;}) ? fmtMoneyPlain(dayPnl) : (dayReal ? (dayReal + " trade" + (dayReal>1?"s":"")) : (dayObs + " obs."));
         cell.appendChild(pnlEl);
       }
 
@@ -1285,6 +1317,8 @@
   function renderStatsMonth(){
     var prefix = viewYear + "-" + pad(viewMonth+1);
     var monthTrades = state.trades.filter(function(t){ return t.date && t.date.indexOf(prefix)===0; });
+    var obsCount = monthTrades.filter(isObs).length;
+    monthTrades = monthTrades.filter(function(t){ return !isObs(t); });
     var closed = monthTrades.filter(function(t){ return t.status==="gagnant" || t.status==="perdant"; });
     var wins = monthTrades.filter(function(t){ return t.status==="gagnant"; }).length;
     var losses = monthTrades.filter(function(t){ return t.status==="perdant"; }).length;
@@ -1300,6 +1334,7 @@
     $("statWins").textContent = wins;
     $("statLosses").textContent = losses;
     $("statOpen").textContent = open;
+    $("statObs").textContent = obsCount;
   }
 
   function renderStatsGlobal(){
@@ -1438,7 +1473,7 @@
     var listEl = $("dayTradesList");
     var trades = state.trades.filter(function(t){ return t.date === activeDayKey; });
     if(!trades.length){
-      listEl.innerHTML = '<div class="empty-state">Aucun trade enregistré ce jour-là.</div>';
+      listEl.innerHTML = '<div class="empty-state">Aucune entrée enregistrée ce jour-là.</div>';
       return;
     }
     listEl.innerHTML = "";
@@ -1449,14 +1484,18 @@
         '<div class="trade-main">' +
           '<div class="trade-tags">' +
             '<span class="trade-pair">' + escapeHtml(t.pair||"—") + '</span>' +
-            '<span class="tag dir-' + (t.direction||"achat") + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' +
-            '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' +
+            (isObs(t)
+              ? '<span class="tag status-observation">Observation</span>'
+              : '<span class="tag dir-' + (t.direction||"achat") + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' +
+                '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>') +
           '</div>' +
           '<div class="trade-meta">' +
-            'Lot ' + escapeHtml(t.lot||"—") +
-            ' · SL ' + escapeHtml(t.sl||"—") +
-            ' · TP ' + escapeHtml(t.tp||"—") +
-            (t.strategy ? ' · ' + escapeHtml(t.strategy) : "") +
+            (isObs(t)
+              ? (t.strategy ? escapeHtml(t.strategy) : "Aucun trade pris")
+              : ('Lot ' + escapeHtml(t.lot||"—") +
+                 ' · SL ' + escapeHtml(t.sl||"—") +
+                 ' · TP ' + escapeHtml(t.tp||"—") +
+                 (t.strategy ? ' · ' + escapeHtml(t.strategy) : ""))) +
             (t.shots && t.shots.length ? ' · ' + t.shots.length + ' capture' + (t.shots.length>1?'s':'') : "") +
             (t.pnl!==undefined && t.pnl!=="" && t.pnl!==null ? ' · ' + escapeHtml(fmtMoney(parseFloat(t.pnl))) : "") +
           '</div>' +
@@ -1503,6 +1542,27 @@
     lot: $("f_lot"), entry: $("f_entry"), sl: $("f_sl"), tp: $("f_tp"), exit: $("f_exit"), pnl: $("f_pnl"),
     geo: $("f_geo"), macro: $("f_macro"), evolution: $("f_evolution")
   };
+  var formType = "trade";
+  function setFormType(type){
+    formType = (type === "observation") ? "observation" : "trade";
+    var obs = formType === "observation";
+    document.querySelectorAll("#typeSeg button").forEach(function(b){
+      b.classList.toggle("active", b.getAttribute("data-type") === formType);
+    });
+    $("wrapDirection").style.display = obs ? "none" : "";
+    $("wrapStatus").style.display = obs ? "none" : "";
+    $("execBlock").style.display = obs ? "none" : "";
+    $("f_pairLabel").innerHTML = (obs ? "Actif observé" : "Paire / Actif") + ' <span class="req">*</span>';
+    $("typeHint").textContent = obs
+      ? "Aucune position prise : seul l'actif observé est requis. Cette entrée n'est pas comptée dans les statistiques de trades."
+      : "Seul l'actif est obligatoire, tous les autres champs sont facultatifs.";
+    $("formModalTitle").textContent = editingTradeId
+      ? (obs ? "Modifier l'observation" : "Modifier le trade")
+      : (obs ? "Nouvelle observation" : "Nouveau trade");
+  }
+  document.querySelectorAll("#typeSeg button").forEach(function(b){
+    b.addEventListener("click", function(){ setFormType(this.getAttribute("data-type")); });
+  });
   var formShots = [];    // captures du formulaire : {id, desc, dataUrl|null, isNew}
   var formRemoved = [];  // ids de captures existantes retirées (supprimées à l'enregistrement)
 
@@ -1520,8 +1580,8 @@
 
       var right = document.createElement("div");
       right.className = "shot-fields";
-      var inp = document.createElement("input");
-      inp.type = "text"; inp.maxLength = 300; inp.value = sh.desc || "";
+      var inp = document.createElement("textarea");
+      inp.rows = 3; inp.value = sh.desc || "";
       inp.placeholder = "Description (ex : entrée sur retest, sortie au TP1…)";
       inp.addEventListener("input", function(){ sh.desc = inp.value; });
 
@@ -1596,11 +1656,9 @@
         fields.evolution.value = t.evolution || "";
         formShots = (t.shots || []).map(function(sh){ return { id:sh.id, desc:sh.desc || "", dataUrl:null, isNew:false }; });
       }
-      $("formModalTitle").textContent = "Modifier le trade";
       $("deleteTradeBtn").style.display = "inline-block";
-    } else {
-      $("formModalTitle").textContent = "Nouveau trade";
     }
+    setFormType(tradeId && state.trades.some(function(x){ return x.id === tradeId && isObs(x); }) ? "observation" : "trade");
     $("formModalSub").textContent = dayKey;
     renderShotList();
     showOnly(modalForm);
@@ -1616,14 +1674,16 @@
     btn.textContent = newOnes.length ? "Envoi des captures…" : "Enregistrement…";
 
     Promise.all(newOnes.map(uploadShot)).then(function(){
+      var obsMode = formType === "observation";
       var payload = {
         date: dayKey,
         pair: fields.pair.value.trim(),
-        direction: fields.direction.value,
+        observation: obsMode,
+        direction: obsMode ? "" : fields.direction.value,
         strategy: fields.strategy.value.trim(),
-        status: fields.status.value,
-        lot: fields.lot.value, entry: fields.entry.value, sl: fields.sl.value, tp: fields.tp.value,
-        exit: fields.exit.value, pnl: fields.pnl.value,
+        status: obsMode ? "observation" : fields.status.value,
+        lot: obsMode ? "" : fields.lot.value, entry: obsMode ? "" : fields.entry.value, sl: obsMode ? "" : fields.sl.value, tp: obsMode ? "" : fields.tp.value,
+        exit: obsMode ? "" : fields.exit.value, pnl: obsMode ? "" : fields.pnl.value,
         geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim(),
         shots: formShots.map(function(sh){ return { id:sh.id, desc:(sh.desc || "").trim() }; })
       };
@@ -1819,6 +1879,7 @@
       .filter(function(t){ return t.date && t.date.indexOf(prefix) === 0; })
       .sort(function(a,b){ return a.date.localeCompare(b.date); });
 
+    var obsMonthCount = monthTrades.filter(isObs).length;
     var cur = state.account.currency || "USD";
     var totalPnlAll = state.trades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); }, 0);
     var currentBalance = (parseFloat(state.account.initial)||0) + totalPnlAll;
@@ -1864,7 +1925,8 @@
       body: [
         ["Solde actuel du compte", fmtPdfMoney(currentBalance, true)],
         ["Capital initial", fmtPdfMoney(parseFloat(state.account.initial)||0, true)],
-        ["Trades ce mois-ci", String(monthTrades.length)],
+        ["Trades ce mois-ci", String(monthTrades.length - obsMonthCount)],
+        ["Observations (aucun trade)", String(obsMonthCount)],
         ["Taux de réussite (mois)", winrate],
         ["Résultat du mois", fmtPdfMoney(pnlMonth)],
         ["Gagnants / Perdants / En cours / Breakeven", wins + " / " + losses + " / " + open + " / " + be]
@@ -1888,7 +1950,7 @@
           return [
             dmy(t.date),
             pdfText(t.pair),
-            t.direction === "vente" ? "Vente" : "Achat",
+            isObs(t) ? "—" : (t.direction === "vente" ? "Vente" : "Achat"),
             STATUS_LABEL[t.status] || "",
             pdfText(t.lot),
             pdfText(t.entry),
@@ -1920,7 +1982,7 @@
         withContext.forEach(function(t){
           if(y > pageHeight - 25){ doc.addPage(); y = 18; }
           doc.setFont("helvetica","bold"); doc.setFontSize(10);
-          var title = dmy(t.date) + " — " + pdfText(t.pair) + " (" + (t.direction==="vente"?"Vente":"Achat") + ", " + (STATUS_LABEL[t.status]||"") + ")";
+          var title = dmy(t.date) + " — " + pdfText(t.pair) + " (" + pdfTag(t) + ")";
           doc.text(title, marginX, y);
           y += 5;
 
@@ -1971,7 +2033,7 @@
           return { url:url, w:w, h:h, lines:lines, capH: lines.length * 3.8 };
         });
 
-        var title = dmy(t.date) + " — " + pdfText(t.pair) + " (" + (t.direction==="vente"?"Vente":"Achat") + ", " + (STATUS_LABEL[t.status]||"") + ")" +
+        var title = dmy(t.date) + " — " + pdfText(t.pair) + " (" + pdfTag(t) + ")" +
           (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null ? "   " + fmtPdfMoney(parseFloat(t.pnl)) : "");
 
         for(var r = 0; r < cells.length; r += 2){
