@@ -784,6 +784,26 @@
   var cgApplyingRemote = false;
   var pendingAuthError = "";
 
+  // Diagnostic de démarrage : évite de rester bloqué sur « Chargement… » sans explication.
+  var cgDiag = { sdk:false, auth:false, sync:false, err:"" };
+  window.addEventListener("error", function(ev){ cgDiag.err = String((ev && ev.message) || "erreur").slice(0,120); });
+  window.addEventListener("unhandledrejection", function(ev){ var r = ev && ev.reason; cgDiag.err = String((r && (r.code || r.message)) || r || "rejet").slice(0,120); });
+  function cgFailLoading(msg){
+    try { sessionStorage.removeItem(CG_SS); } catch(e) {}
+    try { if (window.firebase && firebase.apps && firebase.apps.length) firebase.auth().signOut(); } catch(e) {}
+    var err = $("cgError");
+    if (err) {
+      err.className = "cg-error";
+      err.textContent = msg + " [diagnostic : sdk=" + (cgDiag.sdk?"ok":"absent") + ", auth=" + (cgDiag.auth?"ok":"sans réponse") + ", données=" + (cgDiag.sync?"demandées":"non démarré") + (cgDiag.err ? ", erreur=" + cgDiag.err : "") + "]";
+    }
+    showView("auth");
+  }
+  function cgWatchdog(){
+    setTimeout(function(){
+      if (document.body.getAttribute("data-view") === "loading") cgFailLoading("Le chargement prend trop de temps.");
+    }, 12000);
+  }
+
   function $(id){ return document.getElementById(id); }
   function clone(o){ return JSON.parse(JSON.stringify(o)); }
   function setSync(txt){ var el = $("cgSyncIndicator"); if(el) el.textContent = txt; }
@@ -799,14 +819,17 @@
       showView("auth");
       return;
     }
+    cgDiag.sdk = (typeof firebase !== "undefined");
     firebase.initializeApp(FIREBASE_CONFIG);
     cgDb = firebase.firestore();
+    try { cgDb.settings({ experimentalAutoDetectLongPolling: true, merge: true }); } catch(e) { console.error(e); }
 
     // Session limitée à l'onglet : elle disparaît à la fermeture, donc mot de passe exigé à chaque nouvelle ouverture
     // et sur chaque nouvel appareil.
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(e){ console.error(e); });
 
     firebase.auth().onAuthStateChanged(function(user){
+      cgDiag.auth = true;
       cgTeardown();
       if (user) {
         // Une session héritée (ancienne persistance locale) qui n'a pas été ouverte dans cette session de navigation est refusée.
@@ -973,7 +996,15 @@
   function cgStartCloudSync(user){
     var uid = user.uid;
     setSync("Synchronisation…");
+    cgDiag.sync = true;
+    var syncDone = false;
+    var syncGuard = setTimeout(function(){
+      if (!syncDone && cgUser && cgUser.uid === uid && document.body.getAttribute("data-view") === "loading") {
+        cgFailLoading("La base de données ne répond pas (Firestore). Vérifie ta connexion puis réessaie.");
+      }
+    }, 15000);
     cgDocRef().get().then(function(doc){
+      syncDone = true; clearTimeout(syncGuard);
       if (!cgUser || cgUser.uid !== uid) return; // l'utilisateur a changé entre-temps
       var data = doc.exists ? doc.data().state : null;
       if (doc.exists && !isValidRoot(data)) throw new Error("Document utilisateur illisible");
@@ -994,9 +1025,11 @@
 
       enterPicker();
     }).catch(function(e){
+      syncDone = true; clearTimeout(syncGuard);
       console.error("Chargement impossible :", e);
+      cgDiag.err = String((e && (e.code || e.message)) || e).slice(0,120);
       if (!cgUser || cgUser.uid !== uid) return;
-      pendingAuthError = "Impossible de charger tes données (connexion indisponible ou accès refusé). Réessaie.";
+      pendingAuthError = "Impossible de charger tes données (connexion indisponible ou accès refusé). [" + cgDiag.err + "]";
       firebase.auth().signOut();
     });
   }
@@ -2088,3 +2121,101 @@
             var label = pair[0], val = pair[1];
             if(!val || !val.trim()) return;
             var lines = doc.splitTextToSize(pdfText(label + " : " + val), pageWidth - 2*marginX);
+            lines.forEach(function(line){
+              if(y > pageHeight - 15){ doc.addPage(); y = 18; }
+              doc.text(line, marginX, y);
+              y += 4.2;
+            });
+          });
+          y += 4;
+        });
+      }
+    }
+
+    // ---- captures par trade ----
+    var shotTrades = monthTrades.filter(function(t){ return t.shots && t.shots.length; });
+    if(shotTrades.length){
+      var usableW = pageWidth - 2*marginX;
+      var gap = 6;
+      var colW = (usableW - gap) / 2;
+      var maxImgH = 70;
+
+      doc.addPage(); y = 18;
+      doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(20);
+      doc.text("Captures des trades", marginX, y);
+      y += 8;
+
+      shotTrades.forEach(function(t){
+        // prépare les cellules (image + légende) du trade
+        var cells = t.shots.map(function(sh, i){
+          var url = shotUrls[sh.id] || null;
+          var w = colW, h = 0;
+          if(url){
+            try{
+              var props = doc.getImageProperties(url);
+              h = colW * props.height / props.width;
+              if(h > maxImgH){ w = colW * (maxImgH / h); h = maxImgH; }
+            }catch(e){ url = null; }
+          }
+          var caption = (i + 1) + ". " + (sh.desc ? pdfText(sh.desc) : "(sans description)") + (url ? "" : "  [image indisponible]");
+          doc.setFont("helvetica","normal"); doc.setFontSize(8.5);
+          var lines = doc.splitTextToSize(caption, colW);
+          return { url:url, w:w, h:h, lines:lines, capH: lines.length * 3.8 };
+        });
+
+        var title = dmy(t.date) + " — " + pdfText(t.pair) + " (" + pdfTag(t) + ")" +
+          (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null ? "   " + fmtPdfMoney(parseFloat(t.pnl)) : "");
+
+        for(var r = 0; r < cells.length; r += 2){
+          var row = cells.slice(r, r + 2);
+          var rowH = Math.max.apply(null, row.map(function(c){ return c.h + 2 + c.capH; })) + 6;
+          var needed = rowH + (r === 0 ? 8 : 0);
+          if(y + needed > pageHeight - 15){ doc.addPage(); y = 18; }
+          if(r === 0){
+            doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(20);
+            doc.text(title, marginX, y);
+            y += 5;
+          }
+          row.forEach(function(c, k){
+            var x = marginX + k * (colW + gap);
+            if(c.url){
+              doc.addImage(c.url, "JPEG", x, y, c.w, c.h);
+              doc.setDrawColor(200); doc.rect(x, y, c.w, c.h);
+            }
+            doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(70);
+            doc.text(c.lines, x, y + c.h + 4);
+          });
+          doc.setTextColor(20);
+          y += rowH;
+        }
+        y += 2;
+      });
+    }
+
+    // ---- footer page numbers ----
+    var pageCount = doc.internal.getNumberOfPages();
+    for(var p = 1; p <= pageCount; p++){
+      doc.setPage(p);
+      doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(150);
+      doc.text("Page " + p + " / " + pageCount, pageWidth - marginX, pageHeight - 8, { align: "right" });
+    }
+
+    var fileMonth = MONTHS_FR[viewMonth].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    doc.save("bilan-trading-" + fileMonth + "-" + viewYear + ".pdf");
+  }
+  $("exportPdfBtn").addEventListener("click", generateMonthlyPdf);
+
+  // ---------------- init ----------------
+  window.addEventListener("beforeunload", function(e){
+    if(cgPending){ cgDoPush(); e.preventDefault(); e.returnValue = ""; }
+  });
+  document.addEventListener("visibilitychange", function(){
+    if(document.visibilityState === "hidden") cgDoPush();
+  });
+  cgWatchdog();
+  try { cgInitFirebase(); } catch(e) { cgDiag.err = String((e && e.message) || e).slice(0,120); cgFailLoading("Erreur au démarrage."); }
+
+})();
+</script>
+</body>
+</html>
