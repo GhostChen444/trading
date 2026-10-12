@@ -416,7 +416,7 @@
 <div class="screen" id="cgAuthOverlay">
   <div class="cg-box">
     <h2>Carnet de Trading</h2>
-    <p class="sub">Connecte-toi pour accéder à ton journal, synchronisé sur tous tes appareils.</p>
+    <p class="sub">Connecte-toi pour accéder à ton journal. L'accès est réservé aux utilisateurs existants et le mot de passe est redemandé à chaque nouvelle ouverture et sur chaque nouvel appareil.</p>
     <label for="cgEmail">Email</label>
     <input id="cgEmail" type="email" autocomplete="username">
     <label for="cgPass">Mot de passe</label>
@@ -792,9 +792,17 @@
     firebase.initializeApp(FIREBASE_CONFIG);
     cgDb = firebase.firestore();
 
+    // Session limitée à l'onglet : elle disparaît à la fermeture, donc mot de passe exigé à chaque nouvelle ouverture
+    // et sur chaque nouvel appareil.
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(function(e){ console.error(e); });
+
     firebase.auth().onAuthStateChanged(function(user){
       cgTeardown();
       if (user) {
+        // Une session héritée (ancienne persistance locale) qui n'a pas été ouverte dans cette session de navigation est refusée.
+        var sessionOk = false;
+        try { sessionOk = sessionStorage.getItem(CG_SS) === "1"; } catch(e) {}
+        if (!sessionOk) { firebase.auth().signOut(); return; }
         cgUser = user;
         $("cgPass").value = "";
         $("userEmail").textContent = user.email || "";
@@ -811,6 +819,12 @@
     });
 
     $("cgSubmitBtn").addEventListener("click", cgHandleSubmit);
+    $("cgEmail").addEventListener("input", function(){
+      if (!cgLockTimer) return;
+      clearInterval(cgLockTimer); cgLockTimer = null;
+      if (cgLockLeft($("cgEmail").value) > 0) cgShowLock($("cgEmail").value);
+      else { $("cgSubmitBtn").disabled = false; $("cgError").textContent = ""; }
+    });
     $("cgForgotBtn").addEventListener("click", cgHandleForgot);
     ["cgEmail","cgPass"].forEach(function(id){
       $(id).addEventListener("keydown", function(e){ if(e.key === "Enter") cgHandleSubmit(); });
@@ -831,6 +845,7 @@
   }
 
   function cgLogout(){
+    try { sessionStorage.removeItem(CG_SS); } catch(e) {}
     cgDoPush().then(function(){ return firebase.auth().signOut(); }, function(){ return firebase.auth().signOut(); });
   }
 
@@ -847,17 +862,89 @@
     }
   }
 
+  // ---- Limitation des tentatives (5 essais par email, 10 au total sur l'appareil, puis blocage 15 min) ----
+  var CG_MAX_TRIES = 5, CG_DEVICE_MAX = 10, CG_LOCK_MS = 15 * 60 * 1000;
+  var CG_LS = "cg_auth_guard", CG_SS = "cg_session_ok";
+  var cgLockTimer = null;
+
+  function cgNorm(e){ return (e || "").trim().toLowerCase(); }
+  function cgGuardRead(){ try { return JSON.parse(localStorage.getItem(CG_LS) || "{}") || {}; } catch(e) { return {}; } }
+  function cgGuardWrite(g){ try { localStorage.setItem(CG_LS, JSON.stringify(g)); } catch(e) {} }
+  function cgLockLeft(email){
+    var g = cgGuardRead(), now = Date.now(), left = 0;
+    [cgNorm(email), "*"].forEach(function(k){
+      var r = g[k];
+      if (r && r.until && r.until > now) left = Math.max(left, r.until - now);
+    });
+    return left;
+  }
+  function cgRegisterFail(email){
+    var g = cgGuardRead(), now = Date.now();
+    function bump(key, max){
+      var r = g[key] || { n:0, until:0 };
+      if (r.until && r.until <= now) r = { n:0, until:0 };
+      r.n++;
+      if (r.n >= max) { r.until = now + CG_LOCK_MS; r.n = 0; }
+      g[key] = r;
+      return r;
+    }
+    var a = bump(cgNorm(email), CG_MAX_TRIES);
+    bump("*", CG_DEVICE_MAX);
+    cgGuardWrite(g);
+    return { locked: cgLockLeft(email) > 0, remaining: Math.max(0, CG_MAX_TRIES - a.n) };
+  }
+  function cgClearFails(email){
+    var g = cgGuardRead();
+    delete g[cgNorm(email)]; delete g["*"];
+    cgGuardWrite(g);
+  }
+  function cgFmtLeft(ms){
+    var s = Math.ceil(ms / 1000), m = Math.floor(s / 60), r = s % 60;
+    return m > 0 ? (m + " min " + (r < 10 ? "0" : "") + r + " s") : (r + " s");
+  }
+  function cgShowLock(email){
+    clearInterval(cgLockTimer); cgLockTimer = null;
+    var errEl = $("cgError"), btn = $("cgSubmitBtn");
+    function tick(){
+      var left = cgLockLeft(email);
+      if (left <= 0) {
+        clearInterval(cgLockTimer); cgLockTimer = null;
+        btn.disabled = false; errEl.className = "cg-error"; errEl.textContent = "";
+        return;
+      }
+      btn.disabled = true; errEl.className = "cg-error";
+      errEl.textContent = "Trop de tentatives. Connexion bloquée sur cet appareil pendant " + cgFmtLeft(left) + ".";
+    }
+    tick();
+    if (cgLockLeft(email) > 0) cgLockTimer = setInterval(tick, 1000);
+  }
+
   function cgHandleSubmit(){
     var email = $("cgEmail").value.trim();
     var pass = $("cgPass").value;
     var errEl = $("cgError");
     errEl.className = "cg-error"; errEl.textContent = "";
     if (!email || !pass) { errEl.textContent = "Entre ton email et ton mot de passe."; return; }
-    var p = firebase.auth().signInWithEmailAndPassword(email, pass);
+    if (cgLockLeft(email) > 0) { cgShowLock(email); return; }
     var btn = $("cgSubmitBtn");
     btn.disabled = true;
-    p.then(function(){ btn.disabled = false; })
-     .catch(function(e){ btn.disabled = false; errEl.textContent = cgErrMsg(e); console.error(e); });
+    // Le marqueur de session est posé avant la connexion pour que l'écouteur d'état l'accepte.
+    try { sessionStorage.setItem(CG_SS, "1"); } catch(e) {}
+    firebase.auth().signInWithEmailAndPassword(email, pass)
+      .then(function(){ cgClearFails(email); btn.disabled = false; })
+      .catch(function(e){
+        try { sessionStorage.removeItem(CG_SS); } catch(x) {}
+        btn.disabled = false;
+        console.error(e);
+        var code = e && e.code;
+        var credentialErr = code === "auth/invalid-credential" || code === "auth/invalid-login-credentials" ||
+                            code === "auth/wrong-password" || code === "auth/user-not-found";
+        if (!credentialErr) { errEl.textContent = cgErrMsg(e); return; }
+        var r = cgRegisterFail(email);
+        if (r.locked) { cgShowLock(email); return; }
+        // Même message pour un mot de passe erroné et pour un utilisateur inexistant (aucune fuite d'information).
+        errEl.textContent = cgErrMsg(e) + " " + r.remaining + " tentative" + (r.remaining > 1 ? "s" : "") + " restante" + (r.remaining > 1 ? "s" : "") + ".";
+      });
   }
 
   function cgHandleForgot(){
