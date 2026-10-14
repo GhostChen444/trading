@@ -1,1 +1,9 @@
-
+{
+  "name": "carnet-whatsapp-notifier",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rappel WhatsApp des trades En cours à 22h UTC",
+  "main": "notify.js",
+  "engines": { "node": ">=20" },
+  "dependencies": { "firebase-admin": "^12.7.0" }
+}
