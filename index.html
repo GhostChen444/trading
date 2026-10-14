@@ -176,6 +176,7 @@
   .dot.perdant{background:var(--red);}
   .dot.en_cours{background:var(--blue);}
   .dot.breakeven{background:var(--gray);}
+  .dot.be35{background:var(--gold);}
   .dot.observation{background:transparent; border:1.5px solid var(--gold);}
   .day-pnl{font-family:var(--mono); font-size:10.5px;}
   .day-pnl.pos{color:var(--green);}
@@ -246,6 +247,12 @@
   .tag.status-perdant{background:var(--red-soft); color:var(--red); border-color:transparent;}
   .tag.status-en_cours{background:var(--blue-soft); color:var(--blue); border-color:transparent;}
   .tag.status-breakeven{background:var(--gray-soft); color:var(--gray); border-color:transparent;}
+  .tag.status-be35{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
+  .tag.tp-ok{background:var(--green-soft); color:var(--green); border-color:transparent;}
+  .tag.tp-late{background:var(--red-soft); color:var(--red); border-color:transparent;}
+  .chk-row{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer;}
+  .field .chk-row input[type=checkbox]{width:auto; margin:0;}
+  .field-warn{color:var(--red);}
   .tag.status-observation{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
   .trade-pair{font-family:var(--serif); font-size:16px;}
   .trade-meta{font-size:12px; color:var(--text-faint); font-family:var(--mono);}
@@ -510,6 +517,7 @@
     <div class="topbar-right">
       <span id="userEmail"></span>
       <span id="cgSyncIndicator"></span>
+      <button class="cg-logout" type="button" id="notifBtn">Notifications</button>
       <button class="cg-logout" type="button" id="switchAccountBtn">Changer de compte</button>
       <button class="cg-logout" type="button" id="cgLogoutBtn">Déconnexion</button>
     </div>
@@ -539,6 +547,7 @@
         <div class="stat-row"><span class="k">Gagnants</span><span class="v" id="statWins">0</span></div>
         <div class="stat-row"><span class="k">Perdants</span><span class="v" id="statLosses">0</span></div>
         <div class="stat-row"><span class="k">En cours</span><span class="v" id="statOpen">0</span></div>
+        <div class="stat-row"><span class="k">BE 35% · TP touché ≤ 36 h</span><span class="v" id="statBe35">0 · 0</span></div>
         <div class="stat-row"><span class="k">Observations</span><span class="v" id="statObs">0</span></div>
       </section>
 
@@ -618,8 +627,28 @@
               <option value="en_cours">En cours</option>
               <option value="gagnant">Gagnant</option>
               <option value="perdant">Perdant</option>
-              <option value="breakeven">Breakeven</option>
+              <option value="breakeven">BE point d'entrée</option>
+              <option value="be35">BE 35%</option>
             </select>
+          </div>
+        </div>
+
+        <div id="be35Block" style="display:none;">
+          <div class="section-label">BE 35% — suivi du TP</div>
+          <div class="form-grid">
+            <div class="field">
+              <label for="f_beAt">Heure du BE 35%</label>
+              <input type="datetime-local" id="f_beAt">
+            </div>
+            <div class="field">
+              <label>TP touché ? (facultatif)</label>
+              <label class="chk-row"><input type="checkbox" id="f_tpHit"> Oui, le TP a été touché</label>
+            </div>
+            <div class="field" id="wrapTpHitAt" style="display:none;">
+              <label for="f_tpHitAt">TP touché le (date et heure)</label>
+              <input type="datetime-local" id="f_tpHitAt">
+              <div class="hint" id="tpHitHint"></div>
+            </div>
           </div>
         </div>
 
@@ -715,6 +744,36 @@
     </div>
   </div>
 
+  <!-- Notifications modal -->
+  <div class="modal" id="modalNotif" style="display:none;">
+    <div class="modal-header">
+      <div>
+        <h3>Notifications WhatsApp</h3>
+        <div class="sub">rappel des trades « En cours » à la clôture du marché</div>
+      </div>
+      <button class="closebtn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span2">
+          <label for="n_phone">Ton numéro WhatsApp (format international)</label>
+          <input type="tel" id="n_phone" placeholder="+212612345678" autocomplete="tel">
+          <div class="hint">Commence par + et l'indicatif du pays, sans espaces ni zéro initial (ex : +212…).</div>
+        </div>
+        <div class="field span2">
+          <label class="chk-row"><input type="checkbox" id="n_enabled"> Activer le rappel quotidien à 22h00 UTC (jours ouvrés)</label>
+          <div class="hint">Le message liste tes trades au statut « En cours » (tous comptes). Rien n'est envoyé s'il n'y en a aucun.</div>
+        </div>
+      </div>
+      <div class="form-error" id="notifError"></div>
+      <div class="hint" id="notifInfo" style="margin-top:10px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" type="button" onclick="closeOverlay()">Fermer</button>
+      <button class="btn primary" type="button" id="saveNotifBtn">Enregistrer</button>
+    </div>
+  </div>
+
 </div>
 
 <!-- LIGHTBOX captures -->
@@ -743,8 +802,41 @@
       if(el.scrollHeight > 0) el.style.height = Math.min(el.scrollHeight + 2, window.innerHeight * 0.6) + "px";
     }
   });
-  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"Breakeven", observation:"Observation"};
+  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", observation:"Observation"};
+  var TP_WINDOW_H = 36; // au-delà de 36 h après le BE, le TP touché n'est plus comptabilisé
+  function pad2(n){ return n < 10 ? "0"+n : ""+n; }
+  function toLocalInput(iso){
+    if(!iso) return "";
+    var d = new Date(iso); if(isNaN(d)) return "";
+    return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate())+"T"+pad2(d.getHours())+":"+pad2(d.getMinutes());
+  }
+  function fromLocalInput(v){
+    if(!v) return "";
+    var d = new Date(v); return isNaN(d) ? "" : d.toISOString();
+  }
+  function tpDelayH(beIso, tpIso){
+    if(!beIso || !tpIso) return null;
+    var a = new Date(beIso), b = new Date(tpIso);
+    if(isNaN(a) || isNaN(b)) return null;
+    return (b - a) / 3600000;
+  }
+  function fmtDelay(h){
+    var tot = Math.round(h*60), hh = Math.floor(tot/60), mm = tot%60;
+    return hh + "h" + (mm ? pad2(mm) : "");
+  }
+  // TP touché ET dans la fenêtre de 36 h après le BE
+  function tpCounted(t){
+    if(!t || t.status !== "be35" || !t.tpHit) return false;
+    var h = tpDelayH(t.beAt, t.tpHitAt);
+    return h !== null && h >= 0 && h <= TP_WINDOW_H;
+  }
   function isObs(t){ return !!(t && (t.observation === true || t.status === "observation")); }
+  function tpTagHtml(t){
+    if(!t || t.status !== "be35" || !t.tpHit) return "";
+    var h = tpDelayH(t.beAt, t.tpHitAt);
+    if(tpCounted(t)) return '<span class="tag tp-ok">TP touché · +' + fmtDelay(h) + '</span>';
+    return '<span class="tag tp-late">TP hors délai (non compté)</span>';
+  }
   function pdfTag(t){ return isObs(t) ? "Observation" : ((t.direction === "vente" ? "Vente" : "Achat") + ", " + (STATUS_LABEL[t.status] || "")); }
 
 
@@ -1230,12 +1322,13 @@
   function num(v){ var n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
   function accStats(acc){
-    var s = { count:acc.trades.filter(function(t){ return !isObs(t); }).length, obs:0, wins:0, losses:0, be:0, open:0, gp:0, gl:0, pnl:0 };
+    var s = { count:acc.trades.filter(function(t){ return !isObs(t); }).length, obs:0, wins:0, losses:0, be:0, be35:0, tpOk:0, open:0, gp:0, gl:0, pnl:0 };
     acc.trades.forEach(function(t){
       if(isObs(t)){ s.obs++; return; }
       if(t.status === "gagnant") s.wins++;
       else if(t.status === "perdant") s.losses++;
       else if(t.status === "breakeven") s.be++;
+      else if(t.status === "be35"){ s.be++; s.be35++; if(tpCounted(t)) s.tpOk++; }
       else s.open++;
       var p = num(t.pnl);
       s.pnl += p;
@@ -1453,6 +1546,8 @@
     var wins = monthTrades.filter(function(t){ return t.status==="gagnant"; }).length;
     var losses = monthTrades.filter(function(t){ return t.status==="perdant"; }).length;
     var open = monthTrades.filter(function(t){ return t.status==="en_cours"; }).length;
+    var be35n = monthTrades.filter(function(t){ return t.status==="be35"; }).length;
+    var be35tp = monthTrades.filter(tpCounted).length;
     var totalPnl = monthTrades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); },0);
     var winrate = closed.length ? Math.round((wins/closed.length)*100) : null;
 
@@ -1464,6 +1559,7 @@
     $("statWins").textContent = wins;
     $("statLosses").textContent = losses;
     $("statOpen").textContent = open;
+    $("statBe35").textContent = be35n + " · " + be35tp;
     $("statObs").textContent = obsCount;
   }
 
@@ -1565,9 +1661,10 @@
   var modalDay = $("modalDay");
   var modalForm = $("modalForm");
   var modalAccount = $("modalAccount");
+  var modalNotif = $("modalNotif");
 
   function showOnly(modalEl){
-    [modalDay, modalForm, modalAccount].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
+    [modalDay, modalForm, modalAccount, modalNotif].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
     overlay.classList.add("show");
   }
   function closeOverlay(){
@@ -1617,7 +1714,7 @@
             (isObs(t)
               ? '<span class="tag status-observation">Observation</span>'
               : '<span class="tag dir-' + (t.direction||"achat") + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' +
-                '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>') +
+                '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' + tpTagHtml(t)) +
           '</div>' +
           '<div class="trade-meta">' +
             (isObs(t)
@@ -1670,9 +1767,38 @@
   var fields = {
     pair: $("f_pair"), direction: $("f_direction"), strategy: $("f_strategy"), status: $("f_status"),
     lot: $("f_lot"), entry: $("f_entry"), sl: $("f_sl"), tp: $("f_tp"), exit: $("f_exit"), pnl: $("f_pnl"),
-    geo: $("f_geo"), macro: $("f_macro"), evolution: $("f_evolution")
+    geo: $("f_geo"), macro: $("f_macro"), evolution: $("f_evolution"),
+    beAt: $("f_beAt"), tpHit: $("f_tpHit"), tpHitAt: $("f_tpHitAt")
   };
   var formType = "trade";
+
+  // ---- BE 35% : suivi du TP touché (fenêtre max 36 h) ----
+  function updateTpHint(){
+    var hint = $("tpHitHint");
+    hint.className = "hint";
+    if(!fields.tpHit.checked){ hint.textContent = ""; return; }
+    var beIso = fromLocalInput(fields.beAt.value), tpIso = fromLocalInput(fields.tpHitAt.value);
+    var h = tpDelayH(beIso, tpIso);
+    if(!fields.beAt.value){ hint.textContent = "Renseigne d'abord l'heure du BE 35%."; return; }
+    if(h === null){ hint.textContent = "Indique la date et l'heure exactes où le TP a été touché (max " + TP_WINDOW_H + " h après le BE)."; return; }
+    if(h < 0){ hint.className = "hint field-warn"; hint.textContent = "Le TP ne peut pas être touché avant le BE."; return; }
+    if(h > TP_WINDOW_H){ hint.className = "hint field-warn"; hint.textContent = "+" + fmtDelay(h) + " après le BE : au-delà de " + TP_WINDOW_H + " h, ce TP ne sera pas comptabilisé."; return; }
+    hint.textContent = "+" + fmtDelay(h) + " après le BE : comptabilisé.";
+  }
+  function updateBe35UI(){
+    var show = formType === "trade" && fields.status.value === "be35";
+    $("be35Block").style.display = show ? "" : "none";
+    $("wrapTpHitAt").style.display = (show && fields.tpHit.checked) ? "" : "none";
+    if(show && !fields.beAt.value && activeDayKey){
+      var n = new Date();
+      fields.beAt.value = activeDayKey + "T" + pad2(n.getHours()) + ":" + pad2(n.getMinutes());
+    }
+    updateTpHint();
+  }
+  fields.status.addEventListener("change", updateBe35UI);
+  fields.tpHit.addEventListener("change", updateBe35UI);
+  fields.beAt.addEventListener("input", updateTpHint);
+  fields.tpHitAt.addEventListener("input", updateTpHint);
   function setFormType(type){
     formType = (type === "observation") ? "observation" : "trade";
     var obs = formType === "observation";
@@ -1682,6 +1808,7 @@
     $("wrapDirection").style.display = obs ? "none" : "";
     $("wrapStatus").style.display = obs ? "none" : "";
     $("execBlock").style.display = obs ? "none" : "";
+    updateBe35UI();
     $("f_pairLabel").innerHTML = (obs ? "Actif observé" : "Paire / Actif") + ' <span class="req">*</span>';
     $("typeHint").textContent = obs
       ? "Aucune position prise : seul l'actif observé est requis. Cette entrée n'est pas comptée dans les statistiques de trades."
@@ -1764,6 +1891,7 @@
     form.reset();
     fields.direction.value = "achat";
     fields.status.value = "en_cours";
+    fields.tpHit.checked = false;
     $("deleteTradeBtn").style.display = "none";
     formShots = [];
     formRemoved = [];
@@ -1784,6 +1912,9 @@
         fields.geo.value = t.geo || "";
         fields.macro.value = t.macro || "";
         fields.evolution.value = t.evolution || "";
+        fields.beAt.value = toLocalInput(t.beAt);
+        fields.tpHit.checked = !!t.tpHit;
+        fields.tpHitAt.value = toLocalInput(t.tpHitAt);
         formShots = (t.shots || []).map(function(sh){ return { id:sh.id, desc:sh.desc || "", dataUrl:null, isNew:false }; });
       }
       $("deleteTradeBtn").style.display = "inline-block";
@@ -1797,6 +1928,14 @@
 
   $("saveTradeBtn").addEventListener("click", function(){
     if(!fields.pair.value.trim()){ fields.pair.focus(); return; }
+    var isBe35 = formType === "trade" && fields.status.value === "be35";
+    if(isBe35 && fields.tpHit.checked){
+      if(!fields.beAt.value){ fields.beAt.focus(); alert("Renseigne l'heure du BE 35% pour pouvoir mesurer le délai du TP."); return; }
+      if(!fields.tpHitAt.value){ fields.tpHitAt.focus(); alert("Indique la date et l'heure exactes où le TP a été touché."); return; }
+      var dH = tpDelayH(fromLocalInput(fields.beAt.value), fromLocalInput(fields.tpHitAt.value));
+      if(dH === null || dH < 0){ fields.tpHitAt.focus(); alert("Le TP ne peut pas être touché avant le BE."); return; }
+      if(dH > TP_WINDOW_H && !confirm("Le TP a été touché " + fmtDelay(dH) + " après le BE, au-delà de " + TP_WINDOW_H + " h : il ne sera pas comptabilisé. Enregistrer quand même ?")) return;
+    }
     var btn = this;
     var dayKey = activeDayKey;
     var newOnes = formShots.filter(function(sh){ return sh.isNew; });
@@ -1815,6 +1954,9 @@
         lot: obsMode ? "" : fields.lot.value, entry: obsMode ? "" : fields.entry.value, sl: obsMode ? "" : fields.sl.value, tp: obsMode ? "" : fields.tp.value,
         exit: obsMode ? "" : fields.exit.value, pnl: obsMode ? "" : fields.pnl.value,
         geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim(),
+        beAt: isBe35 ? fromLocalInput(fields.beAt.value) : "",
+        tpHit: isBe35 ? !!fields.tpHit.checked : false,
+        tpHitAt: (isBe35 && fields.tpHit.checked) ? fromLocalInput(fields.tpHitAt.value) : "",
         shots: formShots.map(function(sh){ return { id:sh.id, desc:(sh.desc || "").trim() }; })
       };
       if(editingTradeId){
@@ -1909,6 +2051,33 @@
     showOnly(modalAccount);
   }
   window.openAccountModal = openAccountModal;
+
+  // ---- notifications WhatsApp (réglages ; l'envoi est fait par le script serveur du dossier notifier/) ----
+  function openNotifModal(){
+    if(!root) return;
+    var n = (root.meta && root.meta.notif) || {};
+    $("n_phone").value = n.phone || "";
+    $("n_enabled").checked = !!n.enabled;
+    $("notifError").textContent = "";
+    var open = 0;
+    root.accounts.forEach(function(a){ a.trades.forEach(function(t){ if(!isObs(t) && t.status === "en_cours") open++; }); });
+    $("notifInfo").textContent = open + " trade" + (open > 1 ? "s" : "") + " « En cours » actuellement. Envoi à 22h00 UTC, du lundi au vendredi.";
+    showOnly(modalNotif);
+  }
+  $("notifBtn").addEventListener("click", openNotifModal);
+  $("saveNotifBtn").addEventListener("click", function(){
+    var phone = $("n_phone").value.replace(/[\s.\-()]/g, "");
+    var enabled = $("n_enabled").checked;
+    if((enabled || phone) && !/^\+[1-9]\d{7,14}$/.test(phone)){
+      $("notifError").textContent = "Numéro invalide : utilise le format international, par ex. +212612345678.";
+      return;
+    }
+    if(enabled && !phone){ $("notifError").textContent = "Renseigne ton numéro pour activer les notifications."; return; }
+    if(!root.meta) root.meta = {};
+    root.meta.notif = { enabled: enabled, phone: phone, hourUtc: 22, updatedAt: new Date().toISOString() };
+    save();
+    closeOverlay();
+  });
 
   $("saveAccountBtn").addEventListener("click", function(){
     var name = $("a_name").value.trim();
@@ -2017,7 +2186,8 @@
     var wins = monthTrades.filter(function(t){ return t.status==="gagnant"; }).length;
     var losses = monthTrades.filter(function(t){ return t.status==="perdant"; }).length;
     var open = monthTrades.filter(function(t){ return t.status==="en_cours"; }).length;
-    var be = monthTrades.filter(function(t){ return t.status==="breakeven"; }).length;
+    var be = monthTrades.filter(function(t){ return t.status==="breakeven" || t.status==="be35"; }).length;
+    var be35tpPdf = monthTrades.filter(tpCounted).length;
     var closedCount = wins + losses;
     var winrate = closedCount ? Math.round((wins/closedCount)*100) + "%" : "—";
     var pnlMonth = monthTrades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); }, 0);
@@ -2059,7 +2229,8 @@
         ["Observations (aucun trade)", String(obsMonthCount)],
         ["Taux de réussite (mois)", winrate],
         ["Résultat du mois", fmtPdfMoney(pnlMonth)],
-        ["Gagnants / Perdants / En cours / Breakeven", wins + " / " + losses + " / " + open + " / " + be]
+        ["Gagnants / Perdants / En cours / Breakeven", wins + " / " + losses + " / " + open + " / " + be],
+        ["BE 35% avec TP touché (≤ 36 h)", be35tpPdf + " / " + monthTrades.filter(function(t){ return t.status==="be35"; }).length]
       ],
       margin: { left: marginX, right: marginX }
     });
