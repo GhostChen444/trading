@@ -10,11 +10,11 @@
 const admin = require("firebase-admin");
 
 const DRY = process.env.DRY_RUN === "1";
-const LANG = process.env.WA_LANG || "fr";
+const LANG = (process.env.WA_LANG || "fr").trim();
 
 function need(name) {
   if (!process.env[name]) { console.error("Variable manquante : " + name); process.exit(1); }
-  return process.env[name];
+  return process.env[name].trim(); // retire espaces / retours à la ligne collés par erreur dans un secret
 }
 
 admin.initializeApp({ credential: admin.credential.cert(JSON.parse(need("FIREBASE_SERVICE_ACCOUNT"))) });
