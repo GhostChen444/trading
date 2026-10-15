@@ -423,8 +423,78 @@
   .lb-nav:hover{border-color:var(--gold-soft); color:var(--gold);}
   @media (max-width:560px){ .lb-nav{width:30px;} .shot-thumb{width:84px; height:64px;} }
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+<style id="futurTheme">
+  /* ===== Thème futuriste (couche additive, retirable en supprimant ce bloc, #futurBg, #futurTicker et le script « futur ») ===== */
+  :root{ --neon:#d9b35f; --neon2:#5fd3c8; --neon3:#7a8cff; --orb:'Orbitron', var(--sans); }
+  #futurBg{position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; background:radial-gradient(1200px 700px at 50% -10%, #12181c 0%, var(--bg) 60%);}
+  #futurBg .blob{position:absolute; width:46vmax; height:46vmax; border-radius:50%; filter:blur(90px); opacity:.20; animation:fDrift 26s ease-in-out infinite alternate;}
+  #futurBg .b1{background:var(--neon); left:-12vmax; top:-14vmax;}
+  #futurBg .b2{background:var(--neon2); right:-16vmax; top:18vh; animation-duration:32s; animation-delay:-8s; opacity:.15;}
+  #futurBg .b3{background:var(--neon3); left:22vw; bottom:-26vmax; animation-duration:38s; animation-delay:-15s; opacity:.14;}
+  #futurBg .grid{position:absolute; left:-50%; right:-50%; bottom:-10%; height:70%; transform:perspective(520px) rotateX(62deg); transform-origin:50% 100%;
+    background-image:linear-gradient(rgba(217,179,95,.16) 1px, transparent 1px), linear-gradient(90deg, rgba(95,211,200,.12) 1px, transparent 1px);
+    background-size:54px 54px; animation:fGrid 6s linear infinite; -webkit-mask-image:linear-gradient(to top, #000 10%, transparent 85%); mask-image:linear-gradient(to top, #000 10%, transparent 85%);}
+  #futurBg .scan{position:absolute; left:0; right:0; height:140px; top:-140px; background:linear-gradient(to bottom, transparent, rgba(95,211,200,.05), transparent); animation:fScan 9s linear infinite;}
+  @keyframes fDrift{to{transform:translate3d(8vmax,6vmax,0) scale(1.15);}}
+  @keyframes fGrid{to{background-position:0 54px, 54px 0;}}
+  @keyframes fScan{to{transform:translateY(calc(100vh + 280px));}}
+
+  /* bandeau slogan */
+  #futurHero{position:relative; text-align:center; padding:26px 12px 18px; margin:0 0 6px;}
+  #futurHero .words{font-family:var(--orb); font-weight:900; letter-spacing:.34em; text-transform:uppercase; font-size:clamp(15px,3.2vw,30px);
+    background:linear-gradient(100deg, var(--neon), #fff 30%, var(--neon2) 55%, var(--neon3) 80%, var(--neon)); background-size:260% 100%;
+    -webkit-background-clip:text; background-clip:text; color:transparent; animation:fShine 7s linear infinite; filter:drop-shadow(0 0 14px rgba(217,179,95,.35));}
+  #futurHero .words i{font-style:normal; margin:0 .5em; opacity:.55;}
+  #futurHero .sub{margin-top:8px; font-family:var(--mono); font-size:12px; letter-spacing:.16em; color:var(--text-dim); min-height:18px;}
+  #futurHero .sub::after{content:"▍"; margin-left:3px; color:var(--neon); animation:fBlink 1s steps(2) infinite;}
+  #futurHero .line{width:min(560px,70%); height:1px; margin:14px auto 0; background:linear-gradient(90deg, transparent, var(--neon), var(--neon2), transparent); animation:fPulse 3.2s ease-in-out infinite;}
+  @keyframes fShine{to{background-position:260% 0;}}
+  @keyframes fBlink{50%{opacity:0;}}
+  @keyframes fPulse{50%{opacity:.35; transform:scaleX(.7);}}
+
+  /* ticker bas de page */
+  #futurTicker{position:fixed; left:0; right:0; bottom:0; height:28px; z-index:40; overflow:hidden; pointer-events:none; border-top:1px solid rgba(217,179,95,.25);
+    background:rgba(11,13,14,.78); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);}
+  #futurTicker .track{display:inline-flex; white-space:nowrap; gap:44px; padding-left:44px; height:28px; align-items:center; animation:fTick 38s linear infinite;
+    font-family:var(--orb); font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--neon);}
+  #futurTicker b{color:var(--neon2); font-weight:500;}
+  @keyframes fTick{to{transform:translateX(-50%);}}
+  body{padding-bottom:36px;}
+
+  /* bulles motivation */
+  .fBubble{position:fixed; bottom:44px; z-index:35; pointer-events:none; padding:9px 16px; border-radius:999px; font-family:var(--mono); font-size:12px; letter-spacing:.06em; color:var(--text);
+    background:linear-gradient(135deg, rgba(217,179,95,.16), rgba(95,211,200,.10)); border:1px solid rgba(217,179,95,.38); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    box-shadow:0 0 18px rgba(217,179,95,.22), inset 0 0 12px rgba(255,255,255,.04); opacity:0; animation:fRise var(--dur,13s) ease-in forwards;}
+  @keyframes fRise{0%{opacity:0; transform:translate3d(0,0,0) scale(.85);} 12%{opacity:.95;} 50%{transform:translate3d(var(--dx,20px),-42vh,0) scale(1);} 85%{opacity:.8;} 100%{opacity:0; transform:translate3d(calc(var(--dx,20px) * -1),-86vh,0) scale(1.05);}}
+
+  /* animations partout */
+  .screen, .wrap, .pick-wrap{animation:fIn .6s cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes fIn{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:none;}}
+  .card, .stats-card, .acc-card, .setup-card, .cg-box, .modal{background-color:rgba(23,27,29,.82); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s, border-color .35s;}
+  .card:hover, .stats-card:hover, .acc-card:hover{transform:translateY(-4px); border-color:rgba(217,179,95,.55); box-shadow:0 12px 34px rgba(0,0,0,.45), 0 0 22px rgba(217,179,95,.14);}
+  .day-cell{transition:transform .2s, box-shadow .25s, border-color .25s;}
+  .day-cell:hover{transform:scale(1.07); position:relative; z-index:2; border-color:var(--neon); box-shadow:0 0 18px rgba(217,179,95,.35);}
+  .trade-row{transition:transform .25s, background .25s;}
+  .trade-row:hover{transform:translateX(5px); background:rgba(217,179,95,.06);}
+  .btn, .cg-logout, .cg-submit, .iconbtn, .navbtn, .todaybtn{position:relative; overflow:hidden; transition:transform .2s, box-shadow .25s, border-color .25s;}
+  .btn:hover, .cg-logout:hover, .cg-submit:hover, .navbtn:hover, .todaybtn:hover{transform:translateY(-2px); box-shadow:0 6px 18px rgba(217,179,95,.22);}
+  .btn::after, .cg-submit::after{content:""; position:absolute; top:0; left:-120%; width:60%; height:100%; background:linear-gradient(100deg, transparent, rgba(255,255,255,.28), transparent); transform:skewX(-20deg); transition:left .6s;}
+  .btn:hover::after, .cg-submit:hover::after{left:140%;}
+  .btn.primary, .cg-submit{animation:fGlow 3.4s ease-in-out infinite;}
+  @keyframes fGlow{50%{box-shadow:0 0 22px rgba(217,179,95,.45);}}
+  .tag{transition:transform .2s;} .tag:hover{transform:translateY(-2px) scale(1.06);}
+  h1, .pick-title, .brand{font-family:var(--orb) !important; letter-spacing:.06em;}
+  .modal{animation:fModal .35s cubic-bezier(.2,.8,.2,1) both;}
+  @keyframes fModal{from{opacity:0; transform:translateY(18px) scale(.97);}}
+  @media (prefers-reduced-motion: reduce){ #futurBg *, #futurHero *, #futurTicker .track, .fBubble, .card, .btn, .screen, .wrap, .modal{animation:none !important; transition:none !important;} .fBubble{display:none;} }
+</style>
 </head>
 <body data-view="loading">
+<div id="futurBg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="grid"></div><div class="scan"></div></div>
+<div id="futurTicker" aria-hidden="true"><div class="track"><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Smart work</span><b>◆</b><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Smart work</span><b>◆</b></div></div>
+
 
 <!-- ========== LOADING ========== -->
 <div class="screen" id="viewLoading"><div class="loading-text">Chargement de ton carnet…</div></div>
@@ -2386,6 +2456,36 @@
   cgWatchdog();
   try { cgInitFirebase(); } catch(e) { cgDiag.err = String((e && e.message) || e).slice(0,120); cgFailLoading("Erreur au démarrage."); }
 
+})();
+</script>
+<script id="futur">
+(function(){
+  try{
+    var W=["Trust the process","Work again and again and again","Smart work","Discipline > motivation","Patience pays","Process over profit","One trade at a time","Protect your capital","Stay consistent","Execute the plan","Small edge, big discipline"];
+    var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var hero=document.createElement("div"); hero.id="futurHero";
+    hero.innerHTML='<div class="words">Discipline<i>/</i>Patience<i>/</i>Exécution</div><div class="sub" id="futurSub"></div><div class="line"></div>';
+    var wrap=document.querySelector(".wrap"); if(wrap) wrap.insertBefore(hero, wrap.firstChild);
+    var sub=document.getElementById("futurSub"), si=0, ci=0, del=false;
+    function type(){
+      var t=W[si]; if(!sub) return;
+      sub.textContent=t.slice(0,ci);
+      if(!del && ci<t.length){ci++; return setTimeout(type,55);}
+      if(!del){del=true; return setTimeout(type,1700);}
+      if(ci>0){ci--; return setTimeout(type,25);}
+      del=false; si=(si+1)%W.length; setTimeout(type,300);
+    }
+    if(reduce && sub){ sub.textContent=W[0]; } else type();
+    if(reduce) return;
+    var bi=0;
+    function bubble(){
+      if(document.hidden || document.querySelectorAll(".fBubble").length>=4) return;
+      var b=document.createElement("div"); b.className="fBubble"; b.textContent=W[(bi++ + Math.floor(Math.random()*3))%W.length];
+      b.style.left=(6+Math.random()*70)+"vw"; b.style.setProperty("--dx",(Math.random()*80-40)+"px"); b.style.setProperty("--dur",(11+Math.random()*6)+"s");
+      document.body.appendChild(b); setTimeout(function(){ b.remove(); },18000);
+    }
+    setTimeout(bubble,1500); setInterval(bubble,3800);
+  }catch(e){ console.error(e); }
 })();
 </script>
 </body>
