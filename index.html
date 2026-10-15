@@ -456,17 +456,11 @@
   /* ticker bas de page */
   #futurTicker{position:fixed; left:0; right:0; bottom:0; height:28px; z-index:40; overflow:hidden; pointer-events:none; border-top:1px solid rgba(217,179,95,.25);
     background:rgba(11,13,14,.78); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);}
-  #futurTicker .track{display:inline-flex; white-space:nowrap; gap:44px; padding-left:44px; height:28px; align-items:center; animation:fTick 38s linear infinite;
+  #futurTicker .track{display:inline-flex; white-space:nowrap; gap:44px; padding-left:44px; height:28px; align-items:center; animation:fTick 90s linear infinite;
     font-family:var(--orb); font-size:11px; letter-spacing:.28em; text-transform:uppercase; color:var(--neon);}
   #futurTicker b{color:var(--neon2); font-weight:500;}
   @keyframes fTick{to{transform:translateX(-50%);}}
   body{padding-bottom:36px;}
-
-  /* bulles motivation */
-  .fBubble{position:fixed; bottom:44px; z-index:35; pointer-events:none; padding:9px 16px; border-radius:999px; font-family:var(--mono); font-size:12px; letter-spacing:.06em; color:var(--text);
-    background:linear-gradient(135deg, rgba(217,179,95,.16), rgba(95,211,200,.10)); border:1px solid rgba(217,179,95,.38); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-    box-shadow:0 0 18px rgba(217,179,95,.22), inset 0 0 12px rgba(255,255,255,.04); opacity:0; animation:fRise var(--dur,13s) ease-in forwards;}
-  @keyframes fRise{0%{opacity:0; transform:translate3d(0,0,0) scale(.85);} 12%{opacity:.95;} 50%{transform:translate3d(var(--dx,20px),-42vh,0) scale(1);} 85%{opacity:.8;} 100%{opacity:0; transform:translate3d(calc(var(--dx,20px) * -1),-86vh,0) scale(1.05);}}
 
   /* animations partout */
   .screen, .wrap, .pick-wrap{animation:fIn .6s cubic-bezier(.2,.8,.2,1) both;}
@@ -488,12 +482,12 @@
   h1, .pick-title, .brand{font-family:var(--orb) !important; letter-spacing:.06em;}
   .modal{animation:fModal .35s cubic-bezier(.2,.8,.2,1) both;}
   @keyframes fModal{from{opacity:0; transform:translateY(18px) scale(.97);}}
-  @media (prefers-reduced-motion: reduce){ #futurBg *, #futurHero *, #futurTicker .track, .fBubble, .card, .btn, .screen, .wrap, .modal{animation:none !important; transition:none !important;} .fBubble{display:none;} }
+  @media (prefers-reduced-motion: reduce){ #futurBg *, #futurHero *, #futurTicker .track, .card, .btn, .screen, .wrap, .modal{animation:none !important; transition:none !important;} }
 </style>
 </head>
 <body data-view="loading">
 <div id="futurBg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="grid"></div><div class="scan"></div></div>
-<div id="futurTicker" aria-hidden="true"><div class="track"><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Smart work</span><b>◆</b><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Smart work</span><b>◆</b></div></div>
+<div id="futurTicker" aria-hidden="true"><div class="track"><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Work again and again and again</span><b>◆</b><span>Smart work</span><b>◆</b><span>Discipline &gt; motivation</span><b>◆</b><span>Patience pays</span><b>◆</b><span>Process over profit</span><b>◆</b><span>One trade at a time</span><b>◆</b><span>Protect your capital</span><b>◆</b><span>Stay consistent</span><b>◆</b><span>Execute the plan</span><b>◆</b><span>Small edge, big discipline</span><b>◆</b><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Work again and again and again</span><b>◆</b><span>Smart work</span><b>◆</b><span>Discipline &gt; motivation</span><b>◆</b><span>Patience pays</span><b>◆</b><span>Process over profit</span><b>◆</b><span>One trade at a time</span><b>◆</b><span>Protect your capital</span><b>◆</b><span>Stay consistent</span><b>◆</b><span>Execute the plan</span><b>◆</b><span>Small edge, big discipline</span><b>◆</b></div></div>
 
 
 <!-- ========== LOADING ========== -->
@@ -2476,15 +2470,6 @@
       del=false; si=(si+1)%W.length; setTimeout(type,300);
     }
     if(reduce && sub){ sub.textContent=W[0]; } else type();
-    if(reduce) return;
-    var bi=0;
-    function bubble(){
-      if(document.hidden || document.querySelectorAll(".fBubble").length>=4) return;
-      var b=document.createElement("div"); b.className="fBubble"; b.textContent=W[(bi++ + Math.floor(Math.random()*3))%W.length];
-      b.style.left=(6+Math.random()*70)+"vw"; b.style.setProperty("--dx",(Math.random()*80-40)+"px"); b.style.setProperty("--dur",(11+Math.random()*6)+"s");
-      document.body.appendChild(b); setTimeout(function(){ b.remove(); },18000);
-    }
-    setTimeout(bubble,1500); setInterval(bubble,3800);
   }catch(e){ console.error(e); }
 })();
 </script>
