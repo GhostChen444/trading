@@ -35,7 +35,7 @@ function openTrades(state) {
 
 // Les paramètres d'un modèle WhatsApp n'acceptent ni retour à la ligne ni longues séries d'espaces.
 function buildText(list) {
-  const head = list.length + " trade" + (list.length > 1 ? "s" : "") + " en cours a la cloture";
+  const head = list.length + " trade" + (list.length > 1 ? "s" : "") + " en cours à la clôture";
   const body = list.slice(0, 8).join(" | ") + (list.length > 8 ? " | +" + (list.length - 8) + " autres" : "");
   return (head + " : " + body).replace(/\s+/g, " ").slice(0, 900);
 }
