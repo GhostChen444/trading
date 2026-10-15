@@ -2,7 +2,7 @@ name: Rappel WhatsApp des trades en cours
 
 on:
   schedule:
-    - cron: "0 5 * * 1-5"   # TEST : 5h00 UTC, du lundi au vendredi (remettre "0 22 * * 1-5" après le test)
+    - cron: "50 21 * * 1-5"   # vise 22h00 UTC, du lundi au vendredi (GitHub retarde souvent les exécutions : on part 10 min avant)
   workflow_dispatch:           # lancement manuel pour tester
 
 jobs:
