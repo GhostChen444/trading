@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Carnet — Journal de Trading</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -483,6 +483,96 @@
   .modal{animation:fModal .35s cubic-bezier(.2,.8,.2,1) both;}
   @keyframes fModal{from{opacity:0; transform:translateY(18px) scale(.97);}}
   @media (prefers-reduced-motion: reduce){ #futurBg *, #futurHero *, #futurTicker .track, .card, .btn, .screen, .wrap, .modal{animation:none !important; transition:none !important;} }
+</style>
+<style id="responsiveFix">
+  /* ===== Correctifs responsive (mobile / tablette / PC) ===== */
+  html{-webkit-text-size-adjust:100%; text-size-adjust:100%;}
+  html,body{max-width:100%; overflow-x:hidden;}
+  body{padding-bottom:calc(36px + env(safe-area-inset-bottom,0px)); min-height:100dvh;}
+  img,svg,canvas,video{max-width:100%;}
+  .screen,#viewPicker{min-height:100dvh;}
+
+  /* --- bandeau slogan : ne déborde plus, passe à la ligne proprement --- */
+  #futurHero{padding:22px 8px 16px; overflow:hidden;}
+  #futurHero .words{
+    display:flex; flex-wrap:wrap; justify-content:center; align-items:center;
+    column-gap:.2em; row-gap:.25em; letter-spacing:.2em;
+    font-size:clamp(14px,4.2vw,30px);
+    background:none; -webkit-background-clip:border-box; background-clip:border-box;
+    color:inherit; animation:none; filter:none;
+  }
+  #futurHero .words span{
+    padding-left:.2em; /* compense le letter-spacing final */
+    background:linear-gradient(100deg, var(--neon), #fff 30%, var(--neon2) 55%, var(--neon3) 80%, var(--neon)); background-size:260% 100%;
+    -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;
+    animation:fShine 7s linear infinite; filter:drop-shadow(0 0 12px rgba(217,179,95,.35));
+    max-width:100%; overflow-wrap:anywhere;
+  }
+  #futurHero .words i{margin:0 .15em; color:var(--neon); -webkit-text-fill-color:var(--neon);}
+  #futurHero .sub{font-size:clamp(10px,2.8vw,12px); letter-spacing:.1em; padding:0 6px; overflow-wrap:anywhere;}
+
+  /* --- en-tête / topbar --- */
+  .brand{min-width:0; max-width:100%;}
+  .brand h1{font-size:clamp(20px,5.5vw,30px) !important; line-height:1.15; overflow-wrap:anywhere;}
+  .brand .eyebrow.acc-eyebrow, .brand-desc{max-width:100%;}
+  #userEmail{overflow-wrap:anywhere; word-break:break-all;}
+  .topbar-right{min-width:0;}
+
+  /* --- tablette --- */
+  @media (max-width:860px){
+    .topbar{align-items:stretch;}
+    .account-quick{flex:1 1 100%; justify-content:space-between;}
+    .topbar-right{flex:1 1 100%; justify-content:flex-start;}
+    .side{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px;}
+  }
+
+  /* --- mobile --- */
+  @media (max-width:560px){
+    body{font-size:14px;}
+    .topbar{gap:12px; padding-bottom:16px; margin-bottom:18px;}
+    .account-quick{flex-wrap:wrap; gap:10px 14px;}
+    .account-quick .aq-block{text-align:left; flex:1 1 40%; min-width:0;}
+    .account-quick .aq-value{font-size:15px; overflow-wrap:anywhere;}
+    .account-quick .aq-btn{flex:1 1 100%; padding:9px 10px;}
+    .topbar-right{gap:8px;}
+    .topbar-right .cg-logout{flex:1 1 auto; padding:9px 10px; min-height:40px;}
+    #userEmail{flex:1 1 100%; margin:0;}
+    .cal-head{gap:8px;}
+    .cal-head .todaybtn{flex:1 1 auto; min-height:38px;}
+    .navbtn{width:38px; height:38px;}
+    .stat-row{gap:10px;} .stat-row .k{min-width:0;} .stat-row .v{text-align:right; flex-shrink:0;}
+    .modal-header,.modal-footer,.modal-body{padding-left:14px; padding-right:14px;}
+    .modal-footer{flex-wrap:wrap;} .modal-footer .btn{flex:1 1 auto;}
+    .trade-row{flex-direction:column;}
+    .trade-actions{width:100%;} .trade-actions .iconbtn{flex:1; padding:8px;}
+    .overlay{padding:2vh 8px;}
+    .cg-box{padding:22px 18px;}
+    .pick-wrap{padding:20px 12px 80px;}
+    .acc-grid{grid-template-columns:1fr;}
+    input,select,textarea{font-size:16px !important;} /* évite le zoom auto iOS */
+    #futurTicker{height:calc(28px + env(safe-area-inset-bottom,0px)); padding-bottom:env(safe-area-inset-bottom,0px);}
+  }
+
+  /* --- très petits écrans --- */
+  @media (max-width:360px){
+    .weekdays{font-size:9px;} .day-pnl{font-size:8px;}
+    #futurHero .words{letter-spacing:.12em;}
+  }
+
+  /* --- grands écrans --- */
+  @media (min-width:1400px){
+    .wrap{max-width:1240px;}
+    main{grid-template-columns:minmax(0,1fr) 300px;}
+  }
+
+  /* --- écrans tactiles : pas de hover qui "saute" --- */
+  @media (hover:none){
+    .card:hover,.stats-card:hover,.acc-card:hover,.day-cell:hover,.trade-row:hover,.btn:hover,.navbtn:hover,.todaybtn:hover,.cg-logout:hover,.cg-submit:hover{transform:none;}
+  }
+  /* paysage mobile */
+  @media (max-height:480px) and (orientation:landscape){
+    #futurHero{padding:10px 8px;} .screen{align-items:flex-start;}
+  }
 </style>
 </head>
 <body data-view="loading">
@@ -2458,7 +2548,7 @@
     var W=["Trust the process","Work again and again and again","Smart work","Discipline > motivation","Patience pays","Process over profit","One trade at a time","Protect your capital","Stay consistent","Execute the plan","Small edge, big discipline"];
     var reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
     var hero=document.createElement("div"); hero.id="futurHero";
-    hero.innerHTML='<div class="words">Discipline<i>/</i>Patience<i>/</i>Exécution</div><div class="sub" id="futurSub"></div><div class="line"></div>';
+    hero.innerHTML='<div class="words"><span>Discipline</span><i>/</i><span>Patience</span><i>/</i><span>Exécution</span></div><div class="sub" id="futurSub"></div><div class="line"></div>';
     var wrap=document.querySelector(".wrap"); if(wrap) wrap.insertBefore(hero, wrap.firstChild);
     var sub=document.getElementById("futurSub"), si=0, ci=0, del=false;
     function type(){
