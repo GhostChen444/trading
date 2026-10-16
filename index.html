@@ -305,6 +305,10 @@
   .btn.danger-outline{border-color:var(--red); color:var(--red);}
   .btn.danger-outline:hover{background:var(--red-soft);}
 
+  .strat-new{display:flex; gap:8px; margin-top:8px; align-items:center;}
+  .strat-new input{flex:1; min-width:0;}
+  .strat-block{margin-top:2px;}
+  .field-warn-soft{color:var(--gold, #c9a45c);}
   .hint{font-size:11.5px; color:var(--text-faint); margin-top:4px;}
   .account-footer-actions{display:flex; gap:10px; flex-wrap:wrap; padding-top:14px; border-top:1px solid var(--border-soft); margin-top:6px;}
   .file-input{display:none;}
@@ -774,7 +778,13 @@
           </div>
           <div class="field">
             <label for="f_strategy">Stratégie</label>
-            <input type="text" id="f_strategy" placeholder="Supply &amp; Demand killzone">
+            <select id="f_strategy"></select>
+            <div class="strat-new" id="stratNewRow" style="display:none;">
+              <input type="text" id="f_stratNewName" placeholder="Nom de la nouvelle stratégie" maxlength="60">
+              <button type="button" class="btn primary" id="stratNewOk">Ajouter</button>
+              <button type="button" class="btn" id="stratNewCancel">Annuler</button>
+            </div>
+            <div class="hint field-warn" id="stratNewErr"></div>
           </div>
           <div class="field" id="wrapStatus">
             <label for="f_status">Statut</label>
@@ -785,67 +795,6 @@
               <option value="breakeven">BE point d'entrée</option>
               <option value="be35">BE 35%</option>
             </select>
-          </div>
-        </div>
-
-        <div class="section-label">setup — supply &amp; demand en killzone</div>
-        <div class="form-grid">
-          <div class="field">
-            <label for="f_kzEntry">Killzone de l'entrée</label>
-            <select id="f_kzEntry">
-              <option value="">—</option>
-              <option value="asie">Asie</option>
-              <option value="londres">Londres</option>
-              <option value="us">US</option>
-              <option value="hors">Hors killzone</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="f_kzZone">Zone créée pendant</label>
-            <select id="f_kzZone">
-              <option value="">—</option>
-              <option value="asie">Asie</option>
-              <option value="londres">Londres</option>
-              <option value="us">US</option>
-              <option value="hors">Hors killzone</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="f_zoneType">Type de zone</label>
-            <select id="f_zoneType">
-              <option value="">—</option>
-              <option value="demande">Demande (demand)</option>
-              <option value="offre">Offre (supply)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="f_h1">Confluence H1</label>
-            <select id="f_h1">
-              <option value="">—</option>
-              <option value="ob">Order block H1</option>
-              <option value="fvg">FVG H1</option>
-              <option value="ob_fvg">OB + FVG H1</option>
-            </select>
-          </div>
-          <div class="field span2">
-            <label for="f_m5">Confirmation d'entrée M5</label>
-            <input type="text" id="f_m5" placeholder="ex : CHoCH M5 après sweep, FVG M5 dans la zone...">
-          </div>
-          <div class="field span2">
-            <label for="f_conform">Setup conforme aux règles de la stratégie ?</label>
-            <select id="f_conform">
-              <option value="">—</option>
-              <option value="oui">Oui, toutes les règles respectées</option>
-              <option value="partiel">Partiellement</option>
-              <option value="non">Non, écart à la stratégie</option>
-            </select>
-            <div class="hint" id="kzHint"></div>
-          </div>
-        </div>
-        <div class="form-grid full" style="margin-top:14px;">
-          <div class="field">
-            <label for="f_details">Détails du setup</label>
-            <textarea id="f_details" placeholder="où est la zone, biais H1, pourquoi cette entrée, ce qui s'est passé après..."></textarea>
           </div>
         </div>
 
@@ -868,11 +817,40 @@
           </div>
         </div>
 
+        <div id="setupSD" class="strat-block" style="display:none;">
+          <div class="section-label">setup — supply &amp; demand en killzone</div>
+          <div class="form-grid">
+            <div class="field"><label for="s_dir">Zone repérée</label><select id="s_dir"><option value="">— choisir —</option><option value="demand">Demand</option><option value="supply">Supply</option></select></div>
+            <div class="field"><label for="s_type">Type de zone (OB ou FVG, jamais les deux)</label><select id="s_type"><option value="">— choisir —</option><option value="OB">OB</option><option value="FVG">FVG</option></select></div>
+            <div class="field"><label for="s_zoneKz">Killzone de repérage de la zone</label><select id="s_zoneKz"><option value="">— choisir —</option><option value="asie">Asie</option><option value="londres">Londres</option><option value="us">US</option></select></div>
+            <div class="field"><label for="s_zoneTime">Heure de repérage</label><input type="time" id="s_zoneTime"></div>
+            <div class="field"><label for="s_h1">Structure H1</label><select id="s_h1"><option value="">— choisir —</option><option value="haussiere">Haussière</option><option value="baissiere">Baissière</option><option value="range">Range</option></select></div>
+            <div class="field"><label for="s_m5">Zone d'entrée repérée en M5</label><select id="s_m5"><option value="">— choisir —</option><option value="OB">OB M5</option><option value="FVG">FVG M5</option></select></div>
+            <div class="field"><label for="s_chM5">CHoCH M5 confirmé (réintégration de la zone)</label><select id="s_chM5"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="s_chH1">CHoCH H1 confirmé (réintégration de la zone)</label><select id="s_chH1"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="s_entryKz">Killzone d'entrée</label><select id="s_entryKz"><option value="">— choisir —</option><option value="asie">Asie</option><option value="londres">Londres</option><option value="us">US</option></select></div>
+            <div class="field"><label for="s_entryTime">Heure d'entrée</label><input type="time" id="s_entryTime"></div>
+            <div class="field"><label for="s_confirm">Confirmation d'entrée en M5</label><select id="s_confirm"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+          </div>
+          <div class="hint" id="setupHint"></div>
+        </div>
+
+        <div id="setupCustom" class="strat-block" style="display:none;">
+          <div class="section-label">détails de la stratégie</div>
+          <div class="form-grid full">
+            <div class="field">
+              <label for="f_stratDetails">Détails de cette stratégie pour ce trade</label>
+              <textarea id="f_stratDetails" placeholder="critères de ta stratégie, conditions remplies, confirmations, timeframe, killzone..."></textarea>
+            </div>
+          </div>
+        </div>
+
         <div id="execBlock">
         <div class="section-label">exécution</div>
         <div class="form-grid">
           <div class="field num"><label for="f_lot">Lot</label><input type="number" step="0.01" id="f_lot" placeholder="0.50"></div>
           <div class="field num"><label for="f_entry">Prix d'entrée</label><input type="number" step="any" id="f_entry"></div>
+          <div class="field num"><label for="f_risk">Risque (% du compte)</label><input type="number" step="any" id="f_risk" placeholder="1"></div>
           <div class="field num"><label for="f_sl">Stop Loss</label><input type="number" step="any" id="f_sl"></div>
           <div class="field num"><label for="f_tp">Take Profit</label><input type="number" step="any" id="f_tp"></div>
           <div class="field num"><label for="f_exit">Prix de sortie (optionnel)</label><input type="number" step="any" id="f_exit"></div>
@@ -1061,28 +1039,6 @@
     var h = tpDelayH(t.beAt, t.tpHitAt);
     if(tpCounted(t)) return '<span class="tag tp-ok">TP touché · +' + fmtDelay(h) + '</span>';
     return '<span class="tag tp-late">TP hors délai (non compté)</span>';
-  }
-  // ---- Stratégie unique : supply & demand créées en killzone, OB/FVG H1, entrée M5 ----
-  var STRAT_NAME = "Supply & Demand killzone";
-  var KZ_LABEL = { asie:"Asie", londres:"Londres", us:"US", hors:"Hors killzone" };
-  var ZONE_LABEL = { demande:"Demande", offre:"Offre" };
-  var H1_LABEL = { ob:"Order block H1", fvg:"FVG H1", ob_fvg:"OB + FVG H1" };
-  var CONF_LABEL = { oui:"Conforme", partiel:"Partiel", non:"Non conforme" };
-  var PAIR_NAME = { GBPUSD:"GBP/USD", EURUSD:"EUR/USD", XAUUSD:"XAU/USD (Or)" };
-  var KZ_OK = { GBPUSD:["londres","us"], EURUSD:["londres","us"], XAUUSD:["asie","londres","us"] };
-  function canonPair(p){
-    var s = String(p||"").toUpperCase().replace(/[^A-Z]/g,"");
-    if(s.indexOf("GBPUSD") > -1 || s === "GU") return "GBPUSD";
-    if(s.indexOf("EURUSD") > -1 || s === "EU") return "EURUSD";
-    if(s.indexOf("XAUUSD") > -1 || s.indexOf("GOLD") > -1 || s === "XAU") return "XAUUSD";
-    return s;
-  }
-  // true / false si la killzone est valide pour la paire, null si on ne peut pas juger
-  function kzAllowed(pair, kz){
-    var c = canonPair(pair);
-    if(!KZ_OK[c] || !kz) return null;
-    if(kz === "hors") return false;
-    return KZ_OK[c].indexOf(kz) > -1;
   }
   function pdfTag(t){ return isObs(t) ? "Observation" : ((t.direction === "vente" ? "Vente" : "Achat") + ", " + (STATUS_LABEL[t.status] || "")); }
 
@@ -1441,6 +1397,7 @@
     out.version = 2;
     if(!out.meta) out.meta = {};
     if(out.meta.lastSaved === undefined) out.meta.lastSaved = null;
+    if(!Array.isArray(out.strategies)) out.strategies = [];
     out.accounts.forEach(function(a){
       if(!a.id) a.id = newId("a_");
       if(!a.name) a.name = "Compte";
@@ -1962,8 +1919,6 @@
               ? '<span class="tag status-observation">Observation</span>'
               : '<span class="tag dir-' + (t.direction||"achat") + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' +
                 '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' + tpTagHtml(t)) +
-            (t.kzEntry && KZ_LABEL[t.kzEntry] ? '<span class="tag" title="Killzone de l\'entrée">' + KZ_LABEL[t.kzEntry] + '</span>' : '') +
-            (t.conform === "non" || t.conform === "partiel" ? '<span class="tag tp-late" title="Setup conforme aux règles ?">' + CONF_LABEL[t.conform] + '</span>' : '') +
             (t.improve && t.improve.trim() ? '<span class="tag tag-improve" title="Éléments à améliorer renseignés">↗ à améliorer</span>' : '') +
           '</div>' +
           '<div class="trade-meta">' +
@@ -2019,27 +1974,82 @@
     lot: $("f_lot"), entry: $("f_entry"), sl: $("f_sl"), tp: $("f_tp"), exit: $("f_exit"), pnl: $("f_pnl"),
     geo: $("f_geo"), macro: $("f_macro"), evolution: $("f_evolution"), improve: $("f_improve"),
     beAt: $("f_beAt"), tpHit: $("f_tpHit"), tpHitAt: $("f_tpHitAt"),
-    kzEntry: $("f_kzEntry"), kzZone: $("f_kzZone"), zoneType: $("f_zoneType"), h1: $("f_h1"),
-    m5: $("f_m5"), conform: $("f_conform"), details: $("f_details")
+    risk: $("f_risk"), stratDetails: $("f_stratDetails")
   };
 
-  // ---- rappel des killzones prévues pour la paire ----
-  function updateKzHint(){
-    var h = $("kzHint"); if(!h) return;
-    h.className = "hint";
-    var c = canonPair(fields.pair.value), kz = fields.kzEntry.value;
-    if(!KZ_OK[c]){ h.textContent = ""; return; }
-    var ok = KZ_OK[c].map(function(k){ return KZ_LABEL[k]; }).join(", ");
-    var allowed = kzAllowed(fields.pair.value, kz);
-    if(allowed === false){
-      h.className = "hint field-warn";
-      h.textContent = (kz === "hors" ? "Entrée hors killzone" : KZ_LABEL[kz] + " n'est pas une killzone prévue pour " + PAIR_NAME[c]) + " : à noter comme écart à la stratégie (killzones prévues : " + ok + ").";
-    } else {
-      h.textContent = "Killzones prévues pour " + PAIR_NAME[c] + " : " + ok + ".";
-    }
+  // ---- stratégies : liste déroulante + ajout ----
+  var SD_NAME = "Supply & Demand en killzone";
+  var SETUP_IDS = { dir:"s_dir", type:"s_type", zoneKz:"s_zoneKz", zoneTime:"s_zoneTime", h1:"s_h1", m5:"s_m5",
+                    chM5:"s_chM5", chH1:"s_chH1", entryKz:"s_entryKz", entryTime:"s_entryTime", confirm:"s_confirm" };
+  var lastStrat = "";
+  function customStrats(){ return (root && root.strategies) || []; }
+  function stratExists(name){
+    var n = name.trim().toLowerCase();
+    return n === SD_NAME.toLowerCase() || customStrats().some(function(x){ return x.name.toLowerCase() === n; });
   }
-  fields.pair.addEventListener("input", updateKzHint);
-  fields.kzEntry.addEventListener("change", updateKzHint);
+  function refreshStrategyOptions(selected){
+    var sel = fields.strategy, html = '<option value="">— Aucune —</option>';
+    html += '<option value="' + escapeHtml(SD_NAME) + '">' + escapeHtml(SD_NAME) + '</option>';
+    customStrats().forEach(function(x){ html += '<option value="' + escapeHtml(x.name) + '">' + escapeHtml(x.name) + '</option>'; });
+    // ancienne stratégie saisie librement : on la garde sélectionnable pour ne rien perdre
+    if(selected && !stratExists(selected)) html += '<option value="' + escapeHtml(selected) + '">' + escapeHtml(selected) + ' (ancienne)</option>';
+    html += '<option value="__new__">+ Ajouter une stratégie…</option>';
+    sel.innerHTML = html;
+    sel.value = selected || "";
+    if(sel.value !== (selected || "")) sel.value = "";
+    lastStrat = sel.value;
+  }
+  function hideNewStrat(){ $("stratNewRow").style.display = "none"; $("stratNewErr").textContent = ""; $("f_stratNewName").value = ""; }
+  function updateStrategyUI(){
+    var v = fields.strategy.value;
+    var isNew = v === "__new__";
+    var isSD = v === SD_NAME;
+    var isCustom = !!v && !isNew && !isSD;
+    $("setupSD").style.display = isSD ? "" : "none";
+    $("setupCustom").style.display = isCustom ? "" : "none";
+    updateSetupHint();
+  }
+  function updateSetupHint(){
+    var h = $("setupHint"); if(!h) return;
+    if(fields.strategy.value !== SD_NAME){ h.textContent = ""; h.className = "hint"; return; }
+    var conf = ["s_chM5","s_chH1","s_confirm"].filter(function(id){ return $(id).value === "oui"; }).length;
+    var msg = "Confirmations validées : " + conf + "/3 (CHoCH M5, CHoCH H1, confirmation M5).";
+    var warn = false;
+    var d = $("s_dir").value;
+    if(formType === "trade" && d){
+      var dir = fields.direction.value;
+      if((d === "demand" && dir === "vente") || (d === "supply" && dir === "achat")){
+        msg += " Attention : une zone " + (d === "demand" ? "Demand" : "Supply") + " correspond normalement à " + (d === "demand" ? "un achat" : "une vente") + ". Vérifie le sens du trade.";
+        warn = true;
+      }
+    }
+    h.textContent = msg;
+    h.className = warn ? "hint field-warn" : "hint";
+  }
+  fields.strategy.addEventListener("change", function(){
+    if(fields.strategy.value === "__new__"){
+      $("stratNewRow").style.display = "flex"; $("stratNewErr").textContent = "";
+      $("f_stratNewName").focus();
+    } else { hideNewStrat(); lastStrat = fields.strategy.value; }
+    updateStrategyUI();
+  });
+  $("stratNewOk").addEventListener("click", function(){
+    var name = $("f_stratNewName").value.trim().replace(/\s+/g, " ");
+    if(!name){ $("stratNewErr").textContent = "Saisis le nom de la stratégie."; return; }
+    if(stratExists(name)){ $("stratNewErr").textContent = "Cette stratégie existe déjà : sélectionne-la dans la liste."; return; }
+    if(!Array.isArray(root.strategies)) root.strategies = [];
+    root.strategies.push({ id:newId("st_"), name:name });
+    save();
+    hideNewStrat();
+    refreshStrategyOptions(name);
+    updateStrategyUI();
+  });
+  $("f_stratNewName").addEventListener("keydown", function(e){ if(e.key === "Enter"){ e.preventDefault(); $("stratNewOk").click(); } });
+  $("stratNewCancel").addEventListener("click", function(){
+    hideNewStrat(); fields.strategy.value = lastStrat; updateStrategyUI();
+  });
+  Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).addEventListener("change", updateSetupHint); });
+  fields.direction.addEventListener("change", updateSetupHint);
   var formType = "trade";
 
   // ---- BE 35% : suivi du TP touché (fenêtre max 36 h) ----
@@ -2162,17 +2172,23 @@
     fields.direction.value = "achat";
     fields.status.value = "en_cours";
     fields.tpHit.checked = false;
-    fields.strategy.value = STRAT_NAME;
     $("deleteTradeBtn").style.display = "none";
     formShots = [];
     formRemoved = [];
+    hideNewStrat();
+    refreshStrategyOptions("");
+    Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).value = ""; });
 
     if(tradeId){
       var t = state.trades.find(function(x){ return x.id === tradeId; });
       if(t){
         fields.pair.value = t.pair || "";
         fields.direction.value = t.direction || "achat";
-        fields.strategy.value = t.strategy || "";
+        refreshStrategyOptions(t.strategy || "");
+        var su = t.setup || {};
+        Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).value = su[k] || ""; });
+        fields.stratDetails.value = t.stratDetails || "";
+        fields.risk.value = t.risk !== undefined ? t.risk : "";
         fields.status.value = t.status || "en_cours";
         fields.lot.value = t.lot !== undefined ? t.lot : "";
         fields.entry.value = t.entry !== undefined ? t.entry : "";
@@ -2184,13 +2200,6 @@
         fields.macro.value = t.macro || "";
         fields.evolution.value = t.evolution || "";
         fields.improve.value = t.improve || "";
-        fields.kzEntry.value = t.kzEntry || "";
-        fields.kzZone.value = t.kzZone || "";
-        fields.zoneType.value = t.zoneType || "";
-        fields.h1.value = t.h1 || "";
-        fields.m5.value = t.m5 || "";
-        fields.conform.value = t.conform || "";
-        fields.details.value = t.details || "";
         fields.beAt.value = toLocalInput(t.beAt);
         fields.tpHit.checked = !!t.tpHit;
         fields.tpHitAt.value = toLocalInput(t.tpHitAt);
@@ -2198,9 +2207,9 @@
       }
       $("deleteTradeBtn").style.display = "inline-block";
     }
+    updateStrategyUI();
     setFormType(tradeId && state.trades.some(function(x){ return x.id === tradeId && isObs(x); }) ? "observation" : "trade");
     $("formModalSub").textContent = dayKey;
-    updateKzHint();
     renderShotList();
     showOnly(modalForm);
   }
@@ -2224,19 +2233,27 @@
 
     Promise.all(newOnes.map(uploadShot)).then(function(){
       var obsMode = formType === "observation";
+      var stratVal = fields.strategy.value === "__new__" ? "" : fields.strategy.value.trim();
+      var setupData = null;
+      if(stratVal === SD_NAME){
+        setupData = {};
+        Object.keys(SETUP_IDS).forEach(function(k){ setupData[k] = $(SETUP_IDS[k]).value; });
+      }
+      var isCustomStrat = !!stratVal && stratVal !== SD_NAME;
       var payload = {
         date: dayKey,
         pair: fields.pair.value.trim(),
         observation: obsMode,
         direction: obsMode ? "" : fields.direction.value,
-        strategy: fields.strategy.value.trim(),
+        strategy: stratVal,
+        setup: setupData,
+        stratDetails: isCustomStrat ? fields.stratDetails.value.trim() : "",
+        risk: obsMode ? "" : fields.risk.value,
         status: obsMode ? "observation" : fields.status.value,
         lot: obsMode ? "" : fields.lot.value, entry: obsMode ? "" : fields.entry.value, sl: obsMode ? "" : fields.sl.value, tp: obsMode ? "" : fields.tp.value,
         exit: obsMode ? "" : fields.exit.value, pnl: obsMode ? "" : fields.pnl.value,
         geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim(),
         improve: fields.improve.value.trim(),
-        kzEntry: fields.kzEntry.value, kzZone: fields.kzZone.value, zoneType: fields.zoneType.value, h1: fields.h1.value,
-        m5: fields.m5.value.trim(), conform: fields.conform.value, details: fields.details.value.trim(),
         beAt: isBe35 ? fromLocalInput(fields.beAt.value) : "",
         tpHit: isBe35 ? !!fields.tpHit.checked : false,
         tpHitAt: (isBe35 && fields.tpHit.checked) ? fromLocalInput(fields.tpHitAt.value) : "",
@@ -2450,19 +2467,18 @@
     }
     var doc = new window.jspdf.jsPDF({ unit:"mm", format:"a4" });
     var PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight();
-    var MX = 18, CW = PW - 2*MX, TOP = 24, BOTTOM = 22;
+    var MX = 16, CW = PW - 2*MX, TOP = 18, BOTTOM = 20;
     var C = {
       ink:[23,27,29], text:[42,46,50], dim:[112,118,124], line:[226,223,215], soft:[246,244,239],
       gold:[176,132,52], goldSoft:[251,246,234], green:[58,130,96], red:[190,84,70], blue:[88,124,160], gray:[135,140,145]
     };
-    var y = TOP, fichesCount = 0, secNo = 0, pageSec = {};
+    var y = TOP, fichesCount = 0;
 
     // ---------- helpers de dessin ----------
     function setTxt(c){ doc.setTextColor(c[0],c[1],c[2]); }
     function setFill(c){ doc.setFillColor(c[0],c[1],c[2]); }
     function setDraw(c){ doc.setDrawColor(c[0],c[1],c[2]); }
     function ensure(h){ if(y + h > PH - BOTTOM){ doc.addPage(); y = TOP; return true; } return false; }
-    function newPage(){ doc.addPage(); y = TOP; }
     function wrap(txt, w, fs, style){
       doc.setFont("helvetica", style || "normal"); doc.setFontSize(fs);
       return doc.splitTextToSize(pdfText(txt), w);
@@ -2484,57 +2500,37 @@
       return ({gagnant:C.green, perdant:C.red, en_cours:C.blue, breakeven:C.gray, be35:C.gold})[t.status] || C.gray;
     }
     function signColor(n){ return n > 0 ? C.green : (n < 0 ? C.red : C.ink); }
-    function wr(g){ var d = g.w + g.l; return d ? Math.round(g.w / d * 100) : null; }
 
-    // titre de section : chaque grande partie démarre sur sa propre page
-    function section(title, sub, keepPage){
-      if(!keepPage) newPage(); else ensure(60);
-      secNo++;
-      pageSec[doc.internal.getCurrentPageInfo().pageNumber] = title;
-      setFill(C.gold); doc.roundedRect(MX, y - 6, 9, 9, 1.8, 1.8, "F");
-      doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(255,255,255);
-      doc.text(String(secNo), MX + 4.5, y - 0.1, { align:"center" });
-      doc.setFontSize(17); setTxt(C.ink);
-      doc.text(pdfText(title), MX + 14, y + 0.6);
+    function section(num, title, sub){
+      ensure(40);
+      y += 3;
+      setFill(C.gold); doc.roundedRect(MX, y - 5.4, 8, 8, 1.6, 1.6, "F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(9); doc.setTextColor(255,255,255);
+      doc.text(num, MX + 4, y - 0.9, { align:"center" });
+      doc.setFontSize(14); setTxt(C.ink);
+      doc.text(pdfText(title), MX + 12, y + 0.4);
       if(sub){
-        y += 7;
-        doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
-        doc.text(pdfText(sub), MX + 14, y);
-      }
-      y += 5;
-      setDraw(C.line); doc.setLineWidth(0.3); doc.line(MX, y, PW - MX, y);
-      y += 13;
-    }
-    // sous-titre à l'intérieur d'une section
-    function subhead(title, note){
-      ensure(46);
-      setFill(C.gold); doc.rect(MX, y - 3.6, 1.4, 5, "F");
-      doc.setFont("helvetica","bold"); doc.setFontSize(11); setTxt(C.ink);
-      doc.text(pdfText(title), MX + 5, y);
-      if(note){
+        y += 5.5;
         doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
-        doc.text(pdfText(note), PW - MX, y, { align:"right" });
+        doc.text(pdfText(sub), MX + 12, y);
       }
-      y += 7;
-    }
-    function noteLine(txt){
-      doc.setFont("helvetica","italic"); doc.setFontSize(9); setTxt(C.dim);
-      var ls = wrap(txt, CW, 9, "italic");
-      doc.text(ls, MX + 5, y); y += ls.length * 4.4 + 8;
+      y += 4;
+      setDraw(C.line); doc.setLineWidth(0.3); doc.line(MX, y, PW - MX, y);
+      y += 9;
     }
 
     function kpi(x, yy, w, h, label, value, color, big){
       setFill(C.soft); setDraw(C.line); doc.setLineWidth(0.2);
       doc.roundedRect(x, yy, w, h, 2, 2, "FD");
       if(color){ setFill(color); doc.rect(x, yy + 3, 1.1, h - 6, "F"); }
-      doc.setFont("helvetica","normal"); doc.setFontSize(8); setTxt(C.dim);
-      doc.text(pdfText(label), x + 5, yy + 7);
+      doc.setFont("helvetica","normal"); doc.setFontSize(7); setTxt(C.dim);
+      doc.text(pdfText(label).toUpperCase(), x + 5, yy + 6.2);
       doc.setFont("helvetica","bold");
-      var fs = big ? 17 : 13;
+      var fs = big ? 16 : 12.5;
       doc.setFontSize(fs);
       while(fs > 7 && doc.getTextWidth(value) > w - 9){ fs -= 0.5; doc.setFontSize(fs); }
       setTxt(color || C.ink);
-      doc.text(value, x + 5, yy + h - 6);
+      doc.text(value, x + 5, yy + h - 5);
     }
 
     // ---------- données ----------
@@ -2543,11 +2539,10 @@
     var monthTrades = state.trades
       .filter(function(t){ return t.date && t.date.indexOf(prefix) === 0; })
       .sort(function(a,b){ return a.date.localeCompare(b.date); });
-    var takenTrades = monthTrades.filter(function(t){ return !isObs(t); });
 
     var cur = state.account.currency || "USD";
-    var obsCount = monthTrades.length - takenTrades.length;
-    var taken = takenTrades.length;
+    var obsCount = monthTrades.filter(isObs).length;
+    var taken = monthTrades.length - obsCount;
     var totalPnlAll = state.trades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); }, 0);
     var initial = parseFloat(state.account.initial)||0;
     var currentBalance = initial + totalPnlAll;
@@ -2567,104 +2562,60 @@
       return sign + fmtPdfNum(n) + " " + pdfText(cur);
     }
 
-    // agrégation par dimension (trades pris uniquement)
-    function aggBy(keyFn, order){
-      var map = {}, ids = [];
-      takenTrades.forEach(function(t){
-        var k = keyFn(t);
-        if(!map[k.id]){ map[k.id] = { id:k.id, label:k.label, unset:!!k.unset, n:0, w:0, l:0, be:0, open:0, pnl:0 }; ids.push(k.id); }
-        var g = map[k.id]; g.n++;
-        if(t.status==="gagnant") g.w++;
-        else if(t.status==="perdant") g.l++;
-        else if(t.status==="breakeven" || t.status==="be35") g.be++;
-        else g.open++;
-        g.pnl += parseFloat(t.pnl)||0;
-      });
-      ids.sort(function(a,b){
-        if(map[a].unset !== map[b].unset) return map[a].unset ? 1 : -1;
-        var ia = order.indexOf(a), ib = order.indexOf(b);
-        if(ia < 0) ia = 99; if(ib < 0) ib = 99;
-        return ia !== ib ? ia - ib : map[a].label.localeCompare(map[b].label);
-      });
-      return ids.map(function(id){ return map[id]; });
-    }
-    function labelKey(MAP, field, unsetLabel){
-      return function(t){
-        var v = t[field];
-        return (v && MAP[v]) ? { id:v, label:MAP[v] } : { id:"_", label:unsetLabel, unset:true };
-      };
-    }
-    var byPair = aggBy(function(t){
-      var c = canonPair(t.pair);
-      return { id:c || "?", label: PAIR_NAME[c] || (pdfText(String(t.pair||"").toUpperCase()) || "—") };
-    }, ["GBPUSD","EURUSD","XAUUSD"]);
-    var byKz   = aggBy(labelKey(KZ_LABEL, "kzEntry", "Non renseignée"), Object.keys(KZ_LABEL));
-    var byH1   = aggBy(labelKey(H1_LABEL, "h1", "Non renseignée"), Object.keys(H1_LABEL));
-    var byZone = aggBy(labelKey(ZONE_LABEL, "zoneType", "Non renseigné"), Object.keys(ZONE_LABEL));
-    var byConf = aggBy(labelKey(CONF_LABEL, "conform", "Non renseigné"), Object.keys(CONF_LABEL));
-
     // ---------- bandeau de titre ----------
-    setFill(C.ink); doc.rect(0, 0, PW, 46, "F");
-    setFill(C.gold); doc.rect(0, 46, PW, 1.2, "F");
-    doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.gold);
-    doc.text("Carnet de trading  ·  Bilan mensuel", MX, 17);
-    doc.setFontSize(28); doc.setTextColor(255,255,255);
-    doc.text(pdfText(monthLabel), MX, 31);
-    doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(190,196,200);
+    setFill(C.ink); doc.rect(0, 0, PW, 44, "F");
+    setFill(C.gold); doc.rect(0, 44, PW, 1.2, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(8.5); setTxt(C.gold);
+    doc.text("CARNET DE TRADING  ·  BILAN MENSUEL", MX, 16);
+    doc.setFontSize(26); doc.setTextColor(255,255,255);
+    doc.text(pdfText(monthLabel), MX, 29);
+    doc.setFont("helvetica","normal"); doc.setFontSize(9.5); doc.setTextColor(190,196,200);
     var who = pdfText(state.name) + (state.account.broker ? "   ·   " + pdfText(state.account.broker) : "") + "   ·   " + pdfText(cur);
-    doc.text(who, MX, 39);
+    doc.text(who, MX, 37);
     doc.setFontSize(8); doc.setTextColor(150,156,160);
-    doc.text("Généré le " + pdfNow(), PW - MX, 17, { align:"right" });
-    pageSec[1] = "Synthèse du mois";
-    y = 46 + 16;
+    doc.text("Généré le " + pdfNow(), PW - MX, 16, { align:"right" });
+    y = 44 + 10;
 
     // =====================================================
-    // 1 — SYNTHÈSE (page 1)
+    // 01 — SYNTHÈSE
     // =====================================================
-    secNo++;
-    setFill(C.gold); doc.roundedRect(MX, y - 6, 9, 9, 1.8, 1.8, "F");
-    doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(255,255,255);
-    doc.text(String(secNo), MX + 4.5, y - 0.1, { align:"center" });
-    doc.setFontSize(17); setTxt(C.ink); doc.text("Synthèse du mois", MX + 14, y + 0.6);
-    y += 7; doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
-    doc.text("Les chiffres clés en un coup d'œil", MX + 14, y);
-    y += 5; setDraw(C.line); doc.setLineWidth(0.3); doc.line(MX, y, PW - MX, y); y += 11;
-
-    var gap = 5, cw = (CW - 3*gap) / 4;
+    section("1", "Synthèse du mois", "Les chiffres clés en un coup d'œil");
+    var gap = 4, cw = (CW - 3*gap) / 4;
     var rowY = y;
-    kpi(MX,               rowY, cw, 27, "Résultat du mois", fmtPdfMoney(pnlMonth), signColor(pnlMonth), true);
-    kpi(MX + (cw+gap),    rowY, cw, 27, "Taux de réussite", winrateNum === null ? "—" : winrateNum + "%", winrateNum === null ? null : (winrateNum >= 50 ? C.green : C.red), true);
-    kpi(MX + 2*(cw+gap),  rowY, cw, 27, "Trades pris", String(taken), null, true);
-    kpi(MX + 3*(cw+gap),  rowY, cw, 27, "Observations", String(obsCount), null, true);
-    rowY += 27 + gap;
-    kpi(MX,               rowY, cw, 21, "Solde actuel", fmtPdfMoney(currentBalance, true), null, false);
-    kpi(MX + (cw+gap),    rowY, cw, 21, "Capital initial", fmtPdfMoney(initial, true), null, false);
-    kpi(MX + 2*(cw+gap),  rowY, cw, 21, "BE 35% · TP touché", be35tp + " / " + be35All, null, false);
-    kpi(MX + 3*(cw+gap),  rowY, cw, 21, "En cours", String(open), null, false);
-    y = rowY + 21 + 14;
+    kpi(MX,               rowY, cw, 25, "Résultat du mois", fmtPdfMoney(pnlMonth), signColor(pnlMonth), true);
+    kpi(MX + (cw+gap),    rowY, cw, 25, "Taux de réussite", winrateNum === null ? "—" : winrateNum + "%", winrateNum === null ? null : (winrateNum >= 50 ? C.green : C.red), true);
+    kpi(MX + 2*(cw+gap),  rowY, cw, 25, "Trades pris", String(taken), null, true);
+    kpi(MX + 3*(cw+gap),  rowY, cw, 25, "Observations", String(obsCount), null, true);
+    rowY += 25 + gap;
+    kpi(MX,               rowY, cw, 19, "Solde actuel", fmtPdfMoney(currentBalance, true), null, false);
+    kpi(MX + (cw+gap),    rowY, cw, 19, "Capital initial", fmtPdfMoney(initial, true), null, false);
+    kpi(MX + 2*(cw+gap),  rowY, cw, 19, "BE 35% · TP touché", be35tp + " / " + be35All, null, false);
+    kpi(MX + 3*(cw+gap),  rowY, cw, 19, "En cours", String(open), null, false);
+    y = rowY + 19 + 10;
 
+    // barre de répartition
     if(taken){
-      doc.setFont("helvetica","bold"); doc.setFontSize(9.5); setTxt(C.ink);
-      doc.text("Répartition des trades pris", MX, y);
-      y += 5;
+      doc.setFont("helvetica","bold"); doc.setFontSize(8); setTxt(C.dim);
+      doc.text("RÉPARTITION DES TRADES PRIS", MX, y);
+      y += 3.5;
       var segs = [["Gagnants", wins, C.green], ["Perdants", losses, C.red], ["Break-even", be, C.gray], ["En cours", open, C.blue]];
       var sx = MX;
       segs.forEach(function(sg){
         if(!sg[1]) return;
         var w = CW * sg[1] / taken;
-        setFill(sg[2]); doc.rect(sx, y, w, 5, "F");
+        setFill(sg[2]); doc.rect(sx, y, w, 4.5, "F");
         sx += w;
       });
-      y += 5 + 7;
+      y += 4.5 + 6;
       var lx = MX;
       segs.forEach(function(sg){
         var txt = sg[0] + " " + sg[1] + " (" + Math.round(sg[1]/taken*100) + "%)";
-        doc.setFont("helvetica","normal"); doc.setFontSize(8.5);
-        setFill(sg[2]); doc.rect(lx, y - 2.5, 2.8, 2.8, "F");
-        setTxt(C.text); doc.text(txt, lx + 4.6, y);
-        lx += doc.getTextWidth(txt) + 14;
+        doc.setFont("helvetica","normal"); doc.setFontSize(8);
+        setFill(sg[2]); doc.rect(lx, y - 2.4, 2.6, 2.6, "F");
+        setTxt(C.text); doc.text(txt, lx + 4.2, y);
+        lx += doc.getTextWidth(txt) + 13;
       });
-      y += 15;
+      y += 8;
     }
 
     if(!monthTrades.length){
@@ -2673,12 +2624,15 @@
       doc.text("Aucun trade enregistré pour ce mois.", MX, y);
     } else {
 
-      // ---- groupes par stratégie + règles à intégrer (utile pour la synthèse et la section 3) ----
+      // =====================================================
+      // 02 — SETUPS PAR STRATÉGIE
+      // =====================================================
+      var NO_STRAT = "Sans stratégie renseignée";
       var groups = {}, order = [];
       monthTrades.forEach(function(t){
         var raw = (t.strategy||"").trim();
-        var key = raw ? normKey(raw) : normKey(STRAT_NAME);
-        if(!raw) raw = STRAT_NAME;
+        var key = raw ? normKey(raw) : "";
+        if(!key){ key = "__none__"; raw = NO_STRAT; }
         if(!groups[key]){ groups[key] = { label:raw, taken:0, obs:0, w:0, l:0, be:0, open:0, pnl:0, rules:{}, ruleOrder:[] }; order.push(key); }
         var g = groups[key];
         if(isObs(t)){ g.obs++; }
@@ -2692,349 +2646,254 @@
         }
         splitImprove(t.improve).forEach(function(line){
           var rk = normKey(line); if(!rk) return;
-          if(!g.rules[rk]){ g.rules[rk] = { text:line, n:0, w:0, l:0, o:0, srcs:[] }; g.ruleOrder.push(rk); }
+          if(!g.rules[rk]){ g.rules[rk] = { text:line, n:0, srcs:[] }; g.ruleOrder.push(rk); }
           var r = g.rules[rk]; r.n++;
-          if(isObs(t)) r.o++; else if(t.status==="gagnant") r.w++; else if(t.status==="perdant") r.l++; else r.o++;
-          r.srcs.push(dm(t.date) + " " + pdfText(t.pair));
+          var res = isObs(t) ? "observation" : (t.status==="gagnant" ? "gagnant" : t.status==="perdant" ? "perdant" : (STATUS_LABEL[t.status]||"").toLowerCase());
+          r.srcs.push(dm(t.date) + " " + pdfText(t.pair) + " (" + res + ")");
         });
       });
       order.sort(function(a,b){ return (groups[b].taken+groups[b].obs) - (groups[a].taken+groups[a].obs); });
-      var rulesTotal = order.reduce(function(s,k){ return s + groups[k].ruleOrder.length; }, 0);
 
-      // ---- points clés du mois ----
-      function bestOf(rows){
-        var c = rows.filter(function(g){ return !g.unset && (g.w + g.l) > 0; });
-        if(!c.length) return null;
-        c.sort(function(a,b){ return (wr(b) - wr(a)) || (b.pnl - a.pnl); });
-        return c[0];
-      }
-      var insights = [];
-      var bp = bestOf(byPair); if(bp) insights.push(["Meilleure paire", bp.label + "  ·  " + wr(bp) + "% sur " + (bp.w + bp.l) + " trade" + ((bp.w+bp.l)>1?"s":"")]);
-      var bk = bestOf(byKz);   if(bk) insights.push(["Killzone la plus fiable", bk.label + "  ·  " + wr(bk) + "% sur " + (bk.w + bk.l) + " trade" + ((bk.w+bk.l)>1?"s":"")]);
-      var bh = bestOf(byH1);   if(bh) insights.push(["Confluence H1 la plus fiable", bh.label + "  ·  " + wr(bh) + "% sur " + (bh.w + bh.l) + " trade" + ((bh.w+bh.l)>1?"s":"")]);
-      var confSet = takenTrades.filter(function(t){ return CONF_LABEL[t.conform]; });
-      if(confSet.length){
-        var confOk = confSet.filter(function(t){ return t.conform === "oui"; }).length;
-        insights.push(["Respect des règles", Math.round(confOk / confSet.length * 100) + "%  ·  " + confOk + " trade" + (confOk>1?"s":"") + " conforme" + (confOk>1?"s":"") + " sur " + confSet.length + " renseigné" + (confSet.length>1?"s":"")]);
-      }
-      var offKz = takenTrades.filter(function(t){ return kzAllowed(t.pair, t.kzEntry) === false; }).length;
-      if(offKz) insights.push(["Hors killzone prévue", offKz + " trade" + (offKz>1?"s":"")]);
-      insights.push(["Règles à intégrer", rulesTotal ? rulesTotal + " nouvelle" + (rulesTotal>1?"s":"") + " règle" + (rulesTotal>1?"s":"") + " issue" + (rulesTotal>1?"s":"") + " de tes observations" : "Aucune renseignée ce mois-ci"]);
-
-      var boxH = 14 + insights.length * 8.5;
-      setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
-      doc.roundedRect(MX, y, CW, boxH, 2.4, 2.4, "FD");
-      doc.setFont("helvetica","bold"); doc.setFontSize(10.5); setTxt(C.ink);
-      doc.text("Points clés du mois", MX + 7, y + 9);
-      var iy2 = y + 9 + 9;
-      insights.forEach(function(p){
-        doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
-        doc.text(pdfText(p[0]), MX + 7, iy2);
-        doc.setFont("helvetica","bold"); setTxt(C.ink);
-        doc.text(pdfText(p[1]), MX + 62, iy2);
-        iy2 += 8.5;
-      });
-      y += boxH + 6;
-
-      // =====================================================
-      // 2 — ANALYSE DE LA STRATÉGIE
-      // =====================================================
-      section("Analyse de la stratégie", "Supply & demand en killzone  ·  OB ou FVG H1  ·  entrée M5");
-
-      function breakTable(title, rows, emptyMsg, note){
-        subhead(title, note);
-        if(!rows.length || (rows.length === 1 && rows[0].unset)){
-          noteLine(emptyMsg);
-          return;
-        }
-        doc.autoTable({
-          startY: y,
-          head: [["", "Trades", "Gagn.", "Perd.", "BE", "Winrate", "P&L"]],
-          body: rows.map(function(g){
-            return [pdfText(g.label), String(g.n), String(g.w), String(g.l), String(g.be),
-                    wr(g) === null ? "—" : wr(g) + "%", fmtPdfMoney(g.pnl)];
-          }),
-          theme: "plain",
-          styles: { fontSize: 9.5, cellPadding: { top:4, bottom:4, left:4, right:4 }, textColor: C.text, lineWidth: 0 },
-          headStyles: { fillColor: C.soft, textColor: C.dim, fontStyle: "normal", fontSize: 8.5 },
-          columnStyles: { 0:{fontStyle:"bold", cellWidth:56}, 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"center"}, 6:{halign:"right"} },
-          didParseCell: function(d){
-            if(d.section !== "body") return;
-            var g = rows[d.row.index];
-            if(d.column.index === 5 && wr(g) !== null){ d.cell.styles.textColor = wr(g) >= 50 ? C.green : C.red; d.cell.styles.fontStyle = "bold"; }
-            if(d.column.index === 6){ d.cell.styles.textColor = signColor(g.pnl); d.cell.styles.fontStyle = "bold"; }
-            if(g.unset && d.column.index === 0){ d.cell.styles.textColor = C.dim; d.cell.styles.fontStyle = "italic"; }
-          },
-          didDrawCell: function(d){
-            if(d.section === "body"){ setDraw(C.line); doc.setLineWidth(0.2); doc.line(d.cell.x, d.cell.y + d.cell.height, d.cell.x + d.cell.width, d.cell.y + d.cell.height); }
-          },
-          margin: { left: MX, right: MX, top: TOP, bottom: BOTTOM }
-        });
-        y = doc.lastAutoTable.finalY + 14;
-      }
-
-      // vue d'ensemble de la stratégie
-      subhead("Vue d'ensemble", "tous les trades pris du mois");
-      var allRow = [{ label: STRAT_NAME, n:taken, w:wins, l:losses, be:be, open:open, pnl:pnlMonth }];
+      section("2", "Setups par stratégie", "Performance de chaque stratégie sur le mois");
       doc.autoTable({
         startY: y,
-        head: [["", "Trades", "Gagn.", "Perd.", "BE", "Winrate", "P&L"]],
-        body: allRow.map(function(g){
-          return [pdfText(g.label), String(g.n), String(g.w), String(g.l), String(g.be), wr(g) === null ? "—" : wr(g) + "%", fmtPdfMoney(g.pnl)];
+        head: [["Stratégie","Trades","Obs.","Gagn.","Perd.","BE","Winrate","P&L"]],
+        body: order.map(function(k){
+          var g = groups[k], done = g.w + g.l;
+          return [pdfText(g.label), String(g.taken), String(g.obs), String(g.w), String(g.l), String(g.be),
+                  done ? Math.round(g.w/done*100) + "%" : "—", g.taken ? fmtPdfMoney(g.pnl) : "—"];
         }),
-        theme: "plain",
-        styles: { fontSize: 9.5, cellPadding: { top:4, bottom:4, left:4, right:4 }, textColor: C.text, lineWidth: 0 },
-        headStyles: { fillColor: C.soft, textColor: C.dim, fontStyle: "normal", fontSize: 8.5 },
-        columnStyles: { 0:{fontStyle:"bold", cellWidth:56}, 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"center"}, 6:{halign:"right"} },
+        foot: [["Total", String(taken), String(obsCount), String(wins), String(losses), String(be),
+                winrateNum === null ? "—" : winrateNum + "%", fmtPdfMoney(pnlMonth)]],
+        showFoot: "lastPage",
+        theme: "striped",
+        styles: { fontSize: 9, cellPadding: { top:3.4, bottom:3.4, left:3, right:3 }, textColor: C.text, lineWidth: 0 },
+        headStyles: { fillColor: C.ink, textColor: 255, fontStyle: "bold", fontSize: 8 },
+        footStyles: { fillColor: C.goldSoft, textColor: C.ink, fontStyle: "bold" },
+        alternateRowStyles: { fillColor: C.soft },
+        columnStyles: { 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"center"}, 6:{halign:"center"}, 7:{halign:"right"} },
         didParseCell: function(d){
           if(d.section !== "body") return;
-          if(d.column.index === 5 && wr(allRow[0]) !== null){ d.cell.styles.textColor = wr(allRow[0]) >= 50 ? C.green : C.red; d.cell.styles.fontStyle = "bold"; }
-          if(d.column.index === 6){ d.cell.styles.textColor = signColor(pnlMonth); d.cell.styles.fontStyle = "bold"; }
+          var g = groups[order[d.row.index]];
+          if(d.column.index === 6 && (g.w + g.l)){ d.cell.styles.textColor = (g.w/(g.w+g.l) >= 0.5) ? C.green : C.red; d.cell.styles.fontStyle = "bold"; }
+          if(d.column.index === 7 && g.taken){ d.cell.styles.textColor = signColor(g.pnl); d.cell.styles.fontStyle = "bold"; }
+          if(d.column.index === 0){ d.cell.styles.fontStyle = "bold"; }
         },
         margin: { left: MX, right: MX, top: TOP, bottom: BOTTOM }
       });
       y = doc.lastAutoTable.finalY + 14;
 
-      breakTable("Par paire", byPair, "Aucun trade pris ce mois-ci.", "GBP/USD · EUR/USD · XAU/USD");
-      breakTable("Par killzone d'entrée", byKz, "Renseigne la killzone dans le formulaire pour voir cette analyse.", "Asie · Londres · US");
-      if(offKz){
-        y -= 6;
-        noteLine(offKz + " trade" + (offKz>1?"s":"") + " pris hors des killzones prévues pour la paire.");
-      }
-      breakTable("Par confluence H1", byH1, "Renseigne « Confluence H1 » (OB, FVG ou les deux) pour voir cette analyse.", "OB H1 · FVG H1");
-      breakTable("Par type de zone", byZone, "Renseigne « Type de zone » (demande ou offre) pour voir cette analyse.", "demande · offre");
-      breakTable("Respect des règles", byConf, "Renseigne « Setup conforme » pour mesurer l'impact de ta discipline.", "conforme · partiel · non");
-
       // =====================================================
-      // 3 — STRATÉGIE MISE À JOUR
+      // 03 — STRATÉGIE MISE À JOUR
       // =====================================================
-      section("Stratégie mise à jour", "Les éléments à améliorer issus de tes observations font désormais partie de la stratégie");
-
-      // rappel de la stratégie de base
-      var baseLines = [
-        "Entrée sur zones de supply & demand créées pendant les killzones.",
-        "Confluence : order block H1 ou FVG H1.  Points d'entrée ciblés en M5.",
-        "GBP/USD et EUR/USD : Londres, US.   XAU/USD : Asie, Londres, US."
-      ];
-      var bbH = 15 + baseLines.length * 6;
-      setFill(C.soft); setDraw(C.line); doc.setLineWidth(0.2);
-      doc.roundedRect(MX, y, CW, bbH, 2.4, 2.4, "FD");
-      setFill(C.gold); doc.rect(MX, y + 3, 1.3, bbH - 6, "F");
-      doc.setFont("helvetica","bold"); doc.setFontSize(10.5); setTxt(C.ink);
-      doc.text("Règles de base", MX + 7, y + 9);
-      doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.text);
-      baseLines.forEach(function(l, i){ doc.text(pdfText(l), MX + 7, y + 16 + i * 6); });
-      y += bbH + 14;
-
       var withRules = order.filter(function(k){ return groups[k].ruleOrder.length; });
-      subhead("Règles ajoutées ce mois-ci", rulesTotal ? rulesTotal + " point" + (rulesTotal>1?"s":"") : "");
+      section("3", "Stratégie mise à jour", "Éléments à améliorer issus de tes observations : ils font désormais partie de la stratégie");
       if(!withRules.length){
-        noteLine("Aucun élément à améliorer renseigné ce mois-ci. Ajoute-les dans le champ « À améliorer » de chaque trade.");
+        doc.setFont("helvetica","italic"); doc.setFontSize(9.5); setTxt(C.dim);
+        doc.text("Aucun élément à améliorer renseigné ce mois-ci.", MX, y);
+        y += 12;
       } else {
-        var ruleIdx = 0;
         withRules.forEach(function(k){
           var g = groups[k];
           g.ruleOrder.sort(function(a,b){ return g.rules[b].n - g.rules[a].n; });
-          if(withRules.length > 1){
-            ensure(30);
-            setFill(C.ink); doc.roundedRect(MX, y, CW, 9, 1.6, 1.6, "F");
-            doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(255,255,255);
-            doc.text(pdfText(g.label), MX + 4, y + 6);
-            var done = g.w + g.l;
-            var meta = g.taken + " trade" + (g.taken>1?"s":"") + (done ? "   ·   winrate " + Math.round(g.w/done*100) + "%" : "");
-            doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(210,214,218);
-            doc.text(meta, PW - MX - 4, y + 5.9, { align:"right" });
-            y += 9 + 8;
-          }
-          g.ruleOrder.forEach(function(rk){
-            var r = g.rules[rk]; ruleIdx++;
-            var textLines = wrap(r.text, CW - 28, 10, "bold");
-            var resTxt = [];
-            if(r.w) resTxt.push(r.w + " gagnant" + (r.w>1?"s":""));
-            if(r.l) resTxt.push(r.l + " perdant" + (r.l>1?"s":""));
-            if(r.o) resTxt.push(r.o + " autre" + (r.o>1?"s":""));
-            var srcLines = wrap("Observé sur " + resTxt.join(", ") + "  (" + r.srcs.join(", ") + ")", CW - 28, 8, "normal");
-            var h = textLines.length * 5 + srcLines.length * 4 + 7;
-            ensure(h + 8);
+          ensure(34);
+          // en-tête de stratégie
+          setFill(C.ink); doc.roundedRect(MX, y, CW, 9, 1.6, 1.6, "F");
+          doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(255,255,255);
+          doc.text(pdfText(g.label), MX + 4, y + 6);
+          var done = g.w + g.l;
+          var meta = g.taken + " trade" + (g.taken>1?"s":"") + (done ? "   ·   winrate " + Math.round(g.w/done*100) + "%" : "") + "   ·   " + g.ruleOrder.length + " point" + (g.ruleOrder.length>1?"s":"");
+          doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(210,214,218);
+          doc.text(meta, PW - MX - 4, y + 5.9, { align:"right" });
+          y += 9 + 6;
+
+          g.ruleOrder.forEach(function(rk, idx){
+            var r = g.rules[rk];
+            var textLines = wrap(r.text, CW - 22, 9.5, "bold");
+            var srcLines = wrap("Observé : " + r.srcs.join("  ·  "), CW - 22, 7.5, "normal");
+            var h = textLines.length * 4.6 + srcLines.length * 3.7 + 6;
+            ensure(h);
+            // pastille numérotée
             setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.3);
-            doc.circle(MX + 5.5, y + 2.4, 4, "FD");
-            doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.gold);
-            doc.text(String(ruleIdx), MX + 5.5, y + 3.6, { align:"center" });
-            doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.ink);
-            doc.text(textLines, MX + 15, y + 3.3);
+            doc.circle(MX + 5, y + 2.2, 3.4, "FD");
+            doc.setFont("helvetica","bold"); doc.setFontSize(8.5); setTxt(C.gold);
+            doc.text(String(idx + 1), MX + 5, y + 3.3, { align:"center" });
+            // texte
+            doc.setFont("helvetica","bold"); doc.setFontSize(9.5); setTxt(C.ink);
+            doc.text(textLines, MX + 13, y + 3.1);
+            // compteur
             if(r.n > 1){
-              doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.gold);
-              doc.text("x" + r.n, PW - MX, y + 3.3, { align:"right" });
+              doc.setFont("helvetica","bold"); doc.setFontSize(8); setTxt(C.gold);
+              doc.text("x" + r.n, PW - MX, y + 3.1, { align:"right" });
             }
-            var ty = y + 3.3 + (textLines.length - 1) * 5 + 5;
-            doc.setFont("helvetica","normal"); doc.setFontSize(8); setTxt(C.dim);
-            doc.text(srcLines, MX + 15, ty);
-            y += h + 5;
+            var ty = y + 3.1 + (textLines.length - 1) * 4.6 + 4.6;
+            doc.setFont("helvetica","normal"); doc.setFontSize(7.5); setTxt(C.dim);
+            doc.text(srcLines, MX + 13, ty);
+            y += h;
           });
-          y += 6;
+          y += 8;
         });
       }
 
       // =====================================================
-      // 4 — JOURNAL DES TRADES
+      // 04 — JOURNAL DES TRADES
       // =====================================================
-      section("Journal des trades", "Vue d'ensemble chronologique du mois");
+      doc.addPage(); y = TOP;
+      section("4", "Journal des trades", "Vue d'ensemble chronologique du mois");
       doc.autoTable({
         startY: y,
-        head: [["Date","Paire","Sens","Killzone","Zone · H1","Statut","P&L"]],
+        head: [["Date","Paire","Sens","Statut","Entrée","SL","TP","P&L","Stratégie"]],
         body: monthTrades.map(function(t){
-          var zone = [ZONE_LABEL[t.zoneType], H1_LABEL[t.h1]].filter(Boolean).join(" · ");
           return [
             dm(t.date),
             pdfText(t.pair),
             isObs(t) ? "—" : (t.direction === "vente" ? "Vente" : "Achat"),
-            KZ_LABEL[t.kzEntry] || "",
-            zone,
             STATUS_LABEL[t.status] || "",
-            hasVal(t.pnl) ? fmtPdfMoney(parseFloat(t.pnl)) : ""
+            isObs(t) ? "" : pdfText(t.entry),
+            isObs(t) ? "" : pdfText(t.sl),
+            isObs(t) ? "" : pdfText(t.tp),
+            hasVal(t.pnl) ? fmtPdfMoney(parseFloat(t.pnl)) : "",
+            pdfText(t.strategy)
           ];
         }),
-        theme: "plain",
-        styles: { fontSize: 9, cellPadding: { top:4.2, bottom:4.2, left:3, right:3 }, textColor: C.text, lineWidth: 0, overflow: "linebreak" },
-        headStyles: { fillColor: C.soft, textColor: C.dim, fontStyle: "normal", fontSize: 8.5 },
-        columnStyles: { 0:{cellWidth:16}, 1:{cellWidth:24, fontStyle:"bold"}, 2:{cellWidth:16}, 3:{cellWidth:24}, 5:{cellWidth:28}, 6:{halign:"right", cellWidth:30} },
+        theme: "striped",
+        styles: { fontSize: 8, cellPadding: { top:3.4, bottom:3.4, left:2.4, right:2.4 }, textColor: C.text, lineWidth: 0, overflow: "linebreak" },
+        headStyles: { fillColor: C.ink, textColor: 255, fontStyle: "bold", fontSize: 7.5 },
+        alternateRowStyles: { fillColor: C.soft },
+        columnStyles: { 0:{cellWidth:14}, 1:{cellWidth:22, fontStyle:"bold"}, 2:{cellWidth:14}, 3:{cellWidth:26}, 7:{halign:"right", cellWidth:28} },
         didParseCell: function(d){
           if(d.section !== "body") return;
           var t = monthTrades[d.row.index];
           if(d.column.index === 2 && !isObs(t)){ d.cell.styles.textColor = t.direction === "vente" ? C.red : C.green; }
-          if(d.column.index === 5){ d.cell.styles.textColor = statusColor(t); d.cell.styles.fontStyle = "bold"; }
-          if(d.column.index === 6 && hasVal(t.pnl)){ d.cell.styles.textColor = signColor(parseFloat(t.pnl)||0); d.cell.styles.fontStyle = "bold"; }
-        },
-        didDrawCell: function(d){
-          if(d.section === "body"){ setDraw(C.line); doc.setLineWidth(0.2); doc.line(d.cell.x, d.cell.y + d.cell.height, d.cell.x + d.cell.width, d.cell.y + d.cell.height); }
+          if(d.column.index === 3){ d.cell.styles.textColor = statusColor(t); d.cell.styles.fontStyle = "bold"; }
+          if(d.column.index === 7 && hasVal(t.pnl)){ d.cell.styles.textColor = signColor(parseFloat(t.pnl)||0); d.cell.styles.fontStyle = "bold"; }
         },
         margin: { left: MX, right: MX, top: TOP, bottom: BOTTOM }
       });
       y = doc.lastAutoTable.finalY + 14;
 
       // =====================================================
-      // 5 — FICHES DÉTAILLÉES
+      // 05 — FICHES DÉTAILLÉES
       // =====================================================
       var fiches = monthTrades.filter(function(t){
-        var txt = hasVal(t.geo) || hasVal(t.macro) || hasVal(t.evolution) || hasVal(t.improve) || hasVal(t.details) || hasVal(t.m5);
-        var setup = KZ_LABEL[t.kzEntry] || KZ_LABEL[t.kzZone] || ZONE_LABEL[t.zoneType] || H1_LABEL[t.h1] || CONF_LABEL[t.conform];
-        return txt || setup || (!isObs(t) && (hasVal(t.lot) || hasVal(t.exit)));
+        var txt = hasVal(t.geo) || hasVal(t.macro) || hasVal(t.evolution) || hasVal(t.improve) || hasVal(t.stratDetails) || !!t.setup;
+        return txt || (!isObs(t) && (hasVal(t.lot) || hasVal(t.exit)));
       });
       fichesCount = fiches.length;
       if(fiches.length){
-        section("Fiches détaillées", "Setup, exécution, contexte et points à améliorer de chaque trade");
-        fiches.forEach(function(t, fi){
+        doc.addPage(); y = TOP;
+        section("5", "Fiches détaillées", "Exécution, contexte, évolution et points à améliorer de chaque trade");
+        fiches.forEach(function(t){
           var col = statusColor(t);
-          var iX = MX + 7, iW = CW - 7;
-          var exec = [["Lot", t.lot], ["Entrée", t.entry], ["SL", t.sl], ["TP", t.tp], ["Sortie", t.exit]]
+          var iX = MX + 6, iW = CW - 6;
+          var exec = [["Lot", t.lot], ["Risque", hasVal(t.risk) ? t.risk + "%" : ""], ["Entrée", t.entry], ["SL", t.sl], ["TP", t.tp], ["Sortie", t.exit]]
             .filter(function(p){ return !isObs(t) && hasVal(p[1]); })
             .map(function(p){ return p[0] + " " + pdfText(p[1]); }).join("     ·     ");
-          var pairs = [["Killzone", KZ_LABEL[t.kzEntry]], ["Zone créée en", KZ_LABEL[t.kzZone]], ["Type de zone", ZONE_LABEL[t.zoneType]],
-                       ["Confluence H1", H1_LABEL[t.h1]], ["Respect des règles", CONF_LABEL[t.conform]]]
-            .filter(function(p){ return !!p[1]; });
-          var pairRows = Math.ceil(pairs.length / 3);
           var blocks = [];
-          [["Détails du setup", t.details], ["Confirmation M5", t.m5], ["Contexte géopolitique", t.geo], ["Contexte macroéconomique", t.macro], ["Évolution du trade", t.evolution]].forEach(function(p){
-            if(hasVal(p[1])) blocks.push({ label:p[0], lines: wrap(p[1], iW, 9.5) });
+          if(t.setup){
+            var su = t.setup, KZL = { asie:"Asie", londres:"Londres", us:"US" }, H1L = { haussiere:"Haussière", baissiere:"Baissière", range:"Range" }, YNL = { oui:"Oui", non:"Non" };
+            var zl = [];
+            if(su.dir || su.type) zl.push("Zone : " + [su.dir ? (su.dir === "demand" ? "Demand" : "Supply") : "", su.type || ""].join(" ").trim() + (su.zoneKz ? "  ·  KZ " + KZL[su.zoneKz] + (su.zoneTime ? " " + su.zoneTime : "") : ""));
+            var l2 = [];
+            if(su.h1) l2.push("Structure H1 : " + H1L[su.h1]);
+            if(su.m5) l2.push("Zone d'entrée M5 : " + su.m5);
+            if(l2.length) zl.push(l2.join("  ·  "));
+            var l3 = [];
+            if(su.chM5) l3.push("CHoCH M5 : " + YNL[su.chM5]);
+            if(su.chH1) l3.push("CHoCH H1 : " + YNL[su.chH1]);
+            if(su.confirm) l3.push("Confirmation M5 : " + YNL[su.confirm]);
+            if(l3.length) zl.push(l3.join("  ·  "));
+            if(su.entryKz) zl.push("KZ d'entrée : " + KZL[su.entryKz] + (su.entryTime ? " " + su.entryTime : ""));
+            if(zl.length){
+              var zlines = []; zl.forEach(function(x){ zlines = zlines.concat(wrap(x, iW, 9)); });
+              blocks.push({ label:"Setup - Supply & Demand en killzone", lines: zlines });
+            }
+          }
+          if(hasVal(t.stratDetails)) blocks.push({ label:"Détails de la stratégie", lines: wrap(t.stratDetails, iW, 9) });
+          [["Contexte géopolitique", t.geo], ["Contexte macroéconomique", t.macro], ["Évolution du trade", t.evolution]].forEach(function(p){
+            if(hasVal(p[1])) blocks.push({ label:p[0], lines: wrap(p[1], iW, 9) });
           });
-          var imps = splitImprove(t.improve).map(function(l){ return wrap(l, iW - 16, 9.5); });
-          var showStrat = hasVal(t.strategy) && normKey(t.strategy) !== normKey(STRAT_NAME);
+          var imps = splitImprove(t.improve).map(function(l){ return wrap(l, iW - 14, 9); });
 
-          var total = 12;
-          if(showStrat) total += 7;
-          total += pairRows * 11;
-          if(exec) total += 8;
-          blocks.forEach(function(b){ total += 5.5 + b.lines.length * 4.6 + 5; });
+          // hauteur totale
+          var total = 9;
+          if(exec) total += 6;
+          if(hasVal(t.strategy)) total += 6;
+          blocks.forEach(function(b){ total += 4.5 + b.lines.length * 4.3 + 3.5; });
           var impH = 0;
-          if(imps.length){ impH = 7 + 6 + imps.reduce(function(s,l){ return s + l.length * 4.6 + 2; }, 0) + 3; total += impH + 3; }
+          if(imps.length){ impH = 4 + 4.5 + imps.reduce(function(s,l){ return s + l.length * 4.3 + 1.4; }, 0) + 3; total += impH + 2; }
           var fits = total <= (PH - TOP - BOTTOM);
-          if(fi > 0){ if(fits) ensure(total); else ensure(50); }
-          else if(fits) ensure(total);
-          var y0 = y;
-          if(fits){ setFill(col); doc.rect(MX, y0, 1.6, total - 3, "F"); }
+          if(fits) ensure(total); else ensure(40);
+          var y0 = y, pg = doc.internal.getCurrentPageInfo().pageNumber;
 
-          // titre de la fiche
-          doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
-          var dTxt = dmy(t.date); doc.text(dTxt, iX, y + 4.5);
-          var px = iX + doc.getTextWidth(dTxt) + 6;
-          doc.setFont("helvetica","bold"); doc.setFontSize(13); setTxt(C.ink);
-          var pairTxt = pdfText(t.pair); doc.text(pairTxt, px, y + 4.5);
-          px += doc.getTextWidth(pairTxt) + 5;
-          doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(col);
-          doc.text(pdfTag(t), px, y + 4.5);
+          if(fits){ setFill(col); doc.rect(MX, y0, 1.6, total - 2, "F"); }
+
+          // titre
+          doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
+          var dTxt = dmy(t.date); doc.text(dTxt, iX, y + 4);
+          var px = iX + doc.getTextWidth(dTxt) + 5;
+          doc.setFont("helvetica","bold"); doc.setFontSize(11.5); setTxt(C.ink);
+          var pairTxt = pdfText(t.pair); doc.text(pairTxt, px, y + 4);
+          px += doc.getTextWidth(pairTxt) + 4;
+          doc.setFont("helvetica","bold"); doc.setFontSize(8.5); setTxt(col);
+          doc.text(pdfTag(t), px, y + 4);
           if(hasVal(t.pnl)){
             var pv = parseFloat(t.pnl)||0;
-            doc.setFont("helvetica","bold"); doc.setFontSize(12); setTxt(signColor(pv));
-            doc.text(fmtPdfMoney(pv), PW - MX, y + 4.5, { align:"right" });
+            doc.setFont("helvetica","bold"); doc.setFontSize(11); setTxt(signColor(pv));
+            doc.text(fmtPdfMoney(pv), PW - MX, y + 4, { align:"right" });
           }
-          y += 12;
+          y += 9;
           function ln(h){ if(y + h > PH - BOTTOM){ doc.addPage(); y = TOP; } }
-          if(showStrat){
-            ln(7); doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
+          if(hasVal(t.strategy)){
+            ln(6); doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
             doc.text("Stratégie : ", iX, y);
             var sw = doc.getTextWidth("Stratégie : ");
             doc.setFont("helvetica","bold"); setTxt(C.text); doc.text(pdfText(t.strategy), iX + sw, y);
-            y += 7;
-          }
-          // grille du setup (3 colonnes)
-          for(var pr = 0; pr < pairRows; pr++){
-            ln(11);
-            for(var pc = 0; pc < 3; pc++){
-              var pp = pairs[pr * 3 + pc]; if(!pp) continue;
-              var cx = iX + pc * (iW / 3);
-              doc.setFont("helvetica","normal"); doc.setFontSize(8); setTxt(C.dim);
-              doc.text(pdfText(pp[0]), cx, y);
-              doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.ink);
-              doc.text(pdfText(pp[1]), cx, y + 4.8);
-            }
-            y += 11;
+            y += 6;
           }
           if(exec){
-            ln(8); doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
-            doc.text(exec, iX, y); y += 8;
+            ln(6); doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
+            doc.text(exec, iX, y); y += 6;
           }
           blocks.forEach(function(b){
-            ln(12);
-            doc.setFont("helvetica","bold"); doc.setFontSize(8); setTxt(C.dim);
-            doc.text(pdfText(b.label), iX, y); y += 5.5;
-            doc.setFont("helvetica","normal"); doc.setFontSize(9.5); setTxt(C.text);
-            b.lines.forEach(function(l){ ln(4.6); doc.text(l, iX, y); y += 4.6; });
-            y += 5;
+            ln(10);
+            doc.setFont("helvetica","bold"); doc.setFontSize(7); setTxt(C.dim);
+            doc.text(pdfText(b.label).toUpperCase(), iX, y); y += 4.5;
+            doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.text);
+            b.lines.forEach(function(l){ ln(4.3); doc.text(l, iX, y); y += 4.3; });
+            y += 3.5;
           });
           if(imps.length){
-            ln(impH + 3);
+            ln(impH + 2);
             var by = y - 1.5;
             setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
-            doc.roundedRect(iX, by, iW, impH, 2, 2, "FD");
-            doc.setFont("helvetica","bold"); doc.setFontSize(8.5); setTxt(C.gold);
-            doc.text("À améliorer  ·  règles à intégrer", iX + 5, by + 7);
-            var iy = by + 14;
+            doc.roundedRect(iX, by, iW, impH, 1.8, 1.8, "FD");
+            doc.setFont("helvetica","bold"); doc.setFontSize(7); setTxt(C.gold);
+            doc.text("À AMÉLIORER  ·  RÈGLES À INTÉGRER", iX + 4, by + 5.6);
+            var iy = by + 11.2;
             imps.forEach(function(lines){
-              doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.gold);
-              doc.text("+", iX + 5, iy);
-              doc.setFont("helvetica","normal"); doc.setFontSize(9.5); setTxt(C.ink);
-              doc.text(lines, iX + 12, iy);
-              iy += lines.length * 4.6 + 2;
+              doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.gold);
+              doc.text("+", iX + 4, iy);
+              doc.setFont("helvetica","normal"); setTxt(C.ink);
+              doc.text(lines, iX + 10, iy);
+              iy += lines.length * 4.3 + 1.4;
             });
-            y = by + impH + 3;
+            y = by + impH + 3.5;
           }
-          y += 8;
-          if(fi < fiches.length - 1){
-            ensure(14);
-            setDraw(C.line); doc.setLineWidth(0.25); doc.line(MX, y, PW - MX, y);
-            y += 12;
-          }
+          y += 9;
         });
       }
     }
 
     // =====================================================
-    // CAPTURES
+    // 06 — CAPTURES
     // =====================================================
     var shotTrades = monthTrades.filter(function(t){ return t.shots && t.shots.length; });
     if(shotTrades.length){
-      var cgap = 7, colW = (CW - cgap) / 2, maxImgH = 70;
-      section("Captures des trades", "Graphiques et annotations associés à chaque trade");
+      var cgap = 6, colW = (CW - cgap) / 2, maxImgH = 70;
+      doc.addPage(); y = TOP;
+      section(String(5 + (fichesCount ? 1 : 0)),
+              "Captures des trades", "Graphiques et annotations associés à chaque trade");
 
       shotTrades.forEach(function(t){
         var cells = t.shots.map(function(sh, i){
@@ -3049,20 +2908,20 @@
           }
           var caption = (i + 1) + ". " + (sh.desc ? pdfText(sh.desc) : "(sans description)") + (url ? "" : "  [image indisponible]");
           var lines = wrap(caption, colW, 8.5, "normal");
-          return { url:url, w:w, h:h, lines:lines, capH: lines.length * 4 };
+          return { url:url, w:w, h:h, lines:lines, capH: lines.length * 3.9 };
         });
 
         for(var r = 0; r < cells.length; r += 2){
           var row = cells.slice(r, r + 2);
-          var rowH = Math.max.apply(null, row.map(function(c){ return c.h + 3 + c.capH; })) + 10;
-          ensure(rowH + (r === 0 ? 14 : 0));
+          var rowH = Math.max.apply(null, row.map(function(c){ return c.h + 3 + c.capH; })) + 8;
+          ensure(rowH + (r === 0 ? 12 : 0));
           if(r === 0){
-            setFill(statusColor(t)); doc.rect(MX, y - 3.8, 1.6, 6.4, "F");
-            doc.setFont("helvetica","bold"); doc.setFontSize(10.5); setTxt(C.ink);
+            setFill(statusColor(t)); doc.rect(MX, y - 3.6, 1.6, 6, "F");
+            doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.ink);
             doc.text(dmy(t.date) + "  ·  " + pdfText(t.pair), MX + 5, y);
-            doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(statusColor(t));
+            doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(statusColor(t));
             doc.text(pdfTag(t) + (hasVal(t.pnl) ? "   " + fmtPdfMoney(parseFloat(t.pnl)) : ""), PW - MX, y, { align:"right" });
-            y += 8;
+            y += 6;
           }
           row.forEach(function(c, k){
             var x = MX + k * (colW + cgap);
@@ -3071,31 +2930,22 @@
               setDraw(C.line); doc.setLineWidth(0.3); doc.rect(x, y, c.w, c.h);
             }
             doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
-            doc.text(c.lines, x, y + c.h + 4.8);
+            doc.text(c.lines, x, y + c.h + 4.5);
           });
           y += rowH;
         }
-        y += 6;
+        y += 4;
       });
     }
 
-    // ---------- en-tête courant + pied de page ----------
+    // ---------- pied de page sur chaque page ----------
     var pageCount = doc.internal.getNumberOfPages();
-    var lastSec = "";
     for(var p = 1; p <= pageCount; p++){
       doc.setPage(p);
-      if(pageSec[p]) lastSec = pageSec[p];
-      if(p > 1){
-        doc.setFont("helvetica","normal"); doc.setFontSize(8); setTxt(C.dim);
-        doc.text(pdfText(lastSec), MX, 12);
-        doc.text(pdfText(monthLabel), PW - MX, 12, { align:"right" });
-        setDraw(C.gold); doc.setLineWidth(0.4); doc.line(MX, 15, MX + 14, 15);
-        setDraw(C.line); doc.setLineWidth(0.25); doc.line(MX + 14, 15, PW - MX, 15);
-      }
-      setDraw(C.line); doc.setLineWidth(0.3); doc.line(MX, PH - 13, PW - MX, PH - 13);
-      doc.setFont("helvetica","normal"); doc.setFontSize(8); setTxt(C.dim);
-      doc.text("Carnet de Trading  ·  " + pdfText(state.name), MX, PH - 8);
-      doc.text("Page " + p + " / " + pageCount, PW - MX, PH - 8, { align:"right" });
+      setDraw(C.line); doc.setLineWidth(0.3); doc.line(MX, PH - 12, PW - MX, PH - 12);
+      doc.setFont("helvetica","normal"); doc.setFontSize(7.5); setTxt(C.dim);
+      doc.text("Carnet de Trading  ·  " + pdfText(state.name) + "  ·  " + pdfText(monthLabel), MX, PH - 7.5);
+      doc.text("Page " + p + " / " + pageCount, PW - MX, PH - 7.5, { align:"right" });
     }
 
     var fileMonth = MONTHS_FR[viewMonth].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
