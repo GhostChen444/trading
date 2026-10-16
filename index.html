@@ -827,8 +827,10 @@
             <div class="field" id="wrapRHors"><label for="r_horsAsie">Zone de supply / demand hors Asie ?</label><select id="r_horsAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRReint"><label for="r_reintAsie">Réintégration de la zone durant l'Asie ?</label><select id="r_reintAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_cisd">CISD vérifié en H1 et H4 (en cas de retournement de tendance) ?</label><select id="r_cisd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="r_mitig">L'OB / FVG à l'origine du plus haut ou plus bas a déjà été mitigé ?</label><select id="r_mitig"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             </div>
-            <div class="hint">Le CISD sert à éviter des SL : il indique si le marché se retourne ou non.</div>
+            <div class="hint">Le CISD et la mitigation servent à éviter des SL : le CISD indique si le marché se retourne, une zone déjà mitigée est plus fragile.</div>
+            <div class="hint" style="display:none;">Le CISD sert à éviter des SL : il indique si le marché se retourne ou non.</div>
           </div>
 
           <div class="section-label">setup — supply &amp; demand en killzone</div>
@@ -2004,7 +2006,7 @@
   var SD_NAME = "Supply & Demand en killzone";
   var SETUP_IDS = { dir:"s_dir", type:"s_type", zoneKz:"s_zoneKz", zoneTime:"s_zoneTime", h1:"s_h1", m5:"s_m5",
                     chM5:"s_chM5", chH1:"s_chH1", entryKz:"s_entryKz", entryTime:"s_entryTime", confirm:"s_confirm",
-                    ote:"s_ote", other:"s_other", rHorsAsie:"r_horsAsie", rReintAsie:"r_reintAsie", rCisd:"r_cisd" };
+                    ote:"s_ote", other:"s_other", rHorsAsie:"r_horsAsie", rReintAsie:"r_reintAsie", rCisd:"r_cisd", rMitig:"r_mitig" };
   var SD_PAIRS = ["XAUUSD","GBPUSD","EURUSD"];
   var ASIA_PAIRS = ["GBPUSD","EURUSD"];
   var pairSD = false;
@@ -2065,7 +2067,7 @@
     $("wrapRReint").style.display = asia ? "" : "none";
     $("rulesNote").textContent = asia
       ? pr + " performe moins en Asie : évite de lier la zone ou sa réintégration à l'Asie, et surveille le CISD H1 / H4."
-      : (known ? "Sur l'or, seule la règle du CISD s'applique." : "");
+      : (known ? "Sur l'or, seules les règles du CISD et de la mitigation s'appliquent." : "");
   }
   function updateSetupHint(){
     var h = $("setupHint"); if(!h) return;
@@ -2075,7 +2077,7 @@
     var warn = false;
     var pr = $("f_pairSel").value;
     if(SD_PAIRS.indexOf(pr) > -1){
-      var rules = [["r_cisd","oui"]];
+      var rules = [["r_cisd","oui"], ["r_mitig","non"]];
       if(ASIA_PAIRS.indexOf(pr) > -1) rules.push(["r_horsAsie","oui"], ["r_reintAsie","non"]);
       var ok = 0, bad = 0;
       rules.forEach(function(r){ var v = $(r[0]).value; if(v === r[1]) ok++; else if(v) bad++; });
@@ -2309,7 +2311,7 @@
         setupData = {};
         Object.keys(SETUP_IDS).forEach(function(k){ setupData[k] = $(SETUP_IDS[k]).value.trim(); });
         if(ASIA_PAIRS.indexOf($("f_pairSel").value) < 0){ setupData.rHorsAsie = ""; setupData.rReintAsie = ""; }
-        if(SD_PAIRS.indexOf($("f_pairSel").value) < 0){ setupData.rCisd = ""; }
+        if(SD_PAIRS.indexOf($("f_pairSel").value) < 0){ setupData.rCisd = ""; setupData.rMitig = ""; }
       }
       var isCustomStrat = !!stratVal && stratVal !== SD_NAME;
       var payload = {
@@ -2869,6 +2871,7 @@
             if(su.rHorsAsie) rl.push("Zone hors Asie : " + YNL[su.rHorsAsie]);
             if(su.rReintAsie) rl.push("Réintégration en Asie : " + YNL[su.rReintAsie]);
             if(su.rCisd) rl.push("CISD H1/H4 : " + YNL[su.rCisd]);
+            if(su.rMitig) rl.push("Zone déjà mitigée : " + YNL[su.rMitig]);
             var rlines = []; if(rl.length) rlines = wrap("Règles : " + rl.join("  ·  "), iW, 9);
             if(su.dir || su.type) zl.push("Zone : " + [su.dir ? (su.dir === "demand" ? "Demand" : "Supply") : "", su.type || ""].join(" ").trim() + (su.zoneKz ? "  ·  KZ " + KZL[su.zoneKz] + (su.zoneTime ? " " + su.zoneTime : "") : ""));
             var l2 = [];
