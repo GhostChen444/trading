@@ -305,6 +305,8 @@
   .btn.danger-outline{border-color:var(--red); color:var(--red);}
   .btn.danger-outline:hover{background:var(--red-soft);}
 
+  .reminder{font-size:12px; line-height:1.5; padding:9px 12px; margin:0 0 12px; border-left:3px solid var(--gold, #c9a45c); background:rgba(201,164,92,.08); border-radius:6px;}
+  .reminder-red{font-size:12.5px; line-height:1.5; font-weight:600; padding:10px 12px; margin:0 0 12px; border-left:3px solid var(--red, #C1695C); background:rgba(193,105,92,.12); color:var(--red, #C1695C); border-radius:6px;}
   .strat-new{display:flex; gap:8px; margin-top:8px; align-items:center;}
   .strat-new input{flex:1; min-width:0;}
   .strat-block{margin-top:2px;}
@@ -820,20 +822,25 @@
 
         <div id="setupSD" class="strat-block" style="display:none;">
           <div class="section-label">règles à respecter</div>
-          <div class="hint" id="rulesEmpty">Choisis l'actif (XAUUSD, GBPUSD ou EURUSD) pour afficher les règles associées.</div>
+          <div class="reminder-red" id="asiaReminder" style="display:none;">Rappel : ne laisse pas tourner une position en session asiatique sans BE. Si tu es à plus de 35% du profit : mets le BE. Sinon : clôture la position.</div>
+          <div class="hint" id="rulesEmpty">Choisis l'actif (XAUUSD, GBPUSD, EURUSD ou NASDAQ) pour afficher les règles associées.</div>
           <div id="rulesBox" style="display:none;">
             <div class="hint" id="rulesNote" style="margin:0 0 10px;"></div>
             <div class="form-grid">
             <div class="field" id="wrapRHors"><label for="r_horsAsie">Zone de supply / demand hors Asie ?</label><select id="r_horsAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRReint"><label for="r_reintAsie">Réintégration de la zone durant l'Asie ?</label><select id="r_reintAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field"><label for="r_cisd">CISD vérifié en H1 et H4 (en cas de retournement de tendance) ?</label><select id="r_cisd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="r_cisd">CISD vérifié en H1 et H4, en cas de retournement de tendance (H1 : cassure du dernier BOS et du dernier haut ou bas entraînant le BOS) ?</label><select id="r_cisd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_mitig">L'OB / FVG à l'origine du plus haut ou plus bas a déjà été mitigé ?</label><select id="r_mitig"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="r_liq">Ma zone est-elle protégée par des liquidités à prendre en H1 ? (si oui, je suis la liquidité)</label><select id="r_liq"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field" id="wrapRKzUs"><label for="r_kzUs">Killzone US entre 13h et 17h UTC ?</label><select id="r_kzUs"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 05h UTC) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             </div>
             <div class="hint">Le CISD et la mitigation servent à éviter des SL : le CISD indique si le marché se retourne, une zone déjà mitigée est plus fragile.</div>
             <div class="hint" style="display:none;">Le CISD sert à éviter des SL : il indique si le marché se retourne ou non.</div>
           </div>
 
           <div class="section-label">setup — supply &amp; demand en killzone</div>
+          <div class="reminder">Rappel : assure-toi que ta zone soit entre le dernier haut ou bas entraînant le BOS et au-dessus des liquidités.</div>
           <div class="form-grid">
             <div class="field"><label for="s_dir">Zone repérée</label><select id="s_dir"><option value="">— choisir —</option><option value="demand">Demand</option><option value="supply">Supply</option></select></div>
             <div class="field"><label for="s_type">Type de zone (OB ou FVG, jamais les deux)</label><select id="s_type"><option value="">— choisir —</option><option value="OB">OB</option><option value="FVG">FVG</option></select></div>
@@ -848,7 +855,7 @@
           <div class="section-label">confirmations</div>
           <div class="form-grid">
             <div class="field"><label for="s_ote">Zone OTE H1</label><select id="s_ote"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field"><label for="s_chH1">CHoCH H1 durant la réintégration de la zone d'entrée</label><select id="s_chH1"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="s_chH1">CHoCH H1 (cassure du BOS) durant la réintégration de la zone d'entrée</label><select id="s_chH1"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="s_chM5">CHoCH M5 durant la réintégration de la zone d'entrée</label><select id="s_chM5"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="s_confirm">Confirmation d'entrée en M5</label><select id="s_confirm"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
           </div>
@@ -2006,11 +2013,34 @@
   var SD_NAME = "Supply & Demand en killzone";
   var SETUP_IDS = { dir:"s_dir", type:"s_type", zoneKz:"s_zoneKz", zoneTime:"s_zoneTime", h1:"s_h1", m5:"s_m5",
                     chM5:"s_chM5", chH1:"s_chH1", entryKz:"s_entryKz", entryTime:"s_entryTime", confirm:"s_confirm",
-                    ote:"s_ote", other:"s_other", rHorsAsie:"r_horsAsie", rReintAsie:"r_reintAsie", rCisd:"r_cisd", rMitig:"r_mitig" };
-  var SD_PAIRS = ["XAUUSD","GBPUSD","EURUSD"];
+                    ote:"s_ote", other:"s_other", rHorsAsie:"r_horsAsie", rReintAsie:"r_reintAsie", rCisd:"r_cisd", rMitig:"r_mitig", rLiq:"r_liq", rKzUs:"r_kzUs", rEntry:"r_entry" };
+  var SD_PAIRS = ["XAUUSD","GBPUSD","EURUSD","NASDAQ"];
+  var NO_ASIA_KZ = ["XAUUSD","GBPUSD","EURUSD"];
+  var ASIA_REMINDER_PAIRS = ["NASDAQ","GBPUSD","EURUSD"];
   var ASIA_PAIRS = ["GBPUSD","EURUSD"];
   var pairSD = false;
-  function normPair(v){ return (v || "").replace(/[^a-z]/gi, "").toUpperCase(); }
+  function normPair(v){
+    var n = (v || "").replace(/[^a-z0-9]/gi, "").toUpperCase();
+    var A = { NAS100:"NASDAQ", US100:"NASDAQ", USTEC:"NASDAQ", NDX:"NASDAQ", NDX100:"NASDAQ", NASDAQ100:"NASDAQ", NQ:"NASDAQ", GOLD:"XAUUSD", XAU:"XAUUSD" };
+    return A[n] || n;
+  }
+  function ruleSpec(pr){
+    if(SD_PAIRS.indexOf(pr) < 0) return [];
+    var r = [["rCisd","oui"], ["rMitig","non"], ["rLiq","non"]];
+    if(ASIA_PAIRS.indexOf(pr) > -1) r.push(["rHorsAsie","oui"], ["rReintAsie","non"]);
+    if(pr === "NASDAQ") r.push(["rKzUs","oui"], ["rEntry","oui"]);
+    return r;
+  }
+  function refreshKzOptions(){
+    var pr = sdSel() ? $("f_pairSel").value : "";
+    var noAsia = NO_ASIA_KZ.indexOf(pr) > -1;
+    ["s_zoneKz","s_entryKz"].forEach(function(id){
+      var sel = $(id), cur = sel.value, h = '<option value="">— choisir —</option>';
+      if(!noAsia || cur === "asie") h += '<option value="asie">Asie' + (noAsia ? " (hors plan)" : "") + '</option>';
+      h += '<option value="londres">Londres</option><option value="us">US</option>';
+      sel.innerHTML = h; sel.value = cur;
+    });
+  }
   function sdSel(){ return fields.strategy.value === SD_NAME; }
   function getPair(){ return sdSel() ? $("f_pairSel").value.trim() : fields.pair.value.trim(); }
   function syncPairUI(){
@@ -2060,14 +2090,19 @@
   }
   function updateRulesUI(){
     var pr = sdSel() ? $("f_pairSel").value : "";
-    var known = SD_PAIRS.indexOf(pr) > -1, asia = ASIA_PAIRS.indexOf(pr) > -1;
+    var known = SD_PAIRS.indexOf(pr) > -1, asia = ASIA_PAIRS.indexOf(pr) > -1, nas = pr === "NASDAQ";
     $("rulesEmpty").style.display = known ? "none" : "";
     $("rulesBox").style.display = known ? "" : "none";
     $("wrapRHors").style.display = asia ? "" : "none";
     $("wrapRReint").style.display = asia ? "" : "none";
+    $("wrapRKzUs").style.display = nas ? "" : "none";
+    $("wrapREntry").style.display = nas ? "" : "none";
+    $("asiaReminder").style.display = ASIA_REMINDER_PAIRS.indexOf(pr) > -1 ? "" : "none";
     $("rulesNote").textContent = asia
-      ? pr + " performe moins en Asie : évite de lier la zone ou sa réintégration à l'Asie, et surveille le CISD H1 / H4."
-      : (known ? "Sur l'or, seules les règles du CISD et de la mitigation s'appliquent." : "");
+      ? pr + " performe moins en Asie : évite de lier la zone ou sa réintégration à l'Asie, et surveille le CISD."
+      : (nas ? "NASDAQ : killzone US entre 13h et 17h UTC, et entrée entre Londres et US."
+             : (known ? "Sur l'or, les règles liées à l'Asie ne s'appliquent pas." : ""));
+    refreshKzOptions();
   }
   function updateSetupHint(){
     var h = $("setupHint"); if(!h) return;
@@ -2077,10 +2112,9 @@
     var warn = false;
     var pr = $("f_pairSel").value;
     if(SD_PAIRS.indexOf(pr) > -1){
-      var rules = [["r_cisd","oui"], ["r_mitig","non"]];
-      if(ASIA_PAIRS.indexOf(pr) > -1) rules.push(["r_horsAsie","oui"], ["r_reintAsie","non"]);
+      var rules = ruleSpec(pr);
       var ok = 0, bad = 0;
-      rules.forEach(function(r){ var v = $(r[0]).value; if(v === r[1]) ok++; else if(v) bad++; });
+      rules.forEach(function(r){ var v = $(SETUP_IDS[r[0]]).value; if(v === r[1]) ok++; else if(v) bad++; });
       msg += " Règles respectées : " + ok + "/" + rules.length + ".";
       if(bad){ msg += " " + bad + " règle(s) non respectée(s)."; warn = true; }
     }
@@ -2310,8 +2344,8 @@
       if(stratVal === SD_NAME){
         setupData = {};
         Object.keys(SETUP_IDS).forEach(function(k){ setupData[k] = $(SETUP_IDS[k]).value.trim(); });
-        if(ASIA_PAIRS.indexOf($("f_pairSel").value) < 0){ setupData.rHorsAsie = ""; setupData.rReintAsie = ""; }
-        if(SD_PAIRS.indexOf($("f_pairSel").value) < 0){ setupData.rCisd = ""; setupData.rMitig = ""; }
+        var keepKeys = ruleSpec(normPair($("f_pairSel").value)).map(function(r){ return r[0]; });
+        ["rHorsAsie","rReintAsie","rCisd","rMitig","rLiq","rKzUs","rEntry"].forEach(function(k){ if(keepKeys.indexOf(k) < 0) setupData[k] = ""; });
       }
       var isCustomStrat = !!stratVal && stratVal !== SD_NAME;
       var payload = {
@@ -2809,11 +2843,173 @@
         });
       }
 
+
+      // =====================================================
+      // 04 — ANALYSE DE L'EDGE (Supply & Demand en killzone)
+      // =====================================================
+      var edgeSec = 0;
+      (function(){
+        var YN2 = { oui:"Oui", non:"Non" };
+        var KZM = { asie:"Asie", londres:"Londres", us:"US" };
+        function closedSD(t){
+          return !isObs(t) && t.strategy === SD_NAME && t.setup &&
+                 (t.status === "gagnant" || t.status === "perdant" || t.status === "breakeven" || t.status === "be35");
+        }
+        var all = state.trades.filter(closedSD);
+        if(!all.length) return;
+        edgeSec = 1;
+        var inMonth = all.filter(function(t){ return monthTrades.indexOf(t) > -1; }).length;
+
+        function rulesOk(t){
+          var su = t.setup, spec = ruleSpec(normPair(t.pair));
+          if(!spec.length) return null;
+          for(var i = 0; i < spec.length; i++){ if(!su[spec[i][0]]) return null; }
+          return spec.every(function(r){ return su[r[0]] === r[1]; });
+        }
+        function confOk(t){
+          var su = t.setup, v = [su.ote, su.chH1, su.chM5, su.confirm];
+          for(var i = 0; i < v.length; i++){ if(!v[i]) return null; }
+          return v.every(function(x){ return x === "oui"; });
+        }
+        function simple(k, map){ return function(t){ var v = t.setup[k]; if(k === "m5" && v && v !== "oui" && v !== "non") v = "oui"; return v ? (map ? map[v] : v) : null; }; }
+        var DIMS = [
+          { label:"Actif", get:function(t){ var n = normPair(t.pair); return n || null; }, order:SD_PAIRS },
+          { label:"Zone", get:simple("dir",{demand:"Demand",supply:"Supply"}), order:["Demand","Supply"] },
+          { label:"Type de zone", get:simple("type"), order:["OB","FVG"] },
+          { label:"Killzone de repérage", get:simple("zoneKz",KZM), order:["Asie","Londres","US"] },
+          { label:"Structure H1", get:simple("h1",{haussiere:"Haussière",baissiere:"Baissière",range:"Range"}), order:["Haussière","Baissière","Range"] },
+          { label:"Zone d'entrée repérée M5", get:simple("m5",YN2), order:["Oui","Non"] },
+          { label:"Zone OTE H1", get:simple("ote",YN2), order:["Oui","Non"] },
+          { label:"CHoCH H1 (réintégration)", get:simple("chH1",YN2), order:["Oui","Non"] },
+          { label:"CHoCH M5 (réintégration)", get:simple("chM5",YN2), order:["Oui","Non"] },
+          { label:"Confirmation d'entrée M5", get:simple("confirm",YN2), order:["Oui","Non"] },
+          { label:"Killzone d'entrée", get:simple("entryKz",KZM), order:["Asie","Londres","US"] },
+          { label:"Règle : zone hors Asie", get:simple("rHorsAsie",YN2), order:["Oui","Non"] },
+          { label:"Règle : réintégration en Asie", get:simple("rReintAsie",YN2), order:["Oui","Non"] },
+          { label:"Règle : CISD H1/H4 vérifié", get:simple("rCisd",YN2), order:["Oui","Non"] },
+          { label:"Règle : zone déjà mitigée", get:simple("rMitig",YN2), order:["Oui","Non"] },
+          { label:"Règle : zone protégée par liquidités H1", get:simple("rLiq",YN2), order:["Oui","Non"] },
+          { label:"Règle Nasdaq : KZ US 13h-17h UTC", get:simple("rKzUs",YN2), order:["Oui","Non"] },
+          { label:"Règle Nasdaq : entrée entre Londres et US", get:simple("rEntry",YN2), order:["Oui","Non"] },
+          { label:"Confirmations (OTE, CHoCH H1, CHoCH M5, M5)", get:function(t){ var c = confOk(t); return c === null ? null : (c ? "4/4 validées" : "Moins de 4/4"); }, order:["4/4 validées","Moins de 4/4"] },
+          { label:"Règles de l'actif", get:function(t){ var r = rulesOk(t); return r === null ? null : (r ? "Toutes respectées" : "Au moins une violée"); }, order:["Toutes respectées","Au moins une violée"] },
+          { label:"Plan complet (confirmations + règles)", get:function(t){ var c = confOk(t), r = rulesOk(t); if(c === null || r === null) return null; return (c && r) ? "Plan respecté" : "Plan non respecté"; }, order:["Plan respecté","Plan non respecté"] }
+        ];
+        function blank(){ return { n:0, w:0, l:0, be:0, pnl:0 }; }
+        function add(a, t){
+          a.n++; a.pnl += parseFloat(t.pnl) || 0;
+          if(t.status === "gagnant") a.w++; else if(t.status === "perdant") a.l++; else a.be++;
+        }
+        function wilson(w, n){
+          if(!n) return null;
+          var z = 1.96, ph = w / n, d = 1 + z*z/n;
+          var c = ph + z*z/(2*n), m = z * Math.sqrt(ph*(1-ph)/n + z*z/(4*n*n));
+          return [Math.max(0,(c - m)/d), Math.min(1,(c + m)/d)];
+        }
+        var base = blank(); all.forEach(function(t){ add(base, t); });
+        var baseDone = base.w + base.l, baseWr = baseDone ? base.w / baseDone : null;
+        var MIN_N = 5;
+
+        var rows = [], meta = [], found = [];
+        DIMS.forEach(function(dm_){
+          var map = {};
+          all.forEach(function(t){ var v = dm_.get(t); if(v === null || v === undefined || v === "") return; if(!map[v]) map[v] = blank(); add(map[v], t); });
+          var keys = Object.keys(map); if(!keys.length) return;
+          keys.sort(function(a,b){ var ia = dm_.order.indexOf(a), ib = dm_.order.indexOf(b); if(ia < 0) ia = 99; if(ib < 0) ib = 99; return ia - ib || map[b].n - map[a].n; });
+          rows.push([{ content: pdfText(dm_.label), colSpan:7, styles:{ fillColor:C.soft, textColor:C.ink, fontStyle:"bold", fontSize:8 } }]);
+          meta.push(null);
+          keys.forEach(function(k){
+            var a = map[k], done = a.w + a.l, wr = done ? a.w / done : null, avg = a.n ? a.pnl / a.n : 0;
+            var ci = wilson(a.w, done), cls = "low", lecture = "Données insuffisantes";
+            if(a.n >= MIN_N && wr !== null && baseWr !== null){
+              var diff = wr - baseWr;
+              if(diff >= 0.10 && avg > 0){ cls = "edge"; lecture = "Edge potentiel" + (a.n < 20 ? " (indicatif)" : ""); }
+              else if(diff <= -0.10 && avg < 0){ cls = "avoid"; lecture = "À éviter" + (a.n < 20 ? " (indicatif)" : ""); }
+              else { cls = "neutral"; lecture = "Neutre"; }
+            }
+            rows.push([pdfText(k), String(a.n), a.w + " / " + a.l + " / " + a.be,
+                       wr === null ? "-" : Math.round(wr*100) + "%",
+                       ci ? Math.round(ci[0]*100) + " - " + Math.round(ci[1]*100) + "%" : "-",
+                       fmtPdfMoney(avg), lecture]);
+            meta.push({ cls:cls, avg:avg });
+            if(cls === "edge" || cls === "avoid") found.push({ cls:cls, text: dm_.label + " = " + k, n:a.n, wr:wr, avg:avg });
+          });
+        });
+
+        doc.addPage(); y = TOP;
+        section("4", "Analyse de l'edge", "Supply & Demand en killzone : quels critères font la différence ?");
+
+        // encadré de contexte
+        var intro = "Base : " + all.length + " trade" + (all.length > 1 ? "s" : "") + " S&D clôturé" + (all.length > 1 ? "s" : "") + " sur ce compte (dont " + inMonth + " ce mois-ci). Winrate de référence : " +
+                    (baseWr === null ? "-" : Math.round(baseWr*100) + "%") + ". Un critère est signalé à partir de " + MIN_N + " trades, avec un écart d'au moins 10 points de winrate ET un P&L moyen de même signe.";
+        var introLines = wrap(intro, CW - 8, 8.5, "normal");
+        var boxH = introLines.length * 4 + 6;
+        ensure(boxH + 4);
+        setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
+        doc.roundedRect(MX, y - 2, CW, boxH, 1.8, 1.8, "FD");
+        doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.ink);
+        doc.text(introLines, MX + 4, y + 2.6);
+        y += boxH + 4;
+        if(all.length < 10){
+          var wl = wrap("Échantillon encore trop faible (" + all.length + "/10 minimum) pour tirer des conclusions : lis ce tableau comme un suivi, pas comme un verdict.", CW, 8.5, "italic");
+          doc.setFont("helvetica","italic"); doc.setFontSize(8.5); setTxt(C.red);
+          ensure(wl.length * 4 + 4); doc.text(wl, MX, y); y += wl.length * 4 + 4;
+        }
+
+        doc.autoTable({
+          startY: y,
+          head: [["Valeur","Trades","G / P / BE","Winrate","IC 95%","P&L moyen","Lecture"]],
+          body: rows,
+          theme: "plain",
+          styles: { fontSize: 8, cellPadding: { top:2.2, bottom:2.2, left:3, right:3 }, textColor: C.text, lineWidth: 0 },
+          headStyles: { fillColor: C.ink, textColor: 255, fontStyle: "bold", fontSize: 7.5 },
+          columnStyles: { 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"right"} },
+          didParseCell: function(d){
+            if(d.section !== "body") return;
+            var m = meta[d.row.index]; if(!m) return;
+            if(d.column.index === 6){
+              d.cell.styles.fontStyle = "bold";
+              d.cell.styles.textColor = m.cls === "edge" ? C.green : (m.cls === "avoid" ? C.red : C.dim);
+            }
+            if(d.column.index === 5){ d.cell.styles.textColor = signColor(m.avg); }
+          },
+          margin: { left: MX, right: MX, top: TOP, bottom: BOTTOM }
+        });
+        y = doc.lastAutoTable.finalY + 10;
+
+        // synthèse
+        var edges = found.filter(function(f){ return f.cls === "edge"; }).sort(function(a,b){ return b.wr - a.wr || b.n - a.n; }).slice(0, 4);
+        var avoids = found.filter(function(f){ return f.cls === "avoid"; }).sort(function(a,b){ return a.wr - b.wr || b.n - a.n; }).slice(0, 4);
+        function fl(f){ return f.text + "  (winrate " + Math.round(f.wr*100) + "%, " + f.n + " trades, P&L moyen " + fmtPdfMoney(f.avg) + ")"; }
+        var parts = [];
+        parts.push({ h:"Edges potentiels à jouer", c:C.green, items: edges.length ? edges.map(fl) : ["Aucun critère ne se détache encore avec assez de trades."] });
+        parts.push({ h:"Conditions à éviter", c:C.red, items: avoids.length ? avoids.map(fl) : ["Aucune condition clairement perdante pour l'instant."] });
+        var caution = "Lecture prudente : chaque critère est testé séparément et sur peu de trades. Un écart de 10 points peut n'être que du hasard, surtout sous 30 trades (voir l'IC 95%). Ne modifie ton plan qu'après confirmation sur plusieurs mois, et teste un seul critère à la fois.";
+        ensure(30);
+        parts.forEach(function(pt){
+          var lines = []; pt.items.forEach(function(it){ lines.push(wrap("-  " + it, CW - 6, 9, "normal")); });
+          var h = 7 + lines.reduce(function(sum,l){ return sum + l.length * 4.3 + 1; }, 0) + 3;
+          ensure(h + 3);
+          setFill(C.soft); doc.roundedRect(MX, y - 2, CW, h, 1.8, 1.8, "F");
+          setFill(pt.c); doc.rect(MX, y - 2, 1.6, h, "F");
+          doc.setFont("helvetica","bold"); doc.setFontSize(9.5); setTxt(pt.c);
+          doc.text(pt.h, MX + 5, y + 3);
+          var yy = y + 8;
+          doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.text);
+          lines.forEach(function(l){ doc.text(l, MX + 5, yy); yy += l.length * 4.3 + 1; });
+          y += h + 4;
+        });
+        var cl = wrap(caution, CW, 8.5, "italic");
+        ensure(cl.length * 4 + 4);
+        doc.setFont("helvetica","italic"); doc.setFontSize(8.5); setTxt(C.dim);
+        doc.text(cl, MX, y); y += cl.length * 4 + 6;
+      })();
+
       // =====================================================
       // 04 — JOURNAL DES TRADES
       // =====================================================
       doc.addPage(); y = TOP;
-      section("4", "Journal des trades", "Vue d'ensemble chronologique du mois");
+      section(String(4 + edgeSec), "Journal des trades", "Vue d'ensemble chronologique du mois");
       doc.autoTable({
         startY: y,
         head: [["Date","Paire","Sens","Statut","Entrée","SL","TP","P&L","Stratégie"]],
@@ -2856,7 +3052,7 @@
       fichesCount = fiches.length;
       if(fiches.length){
         doc.addPage(); y = TOP;
-        section("5", "Fiches détaillées", "Exécution, contexte, évolution et points à améliorer de chaque trade");
+        section(String(5 + edgeSec), "Fiches détaillées", "Exécution, contexte, évolution et points à améliorer de chaque trade");
         fiches.forEach(function(t){
           var col = statusColor(t);
           var iX = MX + 6, iW = CW - 6;
@@ -2872,6 +3068,9 @@
             if(su.rReintAsie) rl.push("Réintégration en Asie : " + YNL[su.rReintAsie]);
             if(su.rCisd) rl.push("CISD H1/H4 : " + YNL[su.rCisd]);
             if(su.rMitig) rl.push("Zone déjà mitigée : " + YNL[su.rMitig]);
+            if(su.rLiq) rl.push("Zone protégée par liquidités H1 : " + YNL[su.rLiq]);
+            if(su.rKzUs) rl.push("KZ US 13h-17h UTC : " + YNL[su.rKzUs]);
+            if(su.rEntry) rl.push("Entrée Londres-US : " + YNL[su.rEntry]);
             var rlines = []; if(rl.length) rlines = wrap("Règles : " + rl.join("  ·  "), iW, 9);
             if(su.dir || su.type) zl.push("Zone : " + [su.dir ? (su.dir === "demand" ? "Demand" : "Supply") : "", su.type || ""].join(" ").trim() + (su.zoneKz ? "  ·  KZ " + KZL[su.zoneKz] + (su.zoneTime ? " " + su.zoneTime : "") : ""));
             var l2 = [];
@@ -2972,7 +3171,7 @@
     if(shotTrades.length){
       var cgap = 6, colW = (CW - cgap) / 2, maxImgH = 70;
       doc.addPage(); y = TOP;
-      section(String(5 + (fichesCount ? 1 : 0)),
+      section(String(5 + (edgeSec || 0) + (fichesCount ? 1 : 0)),
               "Captures des trades", "Graphiques et annotations associés à chaque trade");
 
       shotTrades.forEach(function(t){
