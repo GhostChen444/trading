@@ -768,6 +768,7 @@
           <div class="field">
             <label for="f_pair" id="f_pairLabel">Paire / Actif <span class="req">*</span></label>
             <input type="text" id="f_pair" placeholder="EUR/USD" required>
+            <select id="f_pairSel" style="display:none;"></select>
           </div>
           <div class="field" id="wrapDirection">
             <label for="f_direction">Sens</label>
@@ -818,19 +819,41 @@
         </div>
 
         <div id="setupSD" class="strat-block" style="display:none;">
+          <div class="section-label">règles à respecter</div>
+          <div class="hint" id="rulesEmpty">Choisis l'actif (XAUUSD, GBPUSD ou EURUSD) pour afficher les règles associées.</div>
+          <div id="rulesBox" style="display:none;">
+            <div class="hint" id="rulesNote" style="margin:0 0 10px;"></div>
+            <div class="form-grid">
+            <div class="field" id="wrapRHors"><label for="r_horsAsie">Zone de supply / demand hors Asie ?</label><select id="r_horsAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field" id="wrapRReint"><label for="r_reintAsie">Réintégration de la zone durant l'Asie ?</label><select id="r_reintAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="r_cisd">CISD vérifié en H1 et H4 (en cas de retournement de tendance) ?</label><select id="r_cisd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            </div>
+            <div class="hint">Le CISD sert à éviter des SL : il indique si le marché se retourne ou non.</div>
+          </div>
+
           <div class="section-label">setup — supply &amp; demand en killzone</div>
           <div class="form-grid">
             <div class="field"><label for="s_dir">Zone repérée</label><select id="s_dir"><option value="">— choisir —</option><option value="demand">Demand</option><option value="supply">Supply</option></select></div>
             <div class="field"><label for="s_type">Type de zone (OB ou FVG, jamais les deux)</label><select id="s_type"><option value="">— choisir —</option><option value="OB">OB</option><option value="FVG">FVG</option></select></div>
             <div class="field"><label for="s_zoneKz">Killzone de repérage de la zone</label><select id="s_zoneKz"><option value="">— choisir —</option><option value="asie">Asie</option><option value="londres">Londres</option><option value="us">US</option></select></div>
-            <div class="field"><label for="s_zoneTime">Heure de repérage</label><input type="time" id="s_zoneTime"></div>
+            <div class="field"><label for="s_zoneTime">Heure de repérage <span class="hint" style="display:inline;">(facultatif)</span></label><input type="text" id="s_zoneTime" placeholder="ex : 09:30"></div>
             <div class="field"><label for="s_h1">Structure H1</label><select id="s_h1"><option value="">— choisir —</option><option value="haussiere">Haussière</option><option value="baissiere">Baissière</option><option value="range">Range</option></select></div>
-            <div class="field"><label for="s_m5">Zone d'entrée repérée en M5</label><select id="s_m5"><option value="">— choisir —</option><option value="OB">OB M5</option><option value="FVG">FVG M5</option></select></div>
-            <div class="field"><label for="s_chM5">CHoCH M5 confirmé (réintégration de la zone)</label><select id="s_chM5"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field"><label for="s_chH1">CHoCH H1 confirmé (réintégration de la zone)</label><select id="s_chH1"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="s_m5">Zone d'entrée repérée en M5</label><select id="s_m5"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="s_entryKz">Killzone d'entrée</label><select id="s_entryKz"><option value="">— choisir —</option><option value="asie">Asie</option><option value="londres">Londres</option><option value="us">US</option></select></div>
-            <div class="field"><label for="s_entryTime">Heure d'entrée</label><input type="time" id="s_entryTime"></div>
+            <div class="field"><label for="s_entryTime">Heure d'entrée <span class="hint" style="display:inline;">(facultatif)</span></label><input type="text" id="s_entryTime" placeholder="ex : 14:35"></div>
+          </div>
+
+          <div class="section-label">confirmations</div>
+          <div class="form-grid">
+            <div class="field"><label for="s_ote">Zone OTE H1</label><select id="s_ote"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="s_chH1">CHoCH H1 durant la réintégration de la zone d'entrée</label><select id="s_chH1"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="s_chM5">CHoCH M5 durant la réintégration de la zone d'entrée</label><select id="s_chM5"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="s_confirm">Confirmation d'entrée en M5</label><select id="s_confirm"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+          </div>
+
+          <div class="section-label">autres détails setup</div>
+          <div class="form-grid full">
+            <div class="field"><textarea id="s_other" placeholder="tout ce qui n'est pas couvert par les critères ci-dessus..."></textarea></div>
           </div>
           <div class="hint" id="setupHint"></div>
         </div>
@@ -1980,7 +2003,29 @@
   // ---- stratégies : liste déroulante + ajout ----
   var SD_NAME = "Supply & Demand en killzone";
   var SETUP_IDS = { dir:"s_dir", type:"s_type", zoneKz:"s_zoneKz", zoneTime:"s_zoneTime", h1:"s_h1", m5:"s_m5",
-                    chM5:"s_chM5", chH1:"s_chH1", entryKz:"s_entryKz", entryTime:"s_entryTime", confirm:"s_confirm" };
+                    chM5:"s_chM5", chH1:"s_chH1", entryKz:"s_entryKz", entryTime:"s_entryTime", confirm:"s_confirm",
+                    ote:"s_ote", other:"s_other", rHorsAsie:"r_horsAsie", rReintAsie:"r_reintAsie", rCisd:"r_cisd" };
+  var SD_PAIRS = ["XAUUSD","GBPUSD","EURUSD"];
+  var ASIA_PAIRS = ["GBPUSD","EURUSD"];
+  var pairSD = false;
+  function normPair(v){ return (v || "").replace(/[^a-z]/gi, "").toUpperCase(); }
+  function sdSel(){ return fields.strategy.value === SD_NAME; }
+  function getPair(){ return sdSel() ? $("f_pairSel").value.trim() : fields.pair.value.trim(); }
+  function syncPairUI(){
+    var sd = sdSel(), ps = $("f_pairSel");
+    if(sd && !pairSD){
+      var raw = fields.pair.value.trim(), n = normPair(raw);
+      var html = '<option value="">— choisir l\'actif —</option>' + SD_PAIRS.map(function(x){ return '<option value="' + x + '">' + x + '</option>'; }).join("");
+      var match = SD_PAIRS.indexOf(n) > -1 ? n : "";
+      if(raw && !match) html += '<option value="' + escapeHtml(raw) + '">' + escapeHtml(raw) + '</option>';
+      ps.innerHTML = html; ps.value = match || raw || "";
+    } else if(!sd && pairSD){
+      if(ps.value) fields.pair.value = ps.value;
+    }
+    pairSD = sd;
+    ps.style.display = sd ? "" : "none";
+    fields.pair.style.display = sd ? "none" : "";
+  }
   var lastStrat = "";
   function customStrats(){ return (root && root.strategies) || []; }
   function stratExists(name){
@@ -2007,14 +2052,36 @@
     var isCustom = !!v && !isNew && !isSD;
     $("setupSD").style.display = isSD ? "" : "none";
     $("setupCustom").style.display = isCustom ? "" : "none";
+    syncPairUI();
+    updateRulesUI();
     updateSetupHint();
+  }
+  function updateRulesUI(){
+    var pr = sdSel() ? $("f_pairSel").value : "";
+    var known = SD_PAIRS.indexOf(pr) > -1, asia = ASIA_PAIRS.indexOf(pr) > -1;
+    $("rulesEmpty").style.display = known ? "none" : "";
+    $("rulesBox").style.display = known ? "" : "none";
+    $("wrapRHors").style.display = asia ? "" : "none";
+    $("wrapRReint").style.display = asia ? "" : "none";
+    $("rulesNote").textContent = asia
+      ? pr + " performe moins en Asie : évite de lier la zone ou sa réintégration à l'Asie, et surveille le CISD H1 / H4."
+      : (known ? "Sur l'or, seule la règle du CISD s'applique." : "");
   }
   function updateSetupHint(){
     var h = $("setupHint"); if(!h) return;
-    if(fields.strategy.value !== SD_NAME){ h.textContent = ""; h.className = "hint"; return; }
-    var conf = ["s_chM5","s_chH1","s_confirm"].filter(function(id){ return $(id).value === "oui"; }).length;
-    var msg = "Confirmations validées : " + conf + "/3 (CHoCH M5, CHoCH H1, confirmation M5).";
+    if(!sdSel()){ h.textContent = ""; h.className = "hint"; return; }
+    var conf = ["s_ote","s_chH1","s_chM5","s_confirm"].filter(function(id){ return $(id).value === "oui"; }).length;
+    var msg = "Confirmations validées : " + conf + "/4.";
     var warn = false;
+    var pr = $("f_pairSel").value;
+    if(SD_PAIRS.indexOf(pr) > -1){
+      var rules = [["r_cisd","oui"]];
+      if(ASIA_PAIRS.indexOf(pr) > -1) rules.push(["r_horsAsie","oui"], ["r_reintAsie","non"]);
+      var ok = 0, bad = 0;
+      rules.forEach(function(r){ var v = $(r[0]).value; if(v === r[1]) ok++; else if(v) bad++; });
+      msg += " Règles respectées : " + ok + "/" + rules.length + ".";
+      if(bad){ msg += " " + bad + " règle(s) non respectée(s)."; warn = true; }
+    }
     var d = $("s_dir").value;
     if(formType === "trade" && d){
       var dir = fields.direction.value;
@@ -2026,6 +2093,7 @@
     h.textContent = msg;
     h.className = warn ? "hint field-warn" : "hint";
   }
+  $("f_pairSel").addEventListener("change", function(){ updateRulesUI(); updateSetupHint(); });
   fields.strategy.addEventListener("change", function(){
     if(fields.strategy.value === "__new__"){
       $("stratNewRow").style.display = "flex"; $("stratNewErr").textContent = "";
@@ -2176,6 +2244,7 @@
     formShots = [];
     formRemoved = [];
     hideNewStrat();
+    pairSD = false;
     refreshStrategyOptions("");
     Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).value = ""; });
 
@@ -2187,6 +2256,7 @@
         refreshStrategyOptions(t.strategy || "");
         var su = t.setup || {};
         Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).value = su[k] || ""; });
+        if(su.m5 && su.m5 !== "oui" && su.m5 !== "non") $("s_m5").value = "oui"; // ancien format OB/FVG
         fields.stratDetails.value = t.stratDetails || "";
         fields.risk.value = t.risk !== undefined ? t.risk : "";
         fields.status.value = t.status || "en_cours";
@@ -2216,7 +2286,7 @@
   window.openTradeForm = openTradeForm;
 
   $("saveTradeBtn").addEventListener("click", function(){
-    if(!fields.pair.value.trim()){ fields.pair.focus(); return; }
+    if(!getPair()){ (sdSel() ? $("f_pairSel") : fields.pair).focus(); return; }
     var isBe35 = formType === "trade" && fields.status.value === "be35";
     if(isBe35 && fields.tpHit.checked){
       if(!fields.beAt.value){ fields.beAt.focus(); alert("Renseigne l'heure du BE 35% pour pouvoir mesurer le délai du TP."); return; }
@@ -2237,12 +2307,14 @@
       var setupData = null;
       if(stratVal === SD_NAME){
         setupData = {};
-        Object.keys(SETUP_IDS).forEach(function(k){ setupData[k] = $(SETUP_IDS[k]).value; });
+        Object.keys(SETUP_IDS).forEach(function(k){ setupData[k] = $(SETUP_IDS[k]).value.trim(); });
+        if(ASIA_PAIRS.indexOf($("f_pairSel").value) < 0){ setupData.rHorsAsie = ""; setupData.rReintAsie = ""; }
+        if(SD_PAIRS.indexOf($("f_pairSel").value) < 0){ setupData.rCisd = ""; }
       }
       var isCustomStrat = !!stratVal && stratVal !== SD_NAME;
       var payload = {
         date: dayKey,
-        pair: fields.pair.value.trim(),
+        pair: getPair(),
         observation: obsMode,
         direction: obsMode ? "" : fields.direction.value,
         strategy: stratVal,
@@ -2793,21 +2865,26 @@
           if(t.setup){
             var su = t.setup, KZL = { asie:"Asie", londres:"Londres", us:"US" }, H1L = { haussiere:"Haussière", baissiere:"Baissière", range:"Range" }, YNL = { oui:"Oui", non:"Non" };
             var zl = [];
+            var rl = [];
+            if(su.rHorsAsie) rl.push("Zone hors Asie : " + YNL[su.rHorsAsie]);
+            if(su.rReintAsie) rl.push("Réintégration en Asie : " + YNL[su.rReintAsie]);
+            if(su.rCisd) rl.push("CISD H1/H4 : " + YNL[su.rCisd]);
+            var rlines = []; if(rl.length) rlines = wrap("Règles : " + rl.join("  ·  "), iW, 9);
             if(su.dir || su.type) zl.push("Zone : " + [su.dir ? (su.dir === "demand" ? "Demand" : "Supply") : "", su.type || ""].join(" ").trim() + (su.zoneKz ? "  ·  KZ " + KZL[su.zoneKz] + (su.zoneTime ? " " + su.zoneTime : "") : ""));
             var l2 = [];
             if(su.h1) l2.push("Structure H1 : " + H1L[su.h1]);
-            if(su.m5) l2.push("Zone d'entrée M5 : " + su.m5);
+            if(su.m5) l2.push("Zone d'entrée M5 : " + (YNL[su.m5] || su.m5));
             if(l2.length) zl.push(l2.join("  ·  "));
             var l3 = [];
-            if(su.chM5) l3.push("CHoCH M5 : " + YNL[su.chM5]);
+            if(su.ote) l3.push("OTE H1 : " + YNL[su.ote]);
             if(su.chH1) l3.push("CHoCH H1 : " + YNL[su.chH1]);
+            if(su.chM5) l3.push("CHoCH M5 : " + YNL[su.chM5]);
             if(su.confirm) l3.push("Confirmation M5 : " + YNL[su.confirm]);
             if(l3.length) zl.push(l3.join("  ·  "));
             if(su.entryKz) zl.push("KZ d'entrée : " + KZL[su.entryKz] + (su.entryTime ? " " + su.entryTime : ""));
-            if(zl.length){
-              var zlines = []; zl.forEach(function(x){ zlines = zlines.concat(wrap(x, iW, 9)); });
-              blocks.push({ label:"Setup - Supply & Demand en killzone", lines: zlines });
-            }
+            if(hasVal(su.other)) zl.push("Autres détails : " + su.other);
+            var zlines = rlines.slice(); zl.forEach(function(x){ zlines = zlines.concat(wrap(x, iW, 9)); });
+            if(zlines.length) blocks.push({ label:"Setup - Supply & Demand en killzone", lines: zlines });
           }
           if(hasVal(t.stratDetails)) blocks.push({ label:"Détails de la stratégie", lines: wrap(t.stratDetails, iW, 9) });
           [["Contexte géopolitique", t.geo], ["Contexte macroéconomique", t.macro], ["Évolution du trade", t.evolution]].forEach(function(p){
