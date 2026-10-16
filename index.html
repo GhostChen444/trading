@@ -253,6 +253,7 @@
   .chk-row{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer;}
   .field .chk-row input[type=checkbox]{width:auto; margin:0;}
   .field-warn{color:var(--red);}
+  .tag.tag-improve{background:rgba(200,155,74,0.10); color:var(--gold); border-color:var(--gold-soft);}
   .tag.status-observation{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
   .trade-pair{font-family:var(--serif); font-size:16px;}
   .trade-meta{font-size:12px; color:var(--text-faint); font-family:var(--mono);}
@@ -772,8 +773,8 @@
             </select>
           </div>
           <div class="field">
-            <label for="f_strategy">Stratégie technique (si utilisée)</label>
-            <input type="text" id="f_strategy" placeholder="ex : cassure de range, OB H4...">
+            <label for="f_strategy">Stratégie</label>
+            <input type="text" id="f_strategy" placeholder="Supply &amp; Demand killzone">
           </div>
           <div class="field" id="wrapStatus">
             <label for="f_status">Statut</label>
@@ -784,6 +785,67 @@
               <option value="breakeven">BE point d'entrée</option>
               <option value="be35">BE 35%</option>
             </select>
+          </div>
+        </div>
+
+        <div class="section-label">setup — supply &amp; demand en killzone</div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="f_kzEntry">Killzone de l'entrée</label>
+            <select id="f_kzEntry">
+              <option value="">—</option>
+              <option value="asie">Asie</option>
+              <option value="londres">Londres</option>
+              <option value="us">US</option>
+              <option value="hors">Hors killzone</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f_kzZone">Zone créée pendant</label>
+            <select id="f_kzZone">
+              <option value="">—</option>
+              <option value="asie">Asie</option>
+              <option value="londres">Londres</option>
+              <option value="us">US</option>
+              <option value="hors">Hors killzone</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f_zoneType">Type de zone</label>
+            <select id="f_zoneType">
+              <option value="">—</option>
+              <option value="demande">Demande (demand)</option>
+              <option value="offre">Offre (supply)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f_h1">Confluence H1</label>
+            <select id="f_h1">
+              <option value="">—</option>
+              <option value="ob">Order block H1</option>
+              <option value="fvg">FVG H1</option>
+              <option value="ob_fvg">OB + FVG H1</option>
+            </select>
+          </div>
+          <div class="field span2">
+            <label for="f_m5">Confirmation d'entrée M5</label>
+            <input type="text" id="f_m5" placeholder="ex : CHoCH M5 après sweep, FVG M5 dans la zone...">
+          </div>
+          <div class="field span2">
+            <label for="f_conform">Setup conforme aux règles de la stratégie ?</label>
+            <select id="f_conform">
+              <option value="">—</option>
+              <option value="oui">Oui, toutes les règles respectées</option>
+              <option value="partiel">Partiellement</option>
+              <option value="non">Non, écart à la stratégie</option>
+            </select>
+            <div class="hint" id="kzHint"></div>
+          </div>
+        </div>
+        <div class="form-grid full" style="margin-top:14px;">
+          <div class="field">
+            <label for="f_details">Détails du setup</label>
+            <textarea id="f_details" placeholder="où est la zone, biais H1, pourquoi cette entrée, ce qui s'est passé après..."></textarea>
           </div>
         </div>
 
@@ -832,6 +894,15 @@
           <div class="field">
             <label for="f_evolution">Évolution du trade</label>
             <textarea id="f_evolution" placeholder="comment le trade a évolué, gestion, émotions, sorties partielles..."></textarea>
+          </div>
+        </div>
+
+        <div class="section-label">à améliorer — pour affiner la stratégie</div>
+        <div class="form-grid full">
+          <div class="field">
+            <label for="f_improve">Éléments à améliorer (gagnant ou perdant)</label>
+            <textarea id="f_improve" placeholder="une idée par ligne, ex :&#10;attendre la clôture de la bougie H1 avant d'entrer&#10;ne pas trader dans l'heure qui précède le NFP&#10;placer le SL au-delà de la mèche, pas dessus"></textarea>
+            <div class="hint">Ce que tu as observé et que tu veux corriger. Une idée par ligne : elles seront regroupées par stratégie dans le bilan PDF du mois comme nouvelles règles à intégrer.</div>
           </div>
         </div>
 
@@ -990,6 +1061,28 @@
     var h = tpDelayH(t.beAt, t.tpHitAt);
     if(tpCounted(t)) return '<span class="tag tp-ok">TP touché · +' + fmtDelay(h) + '</span>';
     return '<span class="tag tp-late">TP hors délai (non compté)</span>';
+  }
+  // ---- Stratégie unique : supply & demand créées en killzone, OB/FVG H1, entrée M5 ----
+  var STRAT_NAME = "Supply & Demand killzone";
+  var KZ_LABEL = { asie:"Asie", londres:"Londres", us:"US", hors:"Hors killzone" };
+  var ZONE_LABEL = { demande:"Demande", offre:"Offre" };
+  var H1_LABEL = { ob:"Order block H1", fvg:"FVG H1", ob_fvg:"OB + FVG H1" };
+  var CONF_LABEL = { oui:"Conforme", partiel:"Partiel", non:"Non conforme" };
+  var PAIR_NAME = { GBPUSD:"GBP/USD", EURUSD:"EUR/USD", XAUUSD:"XAU/USD (Or)" };
+  var KZ_OK = { GBPUSD:["londres","us"], EURUSD:["londres","us"], XAUUSD:["asie","londres","us"] };
+  function canonPair(p){
+    var s = String(p||"").toUpperCase().replace(/[^A-Z]/g,"");
+    if(s.indexOf("GBPUSD") > -1 || s === "GU") return "GBPUSD";
+    if(s.indexOf("EURUSD") > -1 || s === "EU") return "EURUSD";
+    if(s.indexOf("XAUUSD") > -1 || s.indexOf("GOLD") > -1 || s === "XAU") return "XAUUSD";
+    return s;
+  }
+  // true / false si la killzone est valide pour la paire, null si on ne peut pas juger
+  function kzAllowed(pair, kz){
+    var c = canonPair(pair);
+    if(!KZ_OK[c] || !kz) return null;
+    if(kz === "hors") return false;
+    return KZ_OK[c].indexOf(kz) > -1;
   }
   function pdfTag(t){ return isObs(t) ? "Observation" : ((t.direction === "vente" ? "Vente" : "Achat") + ", " + (STATUS_LABEL[t.status] || "")); }
 
@@ -1869,6 +1962,9 @@
               ? '<span class="tag status-observation">Observation</span>'
               : '<span class="tag dir-' + (t.direction||"achat") + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' +
                 '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' + tpTagHtml(t)) +
+            (t.kzEntry && KZ_LABEL[t.kzEntry] ? '<span class="tag" title="Killzone de l\'entrée">' + KZ_LABEL[t.kzEntry] + '</span>' : '') +
+            (t.conform === "non" || t.conform === "partiel" ? '<span class="tag tp-late" title="Setup conforme aux règles ?">' + CONF_LABEL[t.conform] + '</span>' : '') +
+            (t.improve && t.improve.trim() ? '<span class="tag tag-improve" title="Éléments à améliorer renseignés">↗ à améliorer</span>' : '') +
           '</div>' +
           '<div class="trade-meta">' +
             (isObs(t)
@@ -1921,9 +2017,29 @@
   var fields = {
     pair: $("f_pair"), direction: $("f_direction"), strategy: $("f_strategy"), status: $("f_status"),
     lot: $("f_lot"), entry: $("f_entry"), sl: $("f_sl"), tp: $("f_tp"), exit: $("f_exit"), pnl: $("f_pnl"),
-    geo: $("f_geo"), macro: $("f_macro"), evolution: $("f_evolution"),
-    beAt: $("f_beAt"), tpHit: $("f_tpHit"), tpHitAt: $("f_tpHitAt")
+    geo: $("f_geo"), macro: $("f_macro"), evolution: $("f_evolution"), improve: $("f_improve"),
+    beAt: $("f_beAt"), tpHit: $("f_tpHit"), tpHitAt: $("f_tpHitAt"),
+    kzEntry: $("f_kzEntry"), kzZone: $("f_kzZone"), zoneType: $("f_zoneType"), h1: $("f_h1"),
+    m5: $("f_m5"), conform: $("f_conform"), details: $("f_details")
   };
+
+  // ---- rappel des killzones prévues pour la paire ----
+  function updateKzHint(){
+    var h = $("kzHint"); if(!h) return;
+    h.className = "hint";
+    var c = canonPair(fields.pair.value), kz = fields.kzEntry.value;
+    if(!KZ_OK[c]){ h.textContent = ""; return; }
+    var ok = KZ_OK[c].map(function(k){ return KZ_LABEL[k]; }).join(", ");
+    var allowed = kzAllowed(fields.pair.value, kz);
+    if(allowed === false){
+      h.className = "hint field-warn";
+      h.textContent = (kz === "hors" ? "Entrée hors killzone" : KZ_LABEL[kz] + " n'est pas une killzone prévue pour " + PAIR_NAME[c]) + " : à noter comme écart à la stratégie (killzones prévues : " + ok + ").";
+    } else {
+      h.textContent = "Killzones prévues pour " + PAIR_NAME[c] + " : " + ok + ".";
+    }
+  }
+  fields.pair.addEventListener("input", updateKzHint);
+  fields.kzEntry.addEventListener("change", updateKzHint);
   var formType = "trade";
 
   // ---- BE 35% : suivi du TP touché (fenêtre max 36 h) ----
@@ -2046,6 +2162,7 @@
     fields.direction.value = "achat";
     fields.status.value = "en_cours";
     fields.tpHit.checked = false;
+    fields.strategy.value = STRAT_NAME;
     $("deleteTradeBtn").style.display = "none";
     formShots = [];
     formRemoved = [];
@@ -2066,6 +2183,14 @@
         fields.geo.value = t.geo || "";
         fields.macro.value = t.macro || "";
         fields.evolution.value = t.evolution || "";
+        fields.improve.value = t.improve || "";
+        fields.kzEntry.value = t.kzEntry || "";
+        fields.kzZone.value = t.kzZone || "";
+        fields.zoneType.value = t.zoneType || "";
+        fields.h1.value = t.h1 || "";
+        fields.m5.value = t.m5 || "";
+        fields.conform.value = t.conform || "";
+        fields.details.value = t.details || "";
         fields.beAt.value = toLocalInput(t.beAt);
         fields.tpHit.checked = !!t.tpHit;
         fields.tpHitAt.value = toLocalInput(t.tpHitAt);
@@ -2075,6 +2200,7 @@
     }
     setFormType(tradeId && state.trades.some(function(x){ return x.id === tradeId && isObs(x); }) ? "observation" : "trade");
     $("formModalSub").textContent = dayKey;
+    updateKzHint();
     renderShotList();
     showOnly(modalForm);
   }
@@ -2108,6 +2234,9 @@
         lot: obsMode ? "" : fields.lot.value, entry: obsMode ? "" : fields.entry.value, sl: obsMode ? "" : fields.sl.value, tp: obsMode ? "" : fields.tp.value,
         exit: obsMode ? "" : fields.exit.value, pnl: obsMode ? "" : fields.pnl.value,
         geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim(),
+        improve: fields.improve.value.trim(),
+        kzEntry: fields.kzEntry.value, kzZone: fields.kzZone.value, zoneType: fields.zoneType.value, h1: fields.h1.value,
+        m5: fields.m5.value.trim(), conform: fields.conform.value, details: fields.details.value.trim(),
         beAt: isBe35 ? fromLocalInput(fields.beAt.value) : "",
         tpHit: isBe35 ? !!fields.tpHit.checked : false,
         tpHitAt: (isBe35 && fields.tpHit.checked) ? fromLocalInput(fields.tpHitAt.value) : "",
@@ -2319,31 +2448,117 @@
       alert("La bibliothèque de génération PDF n'a pas pu se charger (vérifiez votre connexion internet, elle est chargée depuis un CDN).");
       return;
     }
-    var jsPDFCtor = window.jspdf.jsPDF;
-    var doc = new jsPDFCtor({ unit:"mm", format:"a4" });
-    var marginX = 15;
-    var pageWidth = doc.internal.pageSize.getWidth();
-    var pageHeight = doc.internal.pageSize.getHeight();
-    var y = 18;
+    var doc = new window.jspdf.jsPDF({ unit:"mm", format:"a4" });
+    var PW = doc.internal.pageSize.getWidth(), PH = doc.internal.pageSize.getHeight();
+    var MX = 18, CW = PW - 2*MX, TOP = 24, BOTTOM = 22;
+    var C = {
+      ink:[23,27,29], text:[42,46,50], dim:[112,118,124], line:[226,223,215], soft:[246,244,239],
+      gold:[176,132,52], goldSoft:[251,246,234], green:[58,130,96], red:[190,84,70], blue:[88,124,160], gray:[135,140,145]
+    };
+    var y = TOP, fichesCount = 0, secNo = 0, pageSec = {};
 
+    // ---------- helpers de dessin ----------
+    function setTxt(c){ doc.setTextColor(c[0],c[1],c[2]); }
+    function setFill(c){ doc.setFillColor(c[0],c[1],c[2]); }
+    function setDraw(c){ doc.setDrawColor(c[0],c[1],c[2]); }
+    function ensure(h){ if(y + h > PH - BOTTOM){ doc.addPage(); y = TOP; return true; } return false; }
+    function newPage(){ doc.addPage(); y = TOP; }
+    function wrap(txt, w, fs, style){
+      doc.setFont("helvetica", style || "normal"); doc.setFontSize(fs);
+      return doc.splitTextToSize(pdfText(txt), w);
+    }
+    function dmy(iso){ if(!iso) return ""; var p = iso.split("-"); return p[2] + "/" + p[1] + "/" + p[0]; }
+    function dm(iso){ if(!iso) return ""; var p = iso.split("-"); return p[2] + "/" + p[1]; }
+    function hasVal(v){ return v !== undefined && v !== null && String(v).trim() !== ""; }
+    function normKey(str){
+      return String(str||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+        .replace(/[^a-z0-9% ]+/g," ").replace(/\s+/g," ").trim();
+    }
+    function splitImprove(txt){
+      return String(txt||"").split(/\n+/).map(function(l){
+        return l.replace(/^\s*(?:[-–—•*·>]+|\d+[.)])\s*/,"").trim();
+      }).filter(Boolean);
+    }
+    function statusColor(t){
+      if(isObs(t)) return C.gold;
+      return ({gagnant:C.green, perdant:C.red, en_cours:C.blue, breakeven:C.gray, be35:C.gold})[t.status] || C.gray;
+    }
+    function signColor(n){ return n > 0 ? C.green : (n < 0 ? C.red : C.ink); }
+    function wr(g){ var d = g.w + g.l; return d ? Math.round(g.w / d * 100) : null; }
+
+    // titre de section : chaque grande partie démarre sur sa propre page
+    function section(title, sub, keepPage){
+      if(!keepPage) newPage(); else ensure(60);
+      secNo++;
+      pageSec[doc.internal.getCurrentPageInfo().pageNumber] = title;
+      setFill(C.gold); doc.roundedRect(MX, y - 6, 9, 9, 1.8, 1.8, "F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(255,255,255);
+      doc.text(String(secNo), MX + 4.5, y - 0.1, { align:"center" });
+      doc.setFontSize(17); setTxt(C.ink);
+      doc.text(pdfText(title), MX + 14, y + 0.6);
+      if(sub){
+        y += 7;
+        doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
+        doc.text(pdfText(sub), MX + 14, y);
+      }
+      y += 5;
+      setDraw(C.line); doc.setLineWidth(0.3); doc.line(MX, y, PW - MX, y);
+      y += 13;
+    }
+    // sous-titre à l'intérieur d'une section
+    function subhead(title, note){
+      ensure(46);
+      setFill(C.gold); doc.rect(MX, y - 3.6, 1.4, 5, "F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(11); setTxt(C.ink);
+      doc.text(pdfText(title), MX + 5, y);
+      if(note){
+        doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
+        doc.text(pdfText(note), PW - MX, y, { align:"right" });
+      }
+      y += 7;
+    }
+    function noteLine(txt){
+      doc.setFont("helvetica","italic"); doc.setFontSize(9); setTxt(C.dim);
+      var ls = wrap(txt, CW, 9, "italic");
+      doc.text(ls, MX + 5, y); y += ls.length * 4.4 + 8;
+    }
+
+    function kpi(x, yy, w, h, label, value, color, big){
+      setFill(C.soft); setDraw(C.line); doc.setLineWidth(0.2);
+      doc.roundedRect(x, yy, w, h, 2, 2, "FD");
+      if(color){ setFill(color); doc.rect(x, yy + 3, 1.1, h - 6, "F"); }
+      doc.setFont("helvetica","normal"); doc.setFontSize(8); setTxt(C.dim);
+      doc.text(pdfText(label), x + 5, yy + 7);
+      doc.setFont("helvetica","bold");
+      var fs = big ? 17 : 13;
+      doc.setFontSize(fs);
+      while(fs > 7 && doc.getTextWidth(value) > w - 9){ fs -= 0.5; doc.setFontSize(fs); }
+      setTxt(color || C.ink);
+      doc.text(value, x + 5, yy + h - 6);
+    }
+
+    // ---------- données ----------
     var monthLabel = MONTHS_FR[viewMonth] + " " + viewYear;
     var prefix = viewYear + "-" + pad(viewMonth+1);
     var monthTrades = state.trades
       .filter(function(t){ return t.date && t.date.indexOf(prefix) === 0; })
       .sort(function(a,b){ return a.date.localeCompare(b.date); });
+    var takenTrades = monthTrades.filter(function(t){ return !isObs(t); });
 
-    var obsMonthCount = monthTrades.filter(isObs).length;
     var cur = state.account.currency || "USD";
+    var obsCount = monthTrades.length - takenTrades.length;
+    var taken = takenTrades.length;
     var totalPnlAll = state.trades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); }, 0);
-    var currentBalance = (parseFloat(state.account.initial)||0) + totalPnlAll;
-
+    var initial = parseFloat(state.account.initial)||0;
+    var currentBalance = initial + totalPnlAll;
     var wins = monthTrades.filter(function(t){ return t.status==="gagnant"; }).length;
     var losses = monthTrades.filter(function(t){ return t.status==="perdant"; }).length;
     var open = monthTrades.filter(function(t){ return t.status==="en_cours"; }).length;
     var be = monthTrades.filter(function(t){ return t.status==="breakeven" || t.status==="be35"; }).length;
-    var be35tpPdf = monthTrades.filter(tpCounted).length;
+    var be35All = monthTrades.filter(function(t){ return t.status==="be35"; }).length;
+    var be35tp = monthTrades.filter(tpCounted).length;
     var closedCount = wins + losses;
-    var winrate = closedCount ? Math.round((wins/closedCount)*100) + "%" : "—";
+    var winrateNum = closedCount ? Math.round(wins/closedCount*100) : null;
     var pnlMonth = monthTrades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); }, 0);
 
     function fmtPdfMoney(n, plain){
@@ -2351,127 +2566,477 @@
       var sign = (n > 0 && !plain) ? "+" : "";
       return sign + fmtPdfNum(n) + " " + pdfText(cur);
     }
-    function dmy(iso){
-      if(!iso) return "";
-      var p = iso.split("-");
-      return p[2] + "/" + p[1] + "/" + p[0];
+
+    // agrégation par dimension (trades pris uniquement)
+    function aggBy(keyFn, order){
+      var map = {}, ids = [];
+      takenTrades.forEach(function(t){
+        var k = keyFn(t);
+        if(!map[k.id]){ map[k.id] = { id:k.id, label:k.label, unset:!!k.unset, n:0, w:0, l:0, be:0, open:0, pnl:0 }; ids.push(k.id); }
+        var g = map[k.id]; g.n++;
+        if(t.status==="gagnant") g.w++;
+        else if(t.status==="perdant") g.l++;
+        else if(t.status==="breakeven" || t.status==="be35") g.be++;
+        else g.open++;
+        g.pnl += parseFloat(t.pnl)||0;
+      });
+      ids.sort(function(a,b){
+        if(map[a].unset !== map[b].unset) return map[a].unset ? 1 : -1;
+        var ia = order.indexOf(a), ib = order.indexOf(b);
+        if(ia < 0) ia = 99; if(ib < 0) ib = 99;
+        return ia !== ib ? ia - ib : map[a].label.localeCompare(map[b].label);
+      });
+      return ids.map(function(id){ return map[id]; });
+    }
+    function labelKey(MAP, field, unsetLabel){
+      return function(t){
+        var v = t[field];
+        return (v && MAP[v]) ? { id:v, label:MAP[v] } : { id:"_", label:unsetLabel, unset:true };
+      };
+    }
+    var byPair = aggBy(function(t){
+      var c = canonPair(t.pair);
+      return { id:c || "?", label: PAIR_NAME[c] || (pdfText(String(t.pair||"").toUpperCase()) || "—") };
+    }, ["GBPUSD","EURUSD","XAUUSD"]);
+    var byKz   = aggBy(labelKey(KZ_LABEL, "kzEntry", "Non renseignée"), Object.keys(KZ_LABEL));
+    var byH1   = aggBy(labelKey(H1_LABEL, "h1", "Non renseignée"), Object.keys(H1_LABEL));
+    var byZone = aggBy(labelKey(ZONE_LABEL, "zoneType", "Non renseigné"), Object.keys(ZONE_LABEL));
+    var byConf = aggBy(labelKey(CONF_LABEL, "conform", "Non renseigné"), Object.keys(CONF_LABEL));
+
+    // ---------- bandeau de titre ----------
+    setFill(C.ink); doc.rect(0, 0, PW, 46, "F");
+    setFill(C.gold); doc.rect(0, 46, PW, 1.2, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.gold);
+    doc.text("Carnet de trading  ·  Bilan mensuel", MX, 17);
+    doc.setFontSize(28); doc.setTextColor(255,255,255);
+    doc.text(pdfText(monthLabel), MX, 31);
+    doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(190,196,200);
+    var who = pdfText(state.name) + (state.account.broker ? "   ·   " + pdfText(state.account.broker) : "") + "   ·   " + pdfText(cur);
+    doc.text(who, MX, 39);
+    doc.setFontSize(8); doc.setTextColor(150,156,160);
+    doc.text("Généré le " + pdfNow(), PW - MX, 17, { align:"right" });
+    pageSec[1] = "Synthèse du mois";
+    y = 46 + 16;
+
+    // =====================================================
+    // 1 — SYNTHÈSE (page 1)
+    // =====================================================
+    secNo++;
+    setFill(C.gold); doc.roundedRect(MX, y - 6, 9, 9, 1.8, 1.8, "F");
+    doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(255,255,255);
+    doc.text(String(secNo), MX + 4.5, y - 0.1, { align:"center" });
+    doc.setFontSize(17); setTxt(C.ink); doc.text("Synthèse du mois", MX + 14, y + 0.6);
+    y += 7; doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
+    doc.text("Les chiffres clés en un coup d'œil", MX + 14, y);
+    y += 5; setDraw(C.line); doc.setLineWidth(0.3); doc.line(MX, y, PW - MX, y); y += 11;
+
+    var gap = 5, cw = (CW - 3*gap) / 4;
+    var rowY = y;
+    kpi(MX,               rowY, cw, 27, "Résultat du mois", fmtPdfMoney(pnlMonth), signColor(pnlMonth), true);
+    kpi(MX + (cw+gap),    rowY, cw, 27, "Taux de réussite", winrateNum === null ? "—" : winrateNum + "%", winrateNum === null ? null : (winrateNum >= 50 ? C.green : C.red), true);
+    kpi(MX + 2*(cw+gap),  rowY, cw, 27, "Trades pris", String(taken), null, true);
+    kpi(MX + 3*(cw+gap),  rowY, cw, 27, "Observations", String(obsCount), null, true);
+    rowY += 27 + gap;
+    kpi(MX,               rowY, cw, 21, "Solde actuel", fmtPdfMoney(currentBalance, true), null, false);
+    kpi(MX + (cw+gap),    rowY, cw, 21, "Capital initial", fmtPdfMoney(initial, true), null, false);
+    kpi(MX + 2*(cw+gap),  rowY, cw, 21, "BE 35% · TP touché", be35tp + " / " + be35All, null, false);
+    kpi(MX + 3*(cw+gap),  rowY, cw, 21, "En cours", String(open), null, false);
+    y = rowY + 21 + 14;
+
+    if(taken){
+      doc.setFont("helvetica","bold"); doc.setFontSize(9.5); setTxt(C.ink);
+      doc.text("Répartition des trades pris", MX, y);
+      y += 5;
+      var segs = [["Gagnants", wins, C.green], ["Perdants", losses, C.red], ["Break-even", be, C.gray], ["En cours", open, C.blue]];
+      var sx = MX;
+      segs.forEach(function(sg){
+        if(!sg[1]) return;
+        var w = CW * sg[1] / taken;
+        setFill(sg[2]); doc.rect(sx, y, w, 5, "F");
+        sx += w;
+      });
+      y += 5 + 7;
+      var lx = MX;
+      segs.forEach(function(sg){
+        var txt = sg[0] + " " + sg[1] + " (" + Math.round(sg[1]/taken*100) + "%)";
+        doc.setFont("helvetica","normal"); doc.setFontSize(8.5);
+        setFill(sg[2]); doc.rect(lx, y - 2.5, 2.8, 2.8, "F");
+        setTxt(C.text); doc.text(txt, lx + 4.6, y);
+        lx += doc.getTextWidth(txt) + 14;
+      });
+      y += 15;
     }
 
-    // ---- header ----
-    doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.setTextColor(20);
-    doc.text("Carnet de Trading — Bilan mensuel", marginX, y);
-    y += 7;
-    doc.setFont("helvetica","normal"); doc.setFontSize(11); doc.setTextColor(90);
-    var subLine = monthLabel + "   ·   " + pdfText(state.name) + (state.account.broker ? "   ·   " + pdfText(state.account.broker) : "");
-    doc.text(subLine, marginX, y);
-    y += 5;
-    doc.setFontSize(9);
-    doc.text("Devise : " + cur + "   ·   Généré le " + pdfNow(), marginX, y);
-    doc.setTextColor(20);
-    y += 9;
-
-    // ---- account & month summary ----
-    doc.autoTable({
-      startY: y,
-      theme: "plain",
-      styles: { fontSize: 10, cellPadding: 1.6 },
-      columnStyles: { 0: { fontStyle: "bold", cellWidth: 75 } },
-      body: [
-        ["Solde actuel du compte", fmtPdfMoney(currentBalance, true)],
-        ["Capital initial", fmtPdfMoney(parseFloat(state.account.initial)||0, true)],
-        ["Trades ce mois-ci", String(monthTrades.length - obsMonthCount)],
-        ["Observations (aucun trade)", String(obsMonthCount)],
-        ["Taux de réussite (mois)", winrate],
-        ["Résultat du mois", fmtPdfMoney(pnlMonth)],
-        ["Gagnants / Perdants / En cours / Breakeven", wins + " / " + losses + " / " + open + " / " + be],
-        ["BE 35% avec TP touché (≤ 36 h)", be35tpPdf + " / " + monthTrades.filter(function(t){ return t.status==="be35"; }).length]
-      ],
-      margin: { left: marginX, right: marginX }
-    });
-    y = doc.lastAutoTable.finalY + 9;
-
     if(!monthTrades.length){
-      doc.setFont("helvetica","italic"); doc.setFontSize(11);
-      doc.text("Aucun trade enregistré pour ce mois.", marginX, y);
+      y += 4;
+      doc.setFont("helvetica","italic"); doc.setFontSize(11); setTxt(C.dim);
+      doc.text("Aucun trade enregistré pour ce mois.", MX, y);
     } else {
-      doc.setFont("helvetica","bold"); doc.setFontSize(12);
-      doc.text("Détail des trades", marginX, y);
-      y += 3;
 
+      // ---- groupes par stratégie + règles à intégrer (utile pour la synthèse et la section 3) ----
+      var groups = {}, order = [];
+      monthTrades.forEach(function(t){
+        var raw = (t.strategy||"").trim();
+        var key = raw ? normKey(raw) : normKey(STRAT_NAME);
+        if(!raw) raw = STRAT_NAME;
+        if(!groups[key]){ groups[key] = { label:raw, taken:0, obs:0, w:0, l:0, be:0, open:0, pnl:0, rules:{}, ruleOrder:[] }; order.push(key); }
+        var g = groups[key];
+        if(isObs(t)){ g.obs++; }
+        else {
+          g.taken++;
+          if(t.status==="gagnant") g.w++;
+          else if(t.status==="perdant") g.l++;
+          else if(t.status==="breakeven" || t.status==="be35") g.be++;
+          else g.open++;
+          g.pnl += parseFloat(t.pnl)||0;
+        }
+        splitImprove(t.improve).forEach(function(line){
+          var rk = normKey(line); if(!rk) return;
+          if(!g.rules[rk]){ g.rules[rk] = { text:line, n:0, w:0, l:0, o:0, srcs:[] }; g.ruleOrder.push(rk); }
+          var r = g.rules[rk]; r.n++;
+          if(isObs(t)) r.o++; else if(t.status==="gagnant") r.w++; else if(t.status==="perdant") r.l++; else r.o++;
+          r.srcs.push(dm(t.date) + " " + pdfText(t.pair));
+        });
+      });
+      order.sort(function(a,b){ return (groups[b].taken+groups[b].obs) - (groups[a].taken+groups[a].obs); });
+      var rulesTotal = order.reduce(function(s,k){ return s + groups[k].ruleOrder.length; }, 0);
+
+      // ---- points clés du mois ----
+      function bestOf(rows){
+        var c = rows.filter(function(g){ return !g.unset && (g.w + g.l) > 0; });
+        if(!c.length) return null;
+        c.sort(function(a,b){ return (wr(b) - wr(a)) || (b.pnl - a.pnl); });
+        return c[0];
+      }
+      var insights = [];
+      var bp = bestOf(byPair); if(bp) insights.push(["Meilleure paire", bp.label + "  ·  " + wr(bp) + "% sur " + (bp.w + bp.l) + " trade" + ((bp.w+bp.l)>1?"s":"")]);
+      var bk = bestOf(byKz);   if(bk) insights.push(["Killzone la plus fiable", bk.label + "  ·  " + wr(bk) + "% sur " + (bk.w + bk.l) + " trade" + ((bk.w+bk.l)>1?"s":"")]);
+      var bh = bestOf(byH1);   if(bh) insights.push(["Confluence H1 la plus fiable", bh.label + "  ·  " + wr(bh) + "% sur " + (bh.w + bh.l) + " trade" + ((bh.w+bh.l)>1?"s":"")]);
+      var confSet = takenTrades.filter(function(t){ return CONF_LABEL[t.conform]; });
+      if(confSet.length){
+        var confOk = confSet.filter(function(t){ return t.conform === "oui"; }).length;
+        insights.push(["Respect des règles", Math.round(confOk / confSet.length * 100) + "%  ·  " + confOk + " trade" + (confOk>1?"s":"") + " conforme" + (confOk>1?"s":"") + " sur " + confSet.length + " renseigné" + (confSet.length>1?"s":"")]);
+      }
+      var offKz = takenTrades.filter(function(t){ return kzAllowed(t.pair, t.kzEntry) === false; }).length;
+      if(offKz) insights.push(["Hors killzone prévue", offKz + " trade" + (offKz>1?"s":"")]);
+      insights.push(["Règles à intégrer", rulesTotal ? rulesTotal + " nouvelle" + (rulesTotal>1?"s":"") + " règle" + (rulesTotal>1?"s":"") + " issue" + (rulesTotal>1?"s":"") + " de tes observations" : "Aucune renseignée ce mois-ci"]);
+
+      var boxH = 14 + insights.length * 8.5;
+      setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
+      doc.roundedRect(MX, y, CW, boxH, 2.4, 2.4, "FD");
+      doc.setFont("helvetica","bold"); doc.setFontSize(10.5); setTxt(C.ink);
+      doc.text("Points clés du mois", MX + 7, y + 9);
+      var iy2 = y + 9 + 9;
+      insights.forEach(function(p){
+        doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
+        doc.text(pdfText(p[0]), MX + 7, iy2);
+        doc.setFont("helvetica","bold"); setTxt(C.ink);
+        doc.text(pdfText(p[1]), MX + 62, iy2);
+        iy2 += 8.5;
+      });
+      y += boxH + 6;
+
+      // =====================================================
+      // 2 — ANALYSE DE LA STRATÉGIE
+      // =====================================================
+      section("Analyse de la stratégie", "Supply & demand en killzone  ·  OB ou FVG H1  ·  entrée M5");
+
+      function breakTable(title, rows, emptyMsg, note){
+        subhead(title, note);
+        if(!rows.length || (rows.length === 1 && rows[0].unset)){
+          noteLine(emptyMsg);
+          return;
+        }
+        doc.autoTable({
+          startY: y,
+          head: [["", "Trades", "Gagn.", "Perd.", "BE", "Winrate", "P&L"]],
+          body: rows.map(function(g){
+            return [pdfText(g.label), String(g.n), String(g.w), String(g.l), String(g.be),
+                    wr(g) === null ? "—" : wr(g) + "%", fmtPdfMoney(g.pnl)];
+          }),
+          theme: "plain",
+          styles: { fontSize: 9.5, cellPadding: { top:4, bottom:4, left:4, right:4 }, textColor: C.text, lineWidth: 0 },
+          headStyles: { fillColor: C.soft, textColor: C.dim, fontStyle: "normal", fontSize: 8.5 },
+          columnStyles: { 0:{fontStyle:"bold", cellWidth:56}, 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"center"}, 6:{halign:"right"} },
+          didParseCell: function(d){
+            if(d.section !== "body") return;
+            var g = rows[d.row.index];
+            if(d.column.index === 5 && wr(g) !== null){ d.cell.styles.textColor = wr(g) >= 50 ? C.green : C.red; d.cell.styles.fontStyle = "bold"; }
+            if(d.column.index === 6){ d.cell.styles.textColor = signColor(g.pnl); d.cell.styles.fontStyle = "bold"; }
+            if(g.unset && d.column.index === 0){ d.cell.styles.textColor = C.dim; d.cell.styles.fontStyle = "italic"; }
+          },
+          didDrawCell: function(d){
+            if(d.section === "body"){ setDraw(C.line); doc.setLineWidth(0.2); doc.line(d.cell.x, d.cell.y + d.cell.height, d.cell.x + d.cell.width, d.cell.y + d.cell.height); }
+          },
+          margin: { left: MX, right: MX, top: TOP, bottom: BOTTOM }
+        });
+        y = doc.lastAutoTable.finalY + 14;
+      }
+
+      // vue d'ensemble de la stratégie
+      subhead("Vue d'ensemble", "tous les trades pris du mois");
+      var allRow = [{ label: STRAT_NAME, n:taken, w:wins, l:losses, be:be, open:open, pnl:pnlMonth }];
       doc.autoTable({
         startY: y,
-        head: [["Date","Paire","Sens","Statut","Lot","Entrée","SL","TP","Sortie","P&L","Stratégie"]],
+        head: [["", "Trades", "Gagn.", "Perd.", "BE", "Winrate", "P&L"]],
+        body: allRow.map(function(g){
+          return [pdfText(g.label), String(g.n), String(g.w), String(g.l), String(g.be), wr(g) === null ? "—" : wr(g) + "%", fmtPdfMoney(g.pnl)];
+        }),
+        theme: "plain",
+        styles: { fontSize: 9.5, cellPadding: { top:4, bottom:4, left:4, right:4 }, textColor: C.text, lineWidth: 0 },
+        headStyles: { fillColor: C.soft, textColor: C.dim, fontStyle: "normal", fontSize: 8.5 },
+        columnStyles: { 0:{fontStyle:"bold", cellWidth:56}, 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"center"}, 6:{halign:"right"} },
+        didParseCell: function(d){
+          if(d.section !== "body") return;
+          if(d.column.index === 5 && wr(allRow[0]) !== null){ d.cell.styles.textColor = wr(allRow[0]) >= 50 ? C.green : C.red; d.cell.styles.fontStyle = "bold"; }
+          if(d.column.index === 6){ d.cell.styles.textColor = signColor(pnlMonth); d.cell.styles.fontStyle = "bold"; }
+        },
+        margin: { left: MX, right: MX, top: TOP, bottom: BOTTOM }
+      });
+      y = doc.lastAutoTable.finalY + 14;
+
+      breakTable("Par paire", byPair, "Aucun trade pris ce mois-ci.", "GBP/USD · EUR/USD · XAU/USD");
+      breakTable("Par killzone d'entrée", byKz, "Renseigne la killzone dans le formulaire pour voir cette analyse.", "Asie · Londres · US");
+      if(offKz){
+        y -= 6;
+        noteLine(offKz + " trade" + (offKz>1?"s":"") + " pris hors des killzones prévues pour la paire.");
+      }
+      breakTable("Par confluence H1", byH1, "Renseigne « Confluence H1 » (OB, FVG ou les deux) pour voir cette analyse.", "OB H1 · FVG H1");
+      breakTable("Par type de zone", byZone, "Renseigne « Type de zone » (demande ou offre) pour voir cette analyse.", "demande · offre");
+      breakTable("Respect des règles", byConf, "Renseigne « Setup conforme » pour mesurer l'impact de ta discipline.", "conforme · partiel · non");
+
+      // =====================================================
+      // 3 — STRATÉGIE MISE À JOUR
+      // =====================================================
+      section("Stratégie mise à jour", "Les éléments à améliorer issus de tes observations font désormais partie de la stratégie");
+
+      // rappel de la stratégie de base
+      var baseLines = [
+        "Entrée sur zones de supply & demand créées pendant les killzones.",
+        "Confluence : order block H1 ou FVG H1.  Points d'entrée ciblés en M5.",
+        "GBP/USD et EUR/USD : Londres, US.   XAU/USD : Asie, Londres, US."
+      ];
+      var bbH = 15 + baseLines.length * 6;
+      setFill(C.soft); setDraw(C.line); doc.setLineWidth(0.2);
+      doc.roundedRect(MX, y, CW, bbH, 2.4, 2.4, "FD");
+      setFill(C.gold); doc.rect(MX, y + 3, 1.3, bbH - 6, "F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(10.5); setTxt(C.ink);
+      doc.text("Règles de base", MX + 7, y + 9);
+      doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.text);
+      baseLines.forEach(function(l, i){ doc.text(pdfText(l), MX + 7, y + 16 + i * 6); });
+      y += bbH + 14;
+
+      var withRules = order.filter(function(k){ return groups[k].ruleOrder.length; });
+      subhead("Règles ajoutées ce mois-ci", rulesTotal ? rulesTotal + " point" + (rulesTotal>1?"s":"") : "");
+      if(!withRules.length){
+        noteLine("Aucun élément à améliorer renseigné ce mois-ci. Ajoute-les dans le champ « À améliorer » de chaque trade.");
+      } else {
+        var ruleIdx = 0;
+        withRules.forEach(function(k){
+          var g = groups[k];
+          g.ruleOrder.sort(function(a,b){ return g.rules[b].n - g.rules[a].n; });
+          if(withRules.length > 1){
+            ensure(30);
+            setFill(C.ink); doc.roundedRect(MX, y, CW, 9, 1.6, 1.6, "F");
+            doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(255,255,255);
+            doc.text(pdfText(g.label), MX + 4, y + 6);
+            var done = g.w + g.l;
+            var meta = g.taken + " trade" + (g.taken>1?"s":"") + (done ? "   ·   winrate " + Math.round(g.w/done*100) + "%" : "");
+            doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(210,214,218);
+            doc.text(meta, PW - MX - 4, y + 5.9, { align:"right" });
+            y += 9 + 8;
+          }
+          g.ruleOrder.forEach(function(rk){
+            var r = g.rules[rk]; ruleIdx++;
+            var textLines = wrap(r.text, CW - 28, 10, "bold");
+            var resTxt = [];
+            if(r.w) resTxt.push(r.w + " gagnant" + (r.w>1?"s":""));
+            if(r.l) resTxt.push(r.l + " perdant" + (r.l>1?"s":""));
+            if(r.o) resTxt.push(r.o + " autre" + (r.o>1?"s":""));
+            var srcLines = wrap("Observé sur " + resTxt.join(", ") + "  (" + r.srcs.join(", ") + ")", CW - 28, 8, "normal");
+            var h = textLines.length * 5 + srcLines.length * 4 + 7;
+            ensure(h + 8);
+            setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.3);
+            doc.circle(MX + 5.5, y + 2.4, 4, "FD");
+            doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.gold);
+            doc.text(String(ruleIdx), MX + 5.5, y + 3.6, { align:"center" });
+            doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.ink);
+            doc.text(textLines, MX + 15, y + 3.3);
+            if(r.n > 1){
+              doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.gold);
+              doc.text("x" + r.n, PW - MX, y + 3.3, { align:"right" });
+            }
+            var ty = y + 3.3 + (textLines.length - 1) * 5 + 5;
+            doc.setFont("helvetica","normal"); doc.setFontSize(8); setTxt(C.dim);
+            doc.text(srcLines, MX + 15, ty);
+            y += h + 5;
+          });
+          y += 6;
+        });
+      }
+
+      // =====================================================
+      // 4 — JOURNAL DES TRADES
+      // =====================================================
+      section("Journal des trades", "Vue d'ensemble chronologique du mois");
+      doc.autoTable({
+        startY: y,
+        head: [["Date","Paire","Sens","Killzone","Zone · H1","Statut","P&L"]],
         body: monthTrades.map(function(t){
+          var zone = [ZONE_LABEL[t.zoneType], H1_LABEL[t.h1]].filter(Boolean).join(" · ");
           return [
-            dmy(t.date),
+            dm(t.date),
             pdfText(t.pair),
             isObs(t) ? "—" : (t.direction === "vente" ? "Vente" : "Achat"),
+            KZ_LABEL[t.kzEntry] || "",
+            zone,
             STATUS_LABEL[t.status] || "",
-            pdfText(t.lot),
-            pdfText(t.entry),
-            pdfText(t.sl),
-            pdfText(t.tp),
-            pdfText(t.exit),
-            (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null) ? fmtPdfMoney(parseFloat(t.pnl)) : "",
-            pdfText(t.strategy)
+            hasVal(t.pnl) ? fmtPdfMoney(parseFloat(t.pnl)) : ""
           ];
         }),
-        styles: { fontSize: 7.5, cellPadding: 1.8 },
-        columnStyles: { 9: { cellWidth: "wrap" } },
-        headStyles: { fillColor: [23,27,29], textColor: 255, fontStyle: "bold" },
-        alternateRowStyles: { fillColor: [244,242,236] },
-        margin: { left: marginX, right: marginX }
+        theme: "plain",
+        styles: { fontSize: 9, cellPadding: { top:4.2, bottom:4.2, left:3, right:3 }, textColor: C.text, lineWidth: 0, overflow: "linebreak" },
+        headStyles: { fillColor: C.soft, textColor: C.dim, fontStyle: "normal", fontSize: 8.5 },
+        columnStyles: { 0:{cellWidth:16}, 1:{cellWidth:24, fontStyle:"bold"}, 2:{cellWidth:16}, 3:{cellWidth:24}, 5:{cellWidth:28}, 6:{halign:"right", cellWidth:30} },
+        didParseCell: function(d){
+          if(d.section !== "body") return;
+          var t = monthTrades[d.row.index];
+          if(d.column.index === 2 && !isObs(t)){ d.cell.styles.textColor = t.direction === "vente" ? C.red : C.green; }
+          if(d.column.index === 5){ d.cell.styles.textColor = statusColor(t); d.cell.styles.fontStyle = "bold"; }
+          if(d.column.index === 6 && hasVal(t.pnl)){ d.cell.styles.textColor = signColor(parseFloat(t.pnl)||0); d.cell.styles.fontStyle = "bold"; }
+        },
+        didDrawCell: function(d){
+          if(d.section === "body"){ setDraw(C.line); doc.setLineWidth(0.2); doc.line(d.cell.x, d.cell.y + d.cell.height, d.cell.x + d.cell.width, d.cell.y + d.cell.height); }
+        },
+        margin: { left: MX, right: MX, top: TOP, bottom: BOTTOM }
       });
-      y = doc.lastAutoTable.finalY + 10;
+      y = doc.lastAutoTable.finalY + 14;
 
-      var withContext = monthTrades.filter(function(t){
-        return (t.geo && t.geo.trim()) || (t.macro && t.macro.trim()) || (t.evolution && t.evolution.trim());
+      // =====================================================
+      // 5 — FICHES DÉTAILLÉES
+      // =====================================================
+      var fiches = monthTrades.filter(function(t){
+        var txt = hasVal(t.geo) || hasVal(t.macro) || hasVal(t.evolution) || hasVal(t.improve) || hasVal(t.details) || hasVal(t.m5);
+        var setup = KZ_LABEL[t.kzEntry] || KZ_LABEL[t.kzZone] || ZONE_LABEL[t.zoneType] || H1_LABEL[t.h1] || CONF_LABEL[t.conform];
+        return txt || setup || (!isObs(t) && (hasVal(t.lot) || hasVal(t.exit)));
       });
-
-      if(withContext.length){
-        if(y > pageHeight - 30){ doc.addPage(); y = 18; }
-        doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(20);
-        doc.text("Contexte et évolution par trade", marginX, y);
-        y += 8;
-
-        withContext.forEach(function(t){
-          if(y > pageHeight - 25){ doc.addPage(); y = 18; }
-          doc.setFont("helvetica","bold"); doc.setFontSize(10);
-          var title = dmy(t.date) + " — " + pdfText(t.pair) + " (" + pdfTag(t) + ")";
-          doc.text(title, marginX, y);
-          y += 5;
-
-          doc.setFont("helvetica","normal"); doc.setFontSize(9);
-          [["Contexte géopolitique", t.geo], ["Contexte macroéconomique", t.macro], ["Évolution du trade", t.evolution]].forEach(function(pair){
-            var label = pair[0], val = pair[1];
-            if(!val || !val.trim()) return;
-            var lines = doc.splitTextToSize(pdfText(label + " : " + val), pageWidth - 2*marginX);
-            lines.forEach(function(line){
-              if(y > pageHeight - 15){ doc.addPage(); y = 18; }
-              doc.text(line, marginX, y);
-              y += 4.2;
-            });
+      fichesCount = fiches.length;
+      if(fiches.length){
+        section("Fiches détaillées", "Setup, exécution, contexte et points à améliorer de chaque trade");
+        fiches.forEach(function(t, fi){
+          var col = statusColor(t);
+          var iX = MX + 7, iW = CW - 7;
+          var exec = [["Lot", t.lot], ["Entrée", t.entry], ["SL", t.sl], ["TP", t.tp], ["Sortie", t.exit]]
+            .filter(function(p){ return !isObs(t) && hasVal(p[1]); })
+            .map(function(p){ return p[0] + " " + pdfText(p[1]); }).join("     ·     ");
+          var pairs = [["Killzone", KZ_LABEL[t.kzEntry]], ["Zone créée en", KZ_LABEL[t.kzZone]], ["Type de zone", ZONE_LABEL[t.zoneType]],
+                       ["Confluence H1", H1_LABEL[t.h1]], ["Respect des règles", CONF_LABEL[t.conform]]]
+            .filter(function(p){ return !!p[1]; });
+          var pairRows = Math.ceil(pairs.length / 3);
+          var blocks = [];
+          [["Détails du setup", t.details], ["Confirmation M5", t.m5], ["Contexte géopolitique", t.geo], ["Contexte macroéconomique", t.macro], ["Évolution du trade", t.evolution]].forEach(function(p){
+            if(hasVal(p[1])) blocks.push({ label:p[0], lines: wrap(p[1], iW, 9.5) });
           });
-          y += 4;
+          var imps = splitImprove(t.improve).map(function(l){ return wrap(l, iW - 16, 9.5); });
+          var showStrat = hasVal(t.strategy) && normKey(t.strategy) !== normKey(STRAT_NAME);
+
+          var total = 12;
+          if(showStrat) total += 7;
+          total += pairRows * 11;
+          if(exec) total += 8;
+          blocks.forEach(function(b){ total += 5.5 + b.lines.length * 4.6 + 5; });
+          var impH = 0;
+          if(imps.length){ impH = 7 + 6 + imps.reduce(function(s,l){ return s + l.length * 4.6 + 2; }, 0) + 3; total += impH + 3; }
+          var fits = total <= (PH - TOP - BOTTOM);
+          if(fi > 0){ if(fits) ensure(total); else ensure(50); }
+          else if(fits) ensure(total);
+          var y0 = y;
+          if(fits){ setFill(col); doc.rect(MX, y0, 1.6, total - 3, "F"); }
+
+          // titre de la fiche
+          doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
+          var dTxt = dmy(t.date); doc.text(dTxt, iX, y + 4.5);
+          var px = iX + doc.getTextWidth(dTxt) + 6;
+          doc.setFont("helvetica","bold"); doc.setFontSize(13); setTxt(C.ink);
+          var pairTxt = pdfText(t.pair); doc.text(pairTxt, px, y + 4.5);
+          px += doc.getTextWidth(pairTxt) + 5;
+          doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(col);
+          doc.text(pdfTag(t), px, y + 4.5);
+          if(hasVal(t.pnl)){
+            var pv = parseFloat(t.pnl)||0;
+            doc.setFont("helvetica","bold"); doc.setFontSize(12); setTxt(signColor(pv));
+            doc.text(fmtPdfMoney(pv), PW - MX, y + 4.5, { align:"right" });
+          }
+          y += 12;
+          function ln(h){ if(y + h > PH - BOTTOM){ doc.addPage(); y = TOP; } }
+          if(showStrat){
+            ln(7); doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
+            doc.text("Stratégie : ", iX, y);
+            var sw = doc.getTextWidth("Stratégie : ");
+            doc.setFont("helvetica","bold"); setTxt(C.text); doc.text(pdfText(t.strategy), iX + sw, y);
+            y += 7;
+          }
+          // grille du setup (3 colonnes)
+          for(var pr = 0; pr < pairRows; pr++){
+            ln(11);
+            for(var pc = 0; pc < 3; pc++){
+              var pp = pairs[pr * 3 + pc]; if(!pp) continue;
+              var cx = iX + pc * (iW / 3);
+              doc.setFont("helvetica","normal"); doc.setFontSize(8); setTxt(C.dim);
+              doc.text(pdfText(pp[0]), cx, y);
+              doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.ink);
+              doc.text(pdfText(pp[1]), cx, y + 4.8);
+            }
+            y += 11;
+          }
+          if(exec){
+            ln(8); doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.dim);
+            doc.text(exec, iX, y); y += 8;
+          }
+          blocks.forEach(function(b){
+            ln(12);
+            doc.setFont("helvetica","bold"); doc.setFontSize(8); setTxt(C.dim);
+            doc.text(pdfText(b.label), iX, y); y += 5.5;
+            doc.setFont("helvetica","normal"); doc.setFontSize(9.5); setTxt(C.text);
+            b.lines.forEach(function(l){ ln(4.6); doc.text(l, iX, y); y += 4.6; });
+            y += 5;
+          });
+          if(imps.length){
+            ln(impH + 3);
+            var by = y - 1.5;
+            setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
+            doc.roundedRect(iX, by, iW, impH, 2, 2, "FD");
+            doc.setFont("helvetica","bold"); doc.setFontSize(8.5); setTxt(C.gold);
+            doc.text("À améliorer  ·  règles à intégrer", iX + 5, by + 7);
+            var iy = by + 14;
+            imps.forEach(function(lines){
+              doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.gold);
+              doc.text("+", iX + 5, iy);
+              doc.setFont("helvetica","normal"); doc.setFontSize(9.5); setTxt(C.ink);
+              doc.text(lines, iX + 12, iy);
+              iy += lines.length * 4.6 + 2;
+            });
+            y = by + impH + 3;
+          }
+          y += 8;
+          if(fi < fiches.length - 1){
+            ensure(14);
+            setDraw(C.line); doc.setLineWidth(0.25); doc.line(MX, y, PW - MX, y);
+            y += 12;
+          }
         });
       }
     }
 
-    // ---- captures par trade ----
+    // =====================================================
+    // CAPTURES
+    // =====================================================
     var shotTrades = monthTrades.filter(function(t){ return t.shots && t.shots.length; });
     if(shotTrades.length){
-      var usableW = pageWidth - 2*marginX;
-      var gap = 6;
-      var colW = (usableW - gap) / 2;
-      var maxImgH = 70;
-
-      doc.addPage(); y = 18;
-      doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.setTextColor(20);
-      doc.text("Captures des trades", marginX, y);
-      y += 8;
+      var cgap = 7, colW = (CW - cgap) / 2, maxImgH = 70;
+      section("Captures des trades", "Graphiques et annotations associés à chaque trade");
 
       shotTrades.forEach(function(t){
-        // prépare les cellules (image + légende) du trade
         var cells = t.shots.map(function(sh, i){
           var url = shotUrls[sh.id] || null;
           var w = colW, h = 0;
@@ -2483,51 +3048,60 @@
             }catch(e){ url = null; }
           }
           var caption = (i + 1) + ". " + (sh.desc ? pdfText(sh.desc) : "(sans description)") + (url ? "" : "  [image indisponible]");
-          doc.setFont("helvetica","normal"); doc.setFontSize(8.5);
-          var lines = doc.splitTextToSize(caption, colW);
-          return { url:url, w:w, h:h, lines:lines, capH: lines.length * 3.8 };
+          var lines = wrap(caption, colW, 8.5, "normal");
+          return { url:url, w:w, h:h, lines:lines, capH: lines.length * 4 };
         });
-
-        var title = dmy(t.date) + " — " + pdfText(t.pair) + " (" + pdfTag(t) + ")" +
-          (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null ? "   " + fmtPdfMoney(parseFloat(t.pnl)) : "");
 
         for(var r = 0; r < cells.length; r += 2){
           var row = cells.slice(r, r + 2);
-          var rowH = Math.max.apply(null, row.map(function(c){ return c.h + 2 + c.capH; })) + 6;
-          var needed = rowH + (r === 0 ? 8 : 0);
-          if(y + needed > pageHeight - 15){ doc.addPage(); y = 18; }
+          var rowH = Math.max.apply(null, row.map(function(c){ return c.h + 3 + c.capH; })) + 10;
+          ensure(rowH + (r === 0 ? 14 : 0));
           if(r === 0){
-            doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(20);
-            doc.text(title, marginX, y);
-            y += 5;
+            setFill(statusColor(t)); doc.rect(MX, y - 3.8, 1.6, 6.4, "F");
+            doc.setFont("helvetica","bold"); doc.setFontSize(10.5); setTxt(C.ink);
+            doc.text(dmy(t.date) + "  ·  " + pdfText(t.pair), MX + 5, y);
+            doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(statusColor(t));
+            doc.text(pdfTag(t) + (hasVal(t.pnl) ? "   " + fmtPdfMoney(parseFloat(t.pnl)) : ""), PW - MX, y, { align:"right" });
+            y += 8;
           }
           row.forEach(function(c, k){
-            var x = marginX + k * (colW + gap);
+            var x = MX + k * (colW + cgap);
             if(c.url){
               doc.addImage(c.url, "JPEG", x, y, c.w, c.h);
-              doc.setDrawColor(200); doc.rect(x, y, c.w, c.h);
+              setDraw(C.line); doc.setLineWidth(0.3); doc.rect(x, y, c.w, c.h);
             }
-            doc.setFont("helvetica","normal"); doc.setFontSize(8.5); doc.setTextColor(70);
-            doc.text(c.lines, x, y + c.h + 4);
+            doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
+            doc.text(c.lines, x, y + c.h + 4.8);
           });
-          doc.setTextColor(20);
           y += rowH;
         }
-        y += 2;
+        y += 6;
       });
     }
 
-    // ---- footer page numbers ----
+    // ---------- en-tête courant + pied de page ----------
     var pageCount = doc.internal.getNumberOfPages();
+    var lastSec = "";
     for(var p = 1; p <= pageCount; p++){
       doc.setPage(p);
-      doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(150);
-      doc.text("Page " + p + " / " + pageCount, pageWidth - marginX, pageHeight - 8, { align: "right" });
+      if(pageSec[p]) lastSec = pageSec[p];
+      if(p > 1){
+        doc.setFont("helvetica","normal"); doc.setFontSize(8); setTxt(C.dim);
+        doc.text(pdfText(lastSec), MX, 12);
+        doc.text(pdfText(monthLabel), PW - MX, 12, { align:"right" });
+        setDraw(C.gold); doc.setLineWidth(0.4); doc.line(MX, 15, MX + 14, 15);
+        setDraw(C.line); doc.setLineWidth(0.25); doc.line(MX + 14, 15, PW - MX, 15);
+      }
+      setDraw(C.line); doc.setLineWidth(0.3); doc.line(MX, PH - 13, PW - MX, PH - 13);
+      doc.setFont("helvetica","normal"); doc.setFontSize(8); setTxt(C.dim);
+      doc.text("Carnet de Trading  ·  " + pdfText(state.name), MX, PH - 8);
+      doc.text("Page " + p + " / " + pageCount, PW - MX, PH - 8, { align:"right" });
     }
 
     var fileMonth = MONTHS_FR[viewMonth].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
     doc.save("bilan-trading-" + fileMonth + "-" + viewYear + ".pdf");
   }
+
   $("exportPdfBtn").addEventListener("click", generateMonthlyPdf);
 
   // ---------------- init ----------------
