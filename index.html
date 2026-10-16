@@ -829,9 +829,9 @@
             <div class="form-grid">
             <div class="field" id="wrapRHors"><label for="r_horsAsie">Zone de supply / demand hors Asie ?</label><select id="r_horsAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRReint"><label for="r_reintAsie">Réintégration de la zone durant l'Asie ?</label><select id="r_reintAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field"><label for="r_cisd">CISD vérifié en H1 et H4, en cas de retournement de tendance (H1 : cassure du dernier BOS et du dernier haut ou bas entraînant le BOS) ?</label><select id="r_cisd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="r_cisd">CISD vérifié en cas de retournement de tendance (H1 : cassure du dernier BOS et du dernier haut ou bas entraînant le BOS) ?</label><select id="r_cisd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_mitig">L'OB / FVG à l'origine du plus haut ou plus bas a déjà été mitigé ?</label><select id="r_mitig"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field"><label for="r_liq">Ma zone est-elle protégée par des liquidités à prendre en H1 ? (si oui, je suis la liquidité)</label><select id="r_liq"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="r_liq">Ma zone est-elle protégée par des liquidités à prendre en H1 ? (si non, je suis la liquidité)</label><select id="r_liq"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRKzUs"><label for="r_kzUs">Killzone US entre 13h et 17h UTC ?</label><select id="r_kzUs"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 05h UTC) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             </div>
@@ -2026,7 +2026,7 @@
   }
   function ruleSpec(pr){
     if(SD_PAIRS.indexOf(pr) < 0) return [];
-    var r = [["rCisd","oui"], ["rMitig","non"], ["rLiq","non"]];
+    var r = [["rCisd","oui"], ["rMitig","non"], ["rLiq","oui"]];
     if(ASIA_PAIRS.indexOf(pr) > -1) r.push(["rHorsAsie","oui"], ["rReintAsie","non"]);
     if(pr === "NASDAQ") r.push(["rKzUs","oui"], ["rEntry","oui"]);
     return r;
@@ -2886,7 +2886,7 @@
           { label:"Killzone d'entrée", get:simple("entryKz",KZM), order:["Asie","Londres","US"] },
           { label:"Règle : zone hors Asie", get:simple("rHorsAsie",YN2), order:["Oui","Non"] },
           { label:"Règle : réintégration en Asie", get:simple("rReintAsie",YN2), order:["Oui","Non"] },
-          { label:"Règle : CISD H1/H4 vérifié", get:simple("rCisd",YN2), order:["Oui","Non"] },
+          { label:"Règle : CISD H1 vérifié", get:simple("rCisd",YN2), order:["Oui","Non"] },
           { label:"Règle : zone déjà mitigée", get:simple("rMitig",YN2), order:["Oui","Non"] },
           { label:"Règle : zone protégée par liquidités H1", get:simple("rLiq",YN2), order:["Oui","Non"] },
           { label:"Règle Nasdaq : KZ US 13h-17h UTC", get:simple("rKzUs",YN2), order:["Oui","Non"] },
@@ -3066,7 +3066,7 @@
             var rl = [];
             if(su.rHorsAsie) rl.push("Zone hors Asie : " + YNL[su.rHorsAsie]);
             if(su.rReintAsie) rl.push("Réintégration en Asie : " + YNL[su.rReintAsie]);
-            if(su.rCisd) rl.push("CISD H1/H4 : " + YNL[su.rCisd]);
+            if(su.rCisd) rl.push("CISD H1 : " + YNL[su.rCisd]);
             if(su.rMitig) rl.push("Zone déjà mitigée : " + YNL[su.rMitig]);
             if(su.rLiq) rl.push("Zone protégée par liquidités H1 : " + YNL[su.rLiq]);
             if(su.rKzUs) rl.push("KZ US 13h-17h UTC : " + YNL[su.rKzUs]);
