@@ -307,6 +307,11 @@
 
   .reminder{font-size:12px; line-height:1.5; padding:9px 12px; margin:0 0 12px; border-left:3px solid var(--gold, #c9a45c); background:rgba(201,164,92,.08); border-radius:6px;}
   .reminder-red{font-size:12.5px; line-height:1.5; font-weight:600; padding:10px 12px; margin:0 0 12px; border-left:3px solid var(--red, #C1695C); background:rgba(193,105,92,.12); color:var(--red, #C1695C); border-radius:6px;}
+  .view-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px 16px; margin-bottom:16px;}
+  .view-item .k{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:2px;}
+  .view-item .v{font-size:14px; color:var(--text); word-break:break-word;}
+  .view-text{white-space:pre-wrap; font-size:13.5px; line-height:1.55; color:var(--text); background:var(--gray-soft); border-radius:var(--r); padding:10px 12px; margin-bottom:14px;}
+  .view-sub{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.04em; margin:0 0 4px;}
   .strat-new{display:flex; gap:8px; margin-top:8px; align-items:center;}
   .strat-new input{flex:1; min-width:0;}
   .strat-block{margin-top:2px;}
@@ -746,6 +751,24 @@
     </div>
   </div>
 
+  <!-- Trade view modal (lecture seule) -->
+  <div class="modal" id="modalView" style="display:none;">
+    <div class="modal-header">
+      <div>
+        <h3 id="viewTitle">Trade</h3>
+        <div class="sub" id="viewSub"></div>
+      </div>
+      <button class="closebtn" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="modal-body" id="viewBody"></div>
+    <div class="modal-footer">
+      <button class="btn" type="button" onclick="backToDayModal()">Retour</button>
+      <div style="flex:1;"></div>
+      <button class="btn" type="button" id="viewShotsBtn" style="display:none;">Captures</button>
+      <button class="btn primary" type="button" id="viewEditBtn">Modifier</button>
+    </div>
+  </div>
+
   <!-- Trade form modal -->
   <div class="modal" id="modalForm" style="display:none;">
     <div class="modal-header">
@@ -822,7 +845,8 @@
 
         <div id="setupSD" class="strat-block" style="display:none;">
           <div class="section-label">règles à respecter</div>
-          <div class="reminder-red" id="asiaReminder" style="display:none;">Rappel : ne laisse pas tourner une position en session asiatique sans BE. Si tu es à plus de 35% du profit : mets le BE. Sinon : clôture la position.</div>
+          <div class="reminder-red" id="asiaReminder" style="display:none;">Rappel : ne jamais exécuter durant l'Asian session.<br>Ne laisse pas tourner une position en session asiatique sans BE. Si tu es à plus de 35% du profit : mets le BE. Sinon : clôture la position.</div>
+          <div class="reminder-red" id="newsReminder">Rappel : sors des trades en cas d'annonce économique impactante si tu n'es pas à BE.</div>
           <div class="hint" id="rulesEmpty">Choisis l'actif (XAUUSD, GBPUSD, EURUSD ou NASDAQ) pour afficher les règles associées.</div>
           <div id="rulesBox" style="display:none;">
             <div class="hint" id="rulesNote" style="margin:0 0 10px;"></div>
@@ -1898,9 +1922,10 @@
   var modalForm = $("modalForm");
   var modalAccount = $("modalAccount");
   var modalNotif = $("modalNotif");
+  var modalView = $("modalView");
 
   function showOnly(modalEl){
-    [modalDay, modalForm, modalAccount, modalNotif].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
+    [modalDay, modalForm, modalAccount, modalNotif, modalView].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
     overlay.classList.add("show");
   }
   function closeOverlay(){
@@ -1930,6 +1955,75 @@
     $("dayModalSub").textContent = key;
     renderDayTradesList();
     showOnly(modalDay);
+  }
+
+  function fmtViewDt(v){
+    if(!v) return "";
+    var d = new Date(v);
+    return isNaN(d.getTime()) ? String(v) : d.toLocaleString("fr-FR", { dateStyle:"short", timeStyle:"short" });
+  }
+  function openTradeView(id){
+    var t = state.trades.find(function(x){ return x.id === id; });
+    if(!t) return;
+    var obs = isObs(t), h = "";
+    var YNV = { oui:"Oui", non:"Non" }, KZV = { asie:"Asie", londres:"Londres", us:"US" }, H1V = { haussiere:"Haussière", baissiere:"Baissière", range:"Range" };
+    function item(k, v){ return (v === undefined || v === null || v === "") ? "" : '<div class="view-item"><div class="k">' + escapeHtml(k) + '</div><div class="v">' + escapeHtml(String(v)) + '</div></div>'; }
+    function grid(items){ var x = items.join(""); return x ? '<div class="view-grid">' + x + '</div>' : ""; }
+    function sect(label){ return '<div class="section-label">' + escapeHtml(label) + '</div>'; }
+    function text(label, v){ return (v && String(v).trim()) ? '<div class="view-sub">' + escapeHtml(label) + '</div><div class="view-text">' + escapeHtml(v) + '</div>' : ""; }
+
+    h += sect("identification");
+    h += grid([
+      item("Actif", t.pair), item("Date", t.date),
+      obs ? item("Type", "Observation") : item("Sens", t.direction === "vente" ? "Vente" : "Achat"),
+      obs ? "" : item("Statut", STATUS_LABEL[t.status || "en_cours"]),
+      item("Stratégie", t.strategy)
+    ]);
+    if(!obs && t.status === "be35"){
+      var tg = tpTagHtml(t);
+      h += grid([ item("BE 35% posé le", fmtViewDt(t.beAt)), item("TP touché", t.tpHit ? "Oui" : "Non"), item("TP touché le", fmtViewDt(t.tpHitAt)) ]);
+      if(tg) h += '<div style="margin:-6px 0 14px;">' + tg + '</div>';
+    }
+    if(!obs){
+      h += sect("exécution");
+      h += grid([ item("Lot", t.lot), item("Risque", (t.risk !== undefined && t.risk !== "") ? t.risk + " %" : ""),
+                  item("Entrée", t.entry), item("Stop Loss", t.sl), item("Take Profit", t.tp), item("Sortie", t.exit),
+                  item("P&L", (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null) ? fmtMoney(parseFloat(t.pnl)) : "") ]);
+    }
+    if(t.setup){
+      var su = t.setup;
+      h += sect("setup — supply & demand en killzone");
+      h += grid([
+        item("Zone repérée", su.dir === "demand" ? "Demand" : (su.dir === "supply" ? "Supply" : "")), item("Type de zone", su.type),
+        item("Killzone de repérage", KZV[su.zoneKz]), item("Heure de repérage", su.zoneTime),
+        item("Structure H1", H1V[su.h1]), item("Zone d'entrée M5", YNV[su.m5] || (su.m5 ? "Oui" : "")),
+        item("Killzone d'entrée", KZV[su.entryKz]), item("Heure d'entrée", su.entryTime)
+      ]);
+      h += '<div class="view-sub">Confirmations</div>' + grid([
+        item("Zone OTE H1", YNV[su.ote]), item("CHoCH H1 (cassure du BOS)", YNV[su.chH1]), item("CHoCH M5", YNV[su.chM5]), item("Confirmation M5", YNV[su.confirm])
+      ]);
+      var rg = grid([
+        item("Zone hors Asie", YNV[su.rHorsAsie]), item("Réintégration en Asie", YNV[su.rReintAsie]), item("CISD H1", YNV[su.rCisd]),
+        item("Zone déjà mitigée", YNV[su.rMitig]), item("Zone protégée par liquidités H1", YNV[su.rLiq]),
+        item("KZ US 13h-17h UTC", YNV[su.rKzUs]), item("Entrée Londres-US", YNV[su.rEntry])
+      ]);
+      if(rg) h += '<div class="view-sub">Règles</div>' + rg;
+      h += text("Autres détails setup", su.other);
+    }
+    if(t.stratDetails && t.stratDetails.trim()){ h += sect("détails de la stratégie") + text("", t.stratDetails); }
+    var ctx = text("Contexte géopolitique", t.geo) + text("Contexte macroéconomique", t.macro) + text("Évolution du trade", t.evolution) + text("À améliorer", t.improve);
+    if(ctx) h += sect("contexte") + ctx;
+    if(!h.trim()) h = '<div class="empty-state">Aucune information enregistrée.</div>';
+
+    $("viewTitle").textContent = (t.pair || "—") + (obs ? " · observation" : "");
+    $("viewSub").textContent = t.date || "";
+    $("viewBody").innerHTML = h;
+    var nShots = t.shots ? t.shots.length : 0, sb = $("viewShotsBtn");
+    sb.style.display = nShots ? "" : "none";
+    sb.textContent = "Captures (" + nShots + ")";
+    sb.onclick = function(){ if(nShots) openLightbox(t.shots, 0); };
+    $("viewEditBtn").onclick = function(){ openTradeForm(t.date, t.id); };
+    showOnly(modalView);
   }
 
   function renderDayTradesList(){
@@ -1965,6 +2059,7 @@
           '</div>' +
         '</div>' +
         '<div class="trade-actions">' +
+          '<button class="iconbtn" data-view="' + escapeHtml(t.id) + '">Voir</button>' +
           (t.shots && t.shots.length ? '<button class="iconbtn" data-shots="' + escapeHtml(t.id) + '">Captures</button>' : '') +
           '<button class="iconbtn" data-edit="' + escapeHtml(t.id) + '">Modifier</button>' +
           '<button class="iconbtn danger" data-del="' + escapeHtml(t.id) + '">Suppr.</button>' +
@@ -1972,6 +2067,9 @@
       listEl.appendChild(row);
     });
 
+    listEl.querySelectorAll("[data-view]").forEach(function(btn){
+      btn.addEventListener("click", function(){ openTradeView(this.getAttribute("data-view")); });
+    });
     listEl.querySelectorAll("[data-shots]").forEach(function(btn){
       btn.addEventListener("click", function(){
         var id = this.getAttribute("data-shots");
@@ -2895,9 +2993,9 @@
           { label:"Règles de l'actif", get:function(t){ var r = rulesOk(t); return r === null ? null : (r ? "Toutes respectées" : "Au moins une violée"); }, order:["Toutes respectées","Au moins une violée"] },
           { label:"Plan complet (confirmations + règles)", get:function(t){ var c = confOk(t), r = rulesOk(t); if(c === null || r === null) return null; return (c && r) ? "Plan respecté" : "Plan non respecté"; }, order:["Plan respecté","Plan non respecté"] }
         ];
-        function blank(){ return { n:0, w:0, l:0, be:0, pnl:0 }; }
+        function blank(){ return { n:0, w:0, l:0, be:0, pnl:0, gp:0, gl:0 }; }
         function add(a, t){
-          a.n++; a.pnl += parseFloat(t.pnl) || 0;
+          var pv = parseFloat(t.pnl) || 0; a.n++; a.pnl += pv; if(pv > 0) a.gp += pv; else a.gl += -pv;
           if(t.status === "gagnant") a.w++; else if(t.status === "perdant") a.l++; else a.be++;
         }
         function wilson(w, n){
@@ -2910,13 +3008,14 @@
         var baseDone = base.w + base.l, baseWr = baseDone ? base.w / baseDone : null;
         var MIN_N = 5;
 
-        var rows = [], meta = [], found = [];
+        var rows = [], meta = [], found = [], planMap = null;
         DIMS.forEach(function(dm_){
           var map = {};
           all.forEach(function(t){ var v = dm_.get(t); if(v === null || v === undefined || v === "") return; if(!map[v]) map[v] = blank(); add(map[v], t); });
           var keys = Object.keys(map); if(!keys.length) return;
+          if(dm_.label.indexOf("Plan complet") === 0) planMap = map;
           keys.sort(function(a,b){ var ia = dm_.order.indexOf(a), ib = dm_.order.indexOf(b); if(ia < 0) ia = 99; if(ib < 0) ib = 99; return ia - ib || map[b].n - map[a].n; });
-          rows.push([{ content: pdfText(dm_.label), colSpan:7, styles:{ fillColor:C.soft, textColor:C.ink, fontStyle:"bold", fontSize:8 } }]);
+          rows.push([{ content: pdfText(dm_.label), colSpan:8, styles:{ fillColor:C.soft, textColor:C.ink, fontStyle:"bold", fontSize:8 } }]);
           meta.push(null);
           keys.forEach(function(k){
             var a = map[k], done = a.w + a.l, wr = done ? a.w / done : null, avg = a.n ? a.pnl / a.n : 0;
@@ -2930,7 +3029,7 @@
             rows.push([pdfText(k), String(a.n), a.w + " / " + a.l + " / " + a.be,
                        wr === null ? "-" : Math.round(wr*100) + "%",
                        ci ? Math.round(ci[0]*100) + " - " + Math.round(ci[1]*100) + "%" : "-",
-                       fmtPdfMoney(avg), lecture]);
+                       fmtPdfMoney(avg), a.gl > 0 ? (a.gp / a.gl).toFixed(2) : (a.gp > 0 ? "n/a" : "-"), lecture]);
             meta.push({ cls:cls, avg:avg });
             if(cls === "edge" || cls === "avoid") found.push({ cls:cls, text: dm_.label + " = " + k, n:a.n, wr:wr, avg:avg });
           });
@@ -2956,18 +3055,159 @@
           ensure(wl.length * 4 + 4); doc.text(wl, MX, y); y += wl.length * 4 + 4;
         }
 
+
+        // =============== VERDICT GLOBAL : y a-t-il un edge ? ===============
+        var G = (function(){
+          var srt = all.slice().sort(function(a,b){ return (a.date || "").localeCompare(b.date || "") || (a.createdAt || "").localeCompare(b.createdAt || ""); });
+          var P = srt.filter(function(t){ return t.pnl !== "" && t.pnl !== null && t.pnl !== undefined && !isNaN(parseFloat(t.pnl)); });
+          var nP = P.length, g = { n: all.length, nP: nP };
+          var W = all.filter(function(t){ return t.status === "gagnant"; }), L = all.filter(function(t){ return t.status === "perdant"; });
+          g.w = W.length; g.l = L.length; g.be = all.length - W.length - L.length;
+          g.wr = (g.w + g.l) ? g.w / (g.w + g.l) : null;
+          g.wrCi = wilson(g.w, g.w + g.l);
+          var vals = P.map(function(t){ return parseFloat(t.pnl); });
+          var sum = vals.reduce(function(a,b){ return a + b; }, 0);
+          g.mean = nP ? sum / nP : 0;
+          var sd = 0; if(nP > 1){ sd = Math.sqrt(vals.reduce(function(a,v){ return a + (v - g.mean) * (v - g.mean); }, 0) / (nP - 1)); }
+          var tTab = [12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.160,2.145,2.131,2.120,2.110,2.101,2.093,2.086,2.080,2.074,2.069,2.064,2.060,2.056,2.052,2.048,2.045,2.042];
+          var df = nP - 1, tc = df < 1 ? null : (df <= 30 ? tTab[df - 1] : (df <= 60 ? 2.0 : 1.96));
+          g.ci = (tc && nP > 1) ? [g.mean - tc * sd / Math.sqrt(nP), g.mean + tc * sd / Math.sqrt(nP)] : null;
+          var gp = 0, gl = 0, sw = 0, nw = 0, sl = 0, nl = 0;
+          P.forEach(function(t){ var v = parseFloat(t.pnl); if(v > 0) gp += v; else gl += -v; if(t.status === "gagnant"){ sw += v; nw++; } else if(t.status === "perdant"){ sl += -v; nl++; } });
+          g.gp = gp; g.gl = gl; g.pf = gl > 0 ? gp / gl : (gp > 0 ? null : 0);
+          g.avgWin = nw ? sw / nw : null; g.avgLoss = nl ? sl / nl : null;
+          g.payoff = (g.avgWin && g.avgLoss) ? g.avgWin / g.avgLoss : null;
+          g.beWr = (g.avgWin && g.avgLoss) ? g.avgLoss / (g.avgWin + g.avgLoss) : null;
+          // espérance en R (à partir d'entrée / SL / sortie)
+          var Rs = [];
+          all.forEach(function(t){
+            var e = parseFloat(t.entry), sl_ = parseFloat(t.sl), x = parseFloat(t.exit);
+            if(isNaN(e) || isNaN(sl_) || isNaN(x) || e === sl_) return;
+            var sign = t.direction === "vente" ? -1 : 1;
+            Rs.push(sign * (x - e) / Math.abs(e - sl_));
+          });
+          g.nR = Rs.length; g.expR = Rs.length ? Rs.reduce(function(a,b){ return a + b; }, 0) / Rs.length : null;
+          // courbe, drawdown
+          var eq = [0], peak = 0, dd = 0, run = 0;
+          P.forEach(function(t){ run += parseFloat(t.pnl); eq.push(run); if(run > peak) peak = run; if(peak - run > dd) dd = peak - run; });
+          g.eq = eq; g.dd = dd; g.total = run;
+          var streak = 0, maxStreak = 0;
+          srt.forEach(function(t){ if(t.status === "perdant"){ streak++; if(streak > maxStreak) maxStreak = streak; } else if(t.status === "gagnant"){ streak = 0; } });
+          g.maxLoss = maxStreak;
+          // stabilité : 1re moitié vs 2e moitié
+          if(nP >= 10){
+            var half = Math.floor(nP / 2), m1 = vals.slice(0, half), m2 = vals.slice(half);
+            g.h1 = m1.reduce(function(a,b){ return a + b; }, 0) / m1.length; g.h2 = m2.reduce(function(a,b){ return a + b; }, 0) / m2.length;
+          }
+          // verdict
+          var enough = nP >= 30;
+          if(nP < 2){ g.verdict = "Pas assez de données"; g.cls = "low"; }
+          else if(!enough){
+            var dirTxt = (g.mean > 0 && g.pf !== 0 && (g.pf === null || g.pf > 1)) ? "signal positif" : (g.mean <= 0 ? "signal négatif" : "signal mitigé");
+            g.verdict = "Trop tôt pour conclure (" + nP + "/30 trades) : " + dirTxt; g.cls = "low";
+          } else if(g.ci && g.ci[0] > 0 && (g.pf === null || g.pf > 1)){ g.verdict = "Edge démontré statistiquement"; g.cls = "edge"; }
+          else if(g.mean > 0 && (g.pf === null || g.pf > 1)){ g.verdict = "Edge probable, à confirmer"; g.cls = "probable"; }
+          else if(g.ci && g.ci[1] <= 0){ g.verdict = "Pas d'edge : espérance négative"; g.cls = "avoid"; }
+          else { g.verdict = "Pas d'edge démontré"; g.cls = "avoid"; }
+          return g;
+        })();
+        function money(v){ return (v === null || v === undefined || isNaN(v)) ? "-" : fmtPdfMoney(v); }
+
+        ensure(70);
+        doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.ink);
+        doc.text("Verdict global", MX, y + 2); y += 7;
+        var vFill = G.cls === "edge" ? [228,241,234] : (G.cls === "avoid" ? [246,228,225] : (G.cls === "probable" ? C.goldSoft : C.soft));
+        var vCol = G.cls === "edge" ? C.green : (G.cls === "avoid" ? C.red : (G.cls === "probable" ? C.gold : C.gray));
+        setFill(vFill); setDraw(vCol); doc.setLineWidth(0.4);
+        doc.roundedRect(MX, y - 2, CW, 12, 1.8, 1.8, "FD");
+        doc.setFont("helvetica","bold"); doc.setFontSize(11.5); setTxt(vCol);
+        doc.text(G.verdict, MX + 4, y + 5.6);
+        y += 15;
+
+        // cartes de métriques
+        var cards = [
+          ["Espérance / trade", money(G.mean), G.mean > 0 ? C.green : (G.mean < 0 ? C.red : C.text)],
+          ["Profit factor", G.pf === null ? "n/a" : G.pf.toFixed(2), (G.pf === null || G.pf > 1) ? C.green : C.red],
+          ["Winrate", G.wr === null ? "-" : Math.round(G.wr * 100) + "%", C.text],
+          ["Winrate de rentabilité", G.beWr === null ? "-" : Math.round(G.beWr * 100) + "%", C.text],
+          ["Payoff (gain / perte moy.)", G.payoff === null ? "-" : G.payoff.toFixed(2), C.text],
+          ["Espérance en R", G.expR === null ? "-" : (G.expR >= 0 ? "+" : "") + G.expR.toFixed(2) + " R", G.expR === null ? C.text : (G.expR > 0 ? C.green : C.red)],
+          ["Drawdown max", money(G.dd ? -G.dd : 0), G.dd ? C.red : C.text],
+          ["Série de pertes max", String(G.maxLoss), C.text]
+        ];
+        var gap = 3, cw = (CW - gap * 3) / 4, ch = 16;
+        ensure(ch * 2 + gap + 4);
+        cards.forEach(function(cd, i){
+          var cx = MX + (i % 4) * (cw + gap), cy = y - 2 + Math.floor(i / 4) * (ch + gap);
+          setFill(C.soft); doc.roundedRect(cx, cy, cw, ch, 1.8, 1.8, "F");
+          doc.setFont("helvetica","normal"); doc.setFontSize(7); setTxt(C.dim);
+          doc.text(cd[0], cx + 3, cy + 5);
+          doc.setFont("helvetica","bold"); doc.setFontSize(11); setTxt(cd[2]);
+          doc.text(cd[1], cx + 3, cy + 12);
+        });
+        y += ch * 2 + gap + 4;
+
+        // pourquoi ce verdict
+        var why = [];
+        if(G.ci) why.push("Espérance : " + money(G.mean) + " par trade, intervalle de confiance à 95% de " + money(G.ci[0]) + " à " + money(G.ci[1]) + (G.ci[0] > 0 ? " (entièrement positif)." : (G.ci[1] < 0 ? " (entièrement négatif)." : " (inclut zéro : le hasard n'est pas exclu).")));
+        if(G.wr !== null && G.beWr !== null && G.wrCi){
+          var rel = G.wrCi[0] > G.beWr ? "au-dessus du seuil, même dans le pire cas de l'intervalle" : (G.wr > G.beWr ? "au-dessus du seuil, mais l'intervalle le recouvre" : "sous le seuil de rentabilité");
+          why.push("Winrate " + Math.round(G.wr * 100) + "% (IC 95% : " + Math.round(G.wrCi[0] * 100) + " - " + Math.round(G.wrCi[1] * 100) + "%) contre " + Math.round(G.beWr * 100) + "% nécessaires avec ton payoff de " + G.payoff.toFixed(2) + " : " + rel + ".");
+        }
+        if(G.pf !== null) why.push("Profit factor " + G.pf.toFixed(2) + " : " + (G.pf > 1 ? "les gains dépassent les pertes" : "les pertes dépassent les gains") + ".");
+        if(G.expR !== null && G.nR >= Math.ceil(all.length * 0.7)) why.push("Espérance en R : " + (G.expR >= 0 ? "+" : "") + G.expR.toFixed(2) + " R sur " + G.nR + " trades (calculée avec entrée, SL et sortie : indépendante de la taille de lot).");
+        else if(G.nR < all.length) why.push("Espérance en R non fiable : entrée, SL et sortie ne sont renseignés que pour " + G.nR + " trade(s) sur " + all.length + ".");
+        if(G.h1 !== undefined) why.push("Stabilité : espérance " + money(G.h1) + " sur la 1re moitié des trades contre " + money(G.h2) + " sur la 2e" + (G.h2 < G.h1 && G.h1 > 0 ? " (dégradation à surveiller)." : "."));
+        if(planMap && planMap["Plan respecté"] && planMap["Plan non respecté"]){
+          var pr_ = planMap["Plan respecté"], pn_ = planMap["Plan non respecté"];
+          function wrTxt(a){ return (a.w + a.l) ? Math.round(a.w / (a.w + a.l) * 100) + "%" : "-"; }
+          why.push("Discipline : plan respecté = winrate " + wrTxt(pr_) + ", P&L moyen " + money(pr_.pnl / pr_.n) + " (" + pr_.n + " trades) ; plan non respecté = winrate " + wrTxt(pn_) + ", P&L moyen " + money(pn_.pnl / pn_.n) + " (" + pn_.n + " trades).");
+        }
+        if(G.nP < 30) why.push("Il manque " + (30 - G.nP) + " trade(s) avec P&L pour atteindre le minimum de 30 qui rend le verdict interprétable.");
+        why.push("Un edge se démontre si l'espérance est positive de façon stable ET que son intervalle de confiance exclut zéro : un bon winrate seul ne suffit pas.");
+        var wl2 = []; why.forEach(function(x){ wl2.push(wrap("-  " + x, CW - 8, 8.5, "normal")); });
+        var wh = 8 + wl2.reduce(function(a,l){ return a + l.length * 4 + 1.2; }, 0);
+        ensure(wh + 4);
+        setFill(C.soft); doc.roundedRect(MX, y - 2, CW, wh, 1.8, 1.8, "F");
+        setFill(vCol); doc.rect(MX, y - 2, 1.6, wh, "F");
+        doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.ink); doc.text("Pourquoi ce verdict", MX + 5, y + 3);
+        var yy2 = y + 8; doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.text);
+        wl2.forEach(function(l){ doc.text(l, MX + 5, yy2); yy2 += l.length * 4 + 1.2; });
+        y += wh + 6;
+
+        // courbe de P&L cumulé
+        if(G.eq.length > 2){
+          var chH = 38; ensure(chH + 14);
+          doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.ink); doc.text("P&L cumulé de la stratégie (trade après trade)", MX, y + 2);
+          var x0 = MX, wC = CW, y0 = y + 6;
+          setFill(C.soft); doc.rect(x0, y0, wC, chH, "F");
+          var mn = Math.min.apply(null, G.eq.concat([0])), mx = Math.max.apply(null, G.eq.concat([0])); if(mx === mn){ mx += 1; mn -= 1; }
+          function px(i){ return x0 + 3 + (wC - 6) * i / (G.eq.length - 1); }
+          function py(v){ return y0 + 3 + (chH - 6) * (1 - (v - mn) / (mx - mn)); }
+          setDraw(C.gray); doc.setLineWidth(0.2); doc.line(x0 + 3, py(0), x0 + wC - 3, py(0));
+          setDraw(G.total >= 0 ? C.green : C.red); doc.setLineWidth(0.7);
+          for(var i2 = 1; i2 < G.eq.length; i2++){ doc.line(px(i2 - 1), py(G.eq[i2 - 1]), px(i2), py(G.eq[i2])); }
+          doc.setFont("helvetica","normal"); doc.setFontSize(7); setTxt(C.dim);
+          doc.text("max " + money(mx), x0 + 4, y0 + 5); doc.text("min " + money(mn), x0 + 4, y0 + chH - 2);
+          y = y0 + chH + 8;
+        }
+
+        ensure(24);
+        doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.ink);
+        doc.text("Quels critères portent l'edge ?", MX, y + 2); y += 6;
+
         doc.autoTable({
           startY: y,
-          head: [["Valeur","Trades","G / P / BE","Winrate","IC 95%","P&L moyen","Lecture"]],
+          head: [["Valeur","Trades","G / P / BE","Winrate","IC 95%","P&L moyen","PF","Lecture"]],
           body: rows,
           theme: "plain",
           styles: { fontSize: 8, cellPadding: { top:2.2, bottom:2.2, left:3, right:3 }, textColor: C.text, lineWidth: 0 },
           headStyles: { fillColor: C.ink, textColor: 255, fontStyle: "bold", fontSize: 7.5 },
-          columnStyles: { 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"right"} },
+          columnStyles: { 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"right"}, 6:{halign:"center"} },
           didParseCell: function(d){
             if(d.section !== "body") return;
             var m = meta[d.row.index]; if(!m) return;
-            if(d.column.index === 6){
+            if(d.column.index === 7){
               d.cell.styles.fontStyle = "bold";
               d.cell.styles.textColor = m.cls === "edge" ? C.green : (m.cls === "avoid" ? C.red : C.dim);
             }
@@ -2984,7 +3224,7 @@
         var parts = [];
         parts.push({ h:"Edges potentiels à jouer", c:C.green, items: edges.length ? edges.map(fl) : ["Aucun critère ne se détache encore avec assez de trades."] });
         parts.push({ h:"Conditions à éviter", c:C.red, items: avoids.length ? avoids.map(fl) : ["Aucune condition clairement perdante pour l'instant."] });
-        var caution = "Lecture prudente : chaque critère est testé séparément et sur peu de trades. Un écart de 10 points peut n'être que du hasard, surtout sous 30 trades (voir l'IC 95%). Ne modifie ton plan qu'après confirmation sur plusieurs mois, et teste un seul critère à la fois.";
+        var caution = "Lecture prudente : chaque critère est testé séparément et sur peu de trades. Un écart de 10 points peut n'être que du hasard, surtout sous 30 trades (voir l'IC 95%). Tester autant de critères en même temps fait aussi apparaître de faux positifs par hasard. Ne modifie ton plan qu'après confirmation sur plusieurs mois, et teste un seul critère à la fois.";
         ensure(30);
         parts.forEach(function(pt){
           var lines = []; pt.items.forEach(function(it){ lines.push(wrap("-  " + it, CW - 6, 9, "normal")); });
