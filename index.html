@@ -847,6 +847,7 @@
           <div class="section-label">règles à respecter</div>
           <div class="reminder-red" id="asiaReminder" style="display:none;">Rappel : ne jamais exécuter durant l'Asian session.<br>Ne laisse pas tourner une position en session asiatique sans BE. Si tu es à plus de 35% du profit : mets le BE. Sinon : clôture la position.</div>
           <div class="reminder-red" id="newsReminder">Rappel : sors des trades en cas d'annonce économique impactante si tu n'es pas à BE.</div>
+          <div class="reminder-red" id="hoursReminder" style="display:none;"></div>
           <div class="hint" id="rulesEmpty">Choisis l'actif (XAUUSD, GBPUSD, EURUSD ou NASDAQ) pour afficher les règles associées.</div>
           <div id="rulesBox" style="display:none;">
             <div class="hint" id="rulesNote" style="margin:0 0 10px;"></div>
@@ -2196,6 +2197,14 @@
     $("wrapRKzUs").style.display = nas ? "" : "none";
     $("wrapREntry").style.display = nas ? "" : "none";
     $("asiaReminder").style.display = ASIA_REMINDER_PAIRS.indexOf(pr) > -1 ? "" : "none";
+    var HOURS_TXT = {
+      NASDAQ: "Rappel NASDAQ : tes OB et FVG ne sont repérables qu'en session US, entre la pré-open (12h UTC) et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
+      EURUSD: "Rappel EURUSD : tes OB et FVG ne sont repérables qu'entre 5h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
+      GBPUSD: "Rappel GBPUSD : tes OB et FVG ne sont repérables qu'entre 5h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
+      XAUUSD: "Rappel XAUUSD : tes OB et FVG ne sont repérables qu'entre 00h et 02h UTC, puis entre 5h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas."
+    };
+    $("hoursReminder").textContent = HOURS_TXT[pr] || "";
+    $("hoursReminder").style.display = HOURS_TXT[pr] ? "" : "none";
     $("rulesNote").textContent = asia
       ? pr + " performe moins en Asie : évite de lier la zone ou sa réintégration à l'Asie, et surveille le CISD."
       : (nas ? "NASDAQ : killzone US entre 13h et 17h UTC, et entrée entre Londres et US."
