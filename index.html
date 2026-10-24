@@ -2169,7 +2169,7 @@
                     chM5:"s_chM5", chH1:"s_chH1", entryKz:"s_entryKz", entryTime:"s_entryTime", confirm:"s_confirm",
                     ote:"s_ote", other:"s_other", rHorsAsie:"r_horsAsie", rReintAsie:"r_reintAsie", rCisd:"r_cisd", rMitig:"r_mitig", rLiq:"r_liq", rKzUs:"r_kzUs", rEntry:"r_entry" };
   var SD_PAIRS = ["XAUUSD","GBPUSD","EURUSD","NASDAQ"];
-  var NO_ASIA_KZ = ["XAUUSD","GBPUSD","EURUSD"];
+  var NO_ASIA_KZ = ["GBPUSD","EURUSD"];
   var ASIA_REMINDER_PAIRS = ["NASDAQ","GBPUSD","EURUSD"];
   var ASIA_PAIRS = ["GBPUSD","EURUSD"];
   var pairSD = false;
@@ -2334,7 +2334,7 @@
     $("wrapRReint").style.display = asia ? "" : "none";
     $("wrapRKzUs").style.display = nas ? "" : "none";
     $("wrapREntry").style.display = nas ? "" : "none";
-    $("asiaReminder").style.display = known ? "" : "none";
+    $("asiaReminder").style.display = (known && pr !== "XAUUSD") ? "" : "none";
     var HOURS_TXT = {
       NASDAQ: "Rappel NASDAQ : tes OB et FVG ne sont repérables qu'en session US, entre la pré-open (12h UTC) et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
       EURUSD: "Rappel EURUSD : tes OB et FVG ne sont repérables qu'entre 5h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
