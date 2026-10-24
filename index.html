@@ -869,9 +869,8 @@
 
         <div id="setupSD" class="strat-block" style="display:none;">
           <div class="section-label">règles à respecter</div>
-          <div class="reminder-red" id="asiaReminder" style="display:none;">Rappel : ne jamais exécuter durant l'Asian session.<br>Ne laisse pas tourner une position en session asiatique sans BE. Si tu es à plus de 35% du profit : mets le BE. Sinon : clôture la position.</div>
-          <div class="reminder-red" id="newsReminder">Rappel : sors des trades en cas d'annonce économique impactante si tu n'es pas à BE.</div>
-          <div class="reminder-red" id="mitigReminder">Rappel : les OB et FVG mitigés en allant faire un BOS ne sont plus valables. La mitigation compte même lors de la création d'un BOS, et pas seulement sur le retracement du CHoCH.</div>
+          <div class="reminder-red" id="asiaReminder" style="display:none;">Rappel : ne jamais exécuter durant l'Asian session.</div>
+          <div class="reminder-red" id="mitigReminder">Rappel : une zone (OB / FVG) n'est mitigée que lorsque, en H1, des <b>corps de bougie clôturent dans la zone</b>. Si ce ne sont que des mèches, c'est de la liquidité : la zone n'est pas encore mitigée.<br>Les OB et FVG mitigés en allant faire un BOS ne sont plus valables : la mitigation compte même lors de la création d'un BOS, et pas seulement sur le retracement du CHoCH.</div>
           <div class="reminder-red" id="hoursReminder" style="display:none;"></div>
           <div class="hint" id="rulesEmpty">Choisis l'actif (XAUUSD, GBPUSD, EURUSD ou NASDAQ) pour afficher les règles associées.</div>
           <div id="rulesBox" style="display:none;">
@@ -880,7 +879,7 @@
             <div class="field" id="wrapRHors"><label for="r_horsAsie">Zone de supply / demand hors Asie ?</label><select id="r_horsAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRReint"><label for="r_reintAsie">Réintégration de la zone durant l'Asie ?</label><select id="r_reintAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_cisd">CISD vérifié en cas de retournement de tendance (H1 : cassure du dernier BOS et du dernier haut ou bas entraînant le BOS) ?</label><select id="r_cisd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field"><label for="r_mitig">L'OB / FVG à l'origine du plus haut ou plus bas a déjà été mitigé ?</label><select id="r_mitig"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="r_mitig">L'OB / FVG à l'origine du plus haut ou plus bas a déjà été mitigé ? (corps de bougie H1 clôturant dans la zone ; des mèches = liquidité, pas mitigation)</label><select id="r_mitig"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_liq">Ma zone est-elle protégée par des liquidités à prendre en H1 ? (si non, je suis la liquidité)</label><select id="r_liq"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRKzUs"><label for="r_kzUs">Killzone US entre 13h et 17h UTC ?</label><select id="r_kzUs"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 05h UTC) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
@@ -2335,7 +2334,7 @@
     $("wrapRReint").style.display = asia ? "" : "none";
     $("wrapRKzUs").style.display = nas ? "" : "none";
     $("wrapREntry").style.display = nas ? "" : "none";
-    $("asiaReminder").style.display = ASIA_REMINDER_PAIRS.indexOf(pr) > -1 ? "" : "none";
+    $("asiaReminder").style.display = known ? "" : "none";
     var HOURS_TXT = {
       NASDAQ: "Rappel NASDAQ : tes OB et FVG ne sont repérables qu'en session US, entre la pré-open (12h UTC) et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
       EURUSD: "Rappel EURUSD : tes OB et FVG ne sont repérables qu'entre 5h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
