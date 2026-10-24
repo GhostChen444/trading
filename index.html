@@ -335,6 +335,12 @@
   .risk-list .rk-tag.news{color:var(--blue); border-color:var(--blue);}
   .risk-list .rk-tag.asie{color:var(--red); border-color:var(--red);}
   .risk-list .rk-sub{display:block; color:var(--text-dim); font-size:12px; margin-top:2px;}
+  .risk-opts{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px;}
+  .risk-opts button{text-align:left; background:var(--bg-2); border:1px solid var(--border); color:var(--text-dim); border-radius:var(--r); padding:10px 12px; font-size:13px; line-height:1.35;}
+  .risk-opts button small{display:block; font-family:var(--mono); font-size:10.5px; margin-top:3px; color:var(--text-faint);}
+  .risk-opts button:hover{border-color:var(--gold-soft); color:var(--text);}
+  .risk-opts button.active{border-color:var(--gold); color:var(--text); background:rgba(200,155,74,0.12);}
+  .risk-opts button.active small{color:var(--gold);}
   .risk-suggest{font-size:12px; color:var(--text-dim); margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
   .risk-suggest button{background:transparent; border:1px solid var(--gold-soft); color:var(--gold); border-radius:var(--r); padding:3px 9px; font-size:11.5px;}
 
@@ -927,7 +933,8 @@
           <div class="form-grid full">
             <div class="field">
               <label for="f_riskState">État du compte au moment de la prise de position</label>
-              <select id="f_riskState">
+              <div class="risk-opts" id="riskOpts"></div>
+              <select id="f_riskState" style="display:none;">
                 <option value="">— choisir —</option>
                 <option value="init">Compte à l'état initial / compte à BE</option>
                 <option value="dd">Compte en drawdown</option>
@@ -2267,6 +2274,7 @@
     var show = sdSel() && formType !== "observation";
     $("riskBlock").style.display = show ? "" : "none";
     if(!show) return;
+    syncRiskOpts();
     var sel = $("f_riskState").value, panel = $("riskPanel");
     var sug = riskSuggestState(), sg = $("riskSuggest");
     if(sug !== sel){
@@ -2274,7 +2282,7 @@
       sg.innerHTML = 'Suggestion d\'après ton historique : <b>' + escapeHtml(RISK_STATES[sug].label) + '</b> <button type="button" id="riskSugBtn">Appliquer</button>';
       $("riskSugBtn").onclick = function(){ $("f_riskState").value = sug; renderRisk(); applyRiskDefault(); };
     } else { sg.style.display = "none"; sg.innerHTML = ""; }
-    if(!sel || !RISK_STATES[sel]){ panel.innerHTML = '<div class="hint">Choisis l\'état du compte pour afficher les règles de gestion du risque à respecter.</div>'; return; }
+    if(!sel || !RISK_STATES[sel]){ panel.innerHTML = '<div class="hint">Clique sur l\'état du compte pour afficher les règles de gestion du risque à respecter.</div>'; return; }
     var m = RISK_STATES[sel].model, gold = normPair($("f_pairSel").value) === RISK_GOLD_PAIR;
     var h = '<div class="risk-card"><div class="risk-head"><span class="risk-badge m' + m + '">' + RISK_MODEL_NAME[m] + '</span><span class="rk-title">' + escapeHtml(RISK_STATES[sel].label) + '</span></div><ul class="risk-list">';
     riskRules(m, gold).forEach(function(r){
@@ -2282,6 +2290,24 @@
     });
     panel.innerHTML = h + '</ul></div>';
   }
+  function buildRiskOpts(){
+    var box = $("riskOpts"); box.innerHTML = "";
+    Object.keys(RISK_STATES).forEach(function(k){
+      var b = document.createElement("button");
+      b.type = "button"; b.setAttribute("data-rs", k);
+      b.innerHTML = escapeHtml(RISK_STATES[k].label) + "<small>" + RISK_MODEL_NAME[RISK_STATES[k].model] + "</small>";
+      b.addEventListener("click", function(){
+        $("f_riskState").value = ($("f_riskState").value === k) ? "" : k;
+        renderRisk(); applyRiskDefault();
+      });
+      box.appendChild(b);
+    });
+  }
+  function syncRiskOpts(){
+    var cur = $("f_riskState").value;
+    document.querySelectorAll("#riskOpts button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-rs") === cur); });
+  }
+  buildRiskOpts();
   function applyRiskDefault(){ if($("f_riskState").value && fields.risk.value === "") fields.risk.value = "1"; }
   $("f_riskState").addEventListener("change", function(){ renderRisk(); applyRiskDefault(); });
 
