@@ -2243,8 +2243,8 @@
         R("News","news","Annonce éco ou déclaration, marché a réagi mais je reste en profit → <b>BE</b> si je n'y suis pas encore."),
         R("News","news","Réaction à une news impactante qui me repasse au rouge → <b>accepter la perte</b> ou mettre le SL sur le <b>dernier BOS en sens contraire</b> de ma position pour limiter les pertes."),
         ];
-      var rOther = R("20h50 UTC","asie","<b>EURUSD · GBPUSD · NASDAQ</b> — trade ouvert à l'approche de l'Asie et pas encore à BE → <b>sortir à 20h50 UTC</b>, en profit comme en perte.");
-      var rGold = R("20h50 UTC","asie","<b>Or (XAUUSD)</b> — le trade peut tourner en Asie tant que je suis à <b>BE</b>. Profit latent à sécuriser → <b>me mettre à BE</b>. Sinon → <b>sortir à 20h50 UTC</b>.");
+      var rOther = R("20h50 UTC","asie","<b>EURUSD · GBPUSD · NASDAQ</b> — trade ouvert à l'approche de l'Asie et pas encore à <b>BE de base ou des 55 %</b> → <b>sortir à 20h50 UTC</b>, en profit comme en perte.");
+      var rGold = R("20h50 UTC","asie","<b>Or (XAUUSD)</b> — le trade peut tourner en Asie tant que je suis à <b>BE de base ou des 55 %</b>. Profit latent à sécuriser → <b>me mettre à BE</b>. Sinon → <b>sortir à 20h50 UTC</b>, en profit comme en perte.");
       if(isGold === true) out.push(rGold);
       else if(isGold === false) out.push(rOther);
       else out.push(rOther, rGold);
