@@ -320,6 +320,24 @@
   .account-footer-actions{display:flex; gap:10px; flex-wrap:wrap; padding-top:14px; border-top:1px solid var(--border-soft); margin-top:6px;}
   .file-input{display:none;}
 
+  /* ---------- gestion du risque (rappels) ---------- */
+  .risk-card{border:1px solid var(--border); border-radius:var(--r); background:var(--panel-2); padding:14px 16px; margin-top:12px;}
+  .risk-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px;}
+  .risk-badge{font-family:var(--mono); font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid;}
+  .risk-badge.m1{color:var(--red); border-color:var(--red); background:var(--red-soft);}
+  .risk-badge.m2{color:var(--green); border-color:var(--green); background:var(--green-soft);}
+  .risk-head .rk-title{font-size:13px; color:var(--text);}
+  .risk-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
+  .risk-list li{display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.45; color:var(--text);}
+  .risk-list .rk-tag{flex:0 0 auto; min-width:66px; text-align:center; font-family:var(--mono); font-size:10.5px; padding:2px 6px; border-radius:var(--r); border:1px solid var(--border); color:var(--text-dim);}
+  .risk-list .rk-tag.risk{color:var(--gold); border-color:var(--gold-soft);}
+  .risk-list .rk-tag.be{color:var(--green); border-color:var(--green);}
+  .risk-list .rk-tag.news{color:var(--blue); border-color:var(--blue);}
+  .risk-list .rk-tag.asie{color:var(--red); border-color:var(--red);}
+  .risk-list .rk-sub{display:block; color:var(--text-dim); font-size:12px; margin-top:2px;}
+  .risk-suggest{font-size:12px; color:var(--text-dim); margin-top:8px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .risk-suggest button{background:transparent; border:1px solid var(--gold-soft); color:var(--gold); border-radius:var(--r); padding:3px 9px; font-size:11.5px;}
+
   footer.pagefoot{
     text-align:center; color:var(--text-faint); font-size:11.5px; margin-top:34px; font-family:var(--mono);
   }
@@ -904,6 +922,25 @@
         </div>
 
         <div id="execBlock">
+        <div id="riskBlock" style="display:none;">
+          <div class="section-label">gestion du risque — rappels selon l'état du compte</div>
+          <div class="form-grid full">
+            <div class="field">
+              <label for="f_riskState">État du compte au moment de la prise de position</label>
+              <select id="f_riskState">
+                <option value="">— choisir —</option>
+                <option value="init">Compte à l'état initial / compte à BE</option>
+                <option value="dd">Compte en drawdown</option>
+                <option value="be35">Compte après un BE 35 %</option>
+                <option value="tp">Compte après un TP</option>
+                <option value="be35x2">Compte après 2 BE 35 % enchaînés</option>
+              </select>
+              <div class="risk-suggest" id="riskSuggest" style="display:none;"></div>
+            </div>
+          </div>
+          <div id="riskPanel"></div>
+        </div>
+
         <div class="section-label">exécution</div>
         <div class="form-grid">
           <div class="field num"><label for="f_lot">Lot</label><input type="number" step="0.01" id="f_lot" placeholder="0.50"></div>
@@ -1065,6 +1102,15 @@
   });
   var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", observation:"Observation"};
   var TP_WINDOW_H = 36; // au-delà de 36 h après le BE, le TP touché n'est plus comptabilisé
+  var RISK_STATES = {
+    init:   { label:"Compte à l'état initial / à BE", model:1 },
+    dd:     { label:"Compte en drawdown", model:1 },
+    be35:   { label:"Compte après un BE 35 %", model:1 },
+    tp:     { label:"Compte après un TP", model:2 },
+    be35x2: { label:"Compte après 2 BE 35 % enchaînés", model:2 }
+  };
+  var RISK_MODEL_NAME = { 1:"Modèle 1 · Agressif", 2:"Modèle 2 · Souple" };
+  var RISK_GOLD_PAIR = "XAUUSD";
   function pad2(n){ return n < 10 ? "0"+n : ""+n; }
   function toLocalInput(iso){
     if(!iso) return "";
@@ -1990,7 +2036,9 @@
       h += sect("exécution");
       h += grid([ item("Lot", t.lot), item("Risque", (t.risk !== undefined && t.risk !== "") ? t.risk + " %" : ""),
                   item("Entrée", t.entry), item("Stop Loss", t.sl), item("Take Profit", t.tp), item("Sortie", t.exit),
-                  item("P&L", (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null) ? fmtMoney(parseFloat(t.pnl)) : "") ]);
+                  item("P&L", (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null) ? fmtMoney(parseFloat(t.pnl)) : ""),
+                  item("État du compte", t.riskState && RISK_STATES[t.riskState] ? RISK_STATES[t.riskState].label : ""),
+                  item("Modèle de risque", t.riskState && RISK_STATES[t.riskState] ? RISK_MODEL_NAME[RISK_STATES[t.riskState].model] : "") ]);
     }
     if(t.setup){
       var su = t.setup;
@@ -2177,6 +2225,66 @@
     lastStrat = sel.value;
   }
   function hideNewStrat(){ $("stratNewRow").style.display = "none"; $("stratNewErr").textContent = ""; $("f_stratNewName").value = ""; }
+  // ---- gestion du risque : rappels selon l'état du compte ----
+  function riskRules(model, isGold){
+    var R = function(tag, cls, txt, sub){ return { tag:tag, cls:cls, txt:txt, sub:sub || "" }; };
+    if(model === 1){
+      var out = [
+        R("Risque","risk","Toujours risquer <b>1 %</b> du compte."),
+        R("BE 35 %","be","Profit à <b>35 % du TP</b> → se mettre à <b>BE immédiatement</b>."),
+        R("BE 35 %","be","Profit à <b>55 % du TP</b> → SL remonté à <b>BE aux 35 %</b>."),
+        R("News","news","Annonce éco ou déclaration, marché a réagi mais je reste en profit → <b>BE</b> si je n'y suis pas encore."),
+        R("News","news","Réaction à une news impactante qui me repasse au rouge → <b>accepter la perte</b> ou mettre le SL sur le <b>dernier BOS en sens contraire</b> de ma position pour limiter les pertes."),
+        R("Asie","asie","<b>Ne jamais laisser un trade tourner en Asie si je ne suis pas encore à BE.</b>")
+      ];
+      if(isGold) out.push(R("20h50 UTC","asie","<b>Or (XAUUSD)</b> — trade qui va en Asie : à 20h50 UTC, si en profit → <b>BE</b>, sinon → <b>sortir</b>."));
+      else out.push(R("20h50 UTC","asie","Ne jamais laisser tourner en Asie : <b>sortir à 20h50 UTC</b>, en profit comme en perte.", "Tous les actifs sauf l'or."));
+      return out;
+    }
+    return [
+      R("Risque","risk","SL placé à <b>1 %</b> du compte."),
+      R("BE 35 %","be","Profit à <b>35 % du TP</b> → BE, placé <b>au-dessus du retracement du dernier BOS</b> de ma position, puis <b>il ne bouge plus</b> : c'est <b>TP ou BE</b>."),
+      R("Asie","asie","<b>Trade autorisé à tourner en Asie</b> sur tous les actifs : vérifier si je suis à BE.", "Sinon, à 20h50 UTC : se mettre à BE si en profit."),
+      R("20h50 UTC","asie","Pas encore à BE à <b>20h50 UTC</b> et en profit → <b>BE</b>."),
+      R("News","news","Grosse news surgie avec profit latent et pas encore à BE → <b>BE</b>."),
+      R("News","news","Réaction à une news importante qui me passe au rouge → <b>ne rien faire</b>.")
+    ];
+  }
+  function riskSuggestState(){
+    var list = state.trades.filter(function(t){
+      return !isObs(t) && t.id !== editingTradeId && ["gagnant","perdant","breakeven","be35"].indexOf(t.status) > -1;
+    }).sort(function(a,b){
+      return ((a.date || "") + (a.createdAt || "")).localeCompare((b.date || "") + (b.createdAt || ""));
+    });
+    if(!list.length) return "init";
+    var last = list[list.length-1], prev = list[list.length-2];
+    if(last.status === "gagnant") return "tp";
+    if(last.status === "be35") return (prev && prev.status === "be35") ? "be35x2" : "be35";
+    if(last.status === "perdant") return "dd";
+    return "init";
+  }
+  function renderRisk(){
+    var show = sdSel() && formType !== "observation";
+    $("riskBlock").style.display = show ? "" : "none";
+    if(!show) return;
+    var sel = $("f_riskState").value, panel = $("riskPanel");
+    var sug = riskSuggestState(), sg = $("riskSuggest");
+    if(sug !== sel){
+      sg.style.display = "";
+      sg.innerHTML = 'Suggestion d\'après ton historique : <b>' + escapeHtml(RISK_STATES[sug].label) + '</b> <button type="button" id="riskSugBtn">Appliquer</button>';
+      $("riskSugBtn").onclick = function(){ $("f_riskState").value = sug; renderRisk(); applyRiskDefault(); };
+    } else { sg.style.display = "none"; sg.innerHTML = ""; }
+    if(!sel || !RISK_STATES[sel]){ panel.innerHTML = '<div class="hint">Choisis l\'état du compte pour afficher les règles de gestion du risque à respecter.</div>'; return; }
+    var m = RISK_STATES[sel].model, gold = normPair($("f_pairSel").value) === RISK_GOLD_PAIR;
+    var h = '<div class="risk-card"><div class="risk-head"><span class="risk-badge m' + m + '">' + RISK_MODEL_NAME[m] + '</span><span class="rk-title">' + escapeHtml(RISK_STATES[sel].label) + '</span></div><ul class="risk-list">';
+    riskRules(m, gold).forEach(function(r){
+      h += '<li><span class="rk-tag ' + r.cls + '">' + r.tag + '</span><span>' + r.txt + (r.sub ? '<span class="rk-sub">' + r.sub + '</span>' : '') + '</span></li>';
+    });
+    panel.innerHTML = h + '</ul></div>';
+  }
+  function applyRiskDefault(){ if($("f_riskState").value && fields.risk.value === "") fields.risk.value = "1"; }
+  $("f_riskState").addEventListener("change", function(){ renderRisk(); applyRiskDefault(); });
+
   function updateStrategyUI(){
     var v = fields.strategy.value;
     var isNew = v === "__new__";
@@ -2187,6 +2295,7 @@
     syncPairUI();
     updateRulesUI();
     updateSetupHint();
+    renderRisk();
   }
   function updateRulesUI(){
     var pr = sdSel() ? $("f_pairSel").value : "";
@@ -2237,7 +2346,7 @@
     h.textContent = msg;
     h.className = warn ? "hint field-warn" : "hint";
   }
-  $("f_pairSel").addEventListener("change", function(){ updateRulesUI(); updateSetupHint(); });
+  $("f_pairSel").addEventListener("change", function(){ updateRulesUI(); updateSetupHint(); renderRisk(); });
   fields.strategy.addEventListener("change", function(){
     if(fields.strategy.value === "__new__"){
       $("stratNewRow").style.display = "flex"; $("stratNewErr").textContent = "";
@@ -2301,6 +2410,7 @@
     $("wrapStatus").style.display = obs ? "none" : "";
     $("execBlock").style.display = obs ? "none" : "";
     updateBe35UI();
+    if(typeof renderRisk === "function") renderRisk();
     $("f_pairLabel").innerHTML = (obs ? "Actif observé" : "Paire / Actif") + ' <span class="req">*</span>';
     $("typeHint").textContent = obs
       ? "Aucune position prise : seul l'actif observé est requis. Cette entrée n'est pas comptée dans les statistiques de trades."
@@ -2391,6 +2501,7 @@
     pairSD = false;
     refreshStrategyOptions("");
     Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).value = ""; });
+    $("f_riskState").value = "";
 
     if(tradeId){
       var t = state.trades.find(function(x){ return x.id === tradeId; });
@@ -2403,6 +2514,7 @@
         if(su.m5 && su.m5 !== "oui" && su.m5 !== "non") $("s_m5").value = "oui"; // ancien format OB/FVG
         fields.stratDetails.value = t.stratDetails || "";
         fields.risk.value = t.risk !== undefined ? t.risk : "";
+        $("f_riskState").value = (t.riskState && RISK_STATES[t.riskState]) ? t.riskState : "";
         fields.status.value = t.status || "en_cours";
         fields.lot.value = t.lot !== undefined ? t.lot : "";
         fields.entry.value = t.entry !== undefined ? t.entry : "";
@@ -2465,6 +2577,7 @@
         setup: setupData,
         stratDetails: isCustomStrat ? fields.stratDetails.value.trim() : "",
         risk: obsMode ? "" : fields.risk.value,
+        riskState: (obsMode || stratVal !== SD_NAME) ? "" : $("f_riskState").value,
         status: obsMode ? "observation" : fields.status.value,
         lot: obsMode ? "" : fields.lot.value, entry: obsMode ? "" : fields.entry.value, sl: obsMode ? "" : fields.sl.value, tp: obsMode ? "" : fields.tp.value,
         exit: obsMode ? "" : fields.exit.value, pnl: obsMode ? "" : fields.pnl.value,
