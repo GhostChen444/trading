@@ -609,10 +609,22 @@
   @media (max-height:480px) and (orientation:landscape){
     #futurHero{padding:10px 8px;} .screen{align-items:flex-start;}
   }
+
+  /* ===== Bannière de rappel Londres / New York (expire seule le 2 nov. 2026 à 24h UTC) ===== */
+  #ldnBanner{position:fixed; left:0; right:0; top:0; z-index:45; display:none; overflow:hidden; height:calc(32px + env(safe-area-inset-top,0px)); padding-top:env(safe-area-inset-top,0px);
+    background:rgba(200,155,74,.16); border-bottom:1px solid var(--gold-soft); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;}
+  body[data-view="app"] #ldnBanner{display:block;}
+  #ldnBanner .track{display:inline-flex; align-items:center; white-space:nowrap; gap:56px; padding-left:56px; height:32px; animation:ldnScroll 38s linear infinite;
+    font-family:var(--sans); font-size:12.5px; font-weight:500; color:var(--text);}
+  #ldnBanner b{color:var(--gold);}
+  @keyframes ldnScroll{to{transform:translateX(-50%);}}
+  body.has-ldn-banner[data-view="app"]{padding-top:calc(32px + env(safe-area-inset-top,0px));}
+  @media (prefers-reduced-motion: reduce){ #ldnBanner .track{animation:none !important;} }
 </style>
 </head>
 <body data-view="loading">
 <div id="futurBg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="grid"></div><div class="scan"></div></div>
+<div id="ldnBanner" role="status" aria-label="Rappel horaires Londres et New York"><div class="track"><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>Rappel :</b> mettre à jour le système horaire concernant <b>New York</b> après le changement d'heure du <b>1er novembre</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>Rappel :</b> mettre à jour le système horaire concernant <b>New York</b> après le changement d'heure du <b>1er novembre</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>Rappel :</b> mettre à jour le système horaire concernant <b>New York</b> après le changement d'heure du <b>1er novembre</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>Rappel :</b> mettre à jour le système horaire concernant <b>New York</b> après le changement d'heure du <b>1er novembre</b></span></div></div>
 <div id="futurTicker" aria-hidden="true"><div class="track"><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Work again and again and again</span><b>◆</b><span>Smart work</span><b>◆</b><span>Discipline &gt; motivation</span><b>◆</b><span>Patience pays</span><b>◆</b><span>Process over profit</span><b>◆</b><span>One trade at a time</span><b>◆</b><span>Protect your capital</span><b>◆</b><span>Stay consistent</span><b>◆</b><span>Execute the plan</span><b>◆</b><span>Small edge, big discipline</span><b>◆</b><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Work again and again and again</span><b>◆</b><span>Smart work</span><b>◆</b><span>Discipline &gt; motivation</span><b>◆</b><span>Patience pays</span><b>◆</b><span>Process over profit</span><b>◆</b><span>One trade at a time</span><b>◆</b><span>Protect your capital</span><b>◆</b><span>Stay consistent</span><b>◆</b><span>Execute the plan</span><b>◆</b><span>Small edge, big discipline</span><b>◆</b></div></div>
 
 
@@ -882,7 +894,7 @@
             <div class="field"><label for="r_mitig">L'OB / FVG à l'origine du plus haut ou plus bas a déjà été mitigé ? (corps de bougie H1 clôturant dans la zone ; des mèches = liquidité, pas mitigation)</label><select id="r_mitig"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_liq">Ma zone est-elle protégée par des liquidités à prendre en H1 ? (si non, je suis la liquidité)</label><select id="r_liq"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRKzUs"><label for="r_kzUs">Killzone US entre 13h et 17h UTC ?</label><select id="r_kzUs"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 05h UTC) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 07h UTC) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             </div>
             <div class="hint">Le CISD et la mitigation servent à éviter des SL : le CISD indique si le marché se retourne, une zone déjà mitigée est plus fragile.</div>
             <div class="hint" style="display:none;">Le CISD sert à éviter des SL : il indique si le marché se retourne ou non.</div>
@@ -2337,9 +2349,9 @@
     $("asiaReminder").style.display = (known && pr !== "XAUUSD") ? "" : "none";
     var HOURS_TXT = {
       NASDAQ: "Rappel NASDAQ : tes OB et FVG ne sont repérables qu'en session US, entre la pré-open (12h UTC) et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
-      EURUSD: "Rappel EURUSD : tes OB et FVG ne sont repérables qu'entre 5h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
-      GBPUSD: "Rappel GBPUSD : tes OB et FVG ne sont repérables qu'entre 5h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
-      XAUUSD: "Rappel XAUUSD : tes OB et FVG ne sont repérables qu'entre 00h et 02h UTC, puis entre 5h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas."
+      EURUSD: "Rappel EURUSD : tes OB et FVG ne sont repérables qu'entre 7h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
+      GBPUSD: "Rappel GBPUSD : tes OB et FVG ne sont repérables qu'entre 7h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
+      XAUUSD: "Rappel XAUUSD : tes OB et FVG ne sont repérables qu'entre 00h et 02h UTC, puis entre 7h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas."
     };
     $("hoursReminder").textContent = HOURS_TXT[pr] || "";
     $("hoursReminder").style.display = HOURS_TXT[pr] ? "" : "none";
@@ -3655,6 +3667,26 @@
     }
     if(reduce && sub){ sub.textContent=W[0]; } else type();
   }catch(e){ console.error(e); }
+})();
+</script>
+<script>
+/* Bannière Londres / New York : expire seule le 2 novembre 2026 à 24h UTC (= 3 nov. 00h00 UTC) */
+(function(){
+  var EXPIRE = Date.UTC(2026, 10, 3, 0, 0, 0);
+  var timer;
+  function check(){
+    var el = document.getElementById("ldnBanner");
+    if(!el){ clearInterval(timer); return; }
+    if(Date.now() >= EXPIRE){
+      el.parentNode.removeChild(el);
+      document.body.classList.remove("has-ldn-banner");
+      clearInterval(timer);
+    } else {
+      document.body.classList.add("has-ldn-banner");
+    }
+  }
+  check();
+  timer = setInterval(check, 60000);
 })();
 </script>
 </body>
