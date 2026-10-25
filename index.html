@@ -2353,8 +2353,8 @@
       GBPUSD: "Rappel GBPUSD : tes OB et FVG ne sont repérables qu'entre 6h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
       XAUUSD: "Rappel XAUUSD : tes OB et FVG ne sont repérables qu'entre 00h et 02h UTC, puis entre 6h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas."
     };
-    var PRESESSION_TXT = " Un OB ou un FVG dont toutes les bougies sont en dehors de ces plages horaires n'est pas prenable : au moins une bougie doit se situer dans la plage.";
-    $("hoursReminder").textContent = HOURS_TXT[pr] ? HOURS_TXT[pr] + PRESESSION_TXT : "";
+    var RANGE_RULE_TXT = " Un OB ou un FVG dont toutes les bougies sont en dehors de ces plages horaires n'est pas prenable : au moins une bougie doit se situer dans la plage.";
+    $("hoursReminder").textContent = HOURS_TXT[pr] ? HOURS_TXT[pr] + RANGE_RULE_TXT : "";
     $("hoursReminder").style.display = HOURS_TXT[pr] ? "" : "none";
     $("rulesNote").textContent = asia
       ? pr + " performe moins en Asie : évite de lier la zone ou sa réintégration à l'Asie, et surveille le CISD."
