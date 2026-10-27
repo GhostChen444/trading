@@ -440,6 +440,8 @@
 
   /* ---------- captures ---------- */
   .trap-notes{min-height:130px;}
+  .ask-highlight{border-color:var(--gold) !important; box-shadow:0 0 0 3px rgba(200,155,74,0.18);}
+  .hint.ask{color:var(--gold);}
   .maintabs{display:flex; gap:4px; margin:-8px 0 20px; border-bottom:1px solid var(--border-soft);}
   .maintabs button{background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font-size:14px; padding:10px 18px; margin-bottom:-1px;}
   .maintabs button:hover{color:var(--text);}
@@ -911,13 +913,14 @@
         </div>
 
         <div id="be35Block" style="display:none;">
-          <div class="section-label">BE 35% — suivi du TP</div>
+          <div class="section-label" id="beSectionLabel">BE 35% — suivi du TP</div>
           <div class="form-grid">
             <div class="field">
-              <label for="f_beAt">Heure du BE 35% <span class="hint" style="display:inline;">(facultatif)</span></label>
+              <label for="f_beAt"><span id="beAtLabel">Heure du BE 35%</span> <span class="hint" style="display:inline;">(facultatif)</span></label>
               <input type="datetime-local" id="f_beAt">
+              <div class="hint" id="beAtHint"></div>
             </div>
-            <div class="field">
+            <div class="field" id="wrapTpHit">
               <label>TP touché ? (facultatif)</label>
               <label class="chk-row"><input type="checkbox" id="f_tpHit"> Oui, le TP a été touché</label>
             </div>
@@ -2112,6 +2115,9 @@
       obs ? "" : item("Statut", STATUS_LABEL[t.status || "en_cours"]),
       item("Stratégie", t.strategy)
     ]);
+    if(!obs && t.status === "breakeven" && t.beAt){
+      h += grid([ item("BE posé le", fmtViewDt(t.beAt)) ]);
+    }
     if(!obs && t.status === "be35"){
       var tg = tpTagHtml(t);
       h += grid([ item("BE 35% posé le", fmtViewDt(t.beAt)), item("TP touché", t.tpHit ? "Oui" : "Non"), item("TP touché le", fmtViewDt(t.tpHitAt)) ]);
@@ -2496,15 +2502,28 @@
     hint.textContent = "+" + fmtDelay(h) + " après le BE : comptabilisé.";
   }
   function updateBe35UI(){
-    var show = formType === "trade" && fields.status.value === "be35";
+    var st = fields.status.value;
+    var show35 = formType === "trade" && st === "be35";
+    var show = show35 || (formType === "trade" && st === "breakeven");
     $("be35Block").style.display = show ? "" : "none";
-    $("wrapTpHitAt").style.display = (show && fields.tpHit.checked) ? "" : "none";
+    $("beSectionLabel").textContent = show35 ? "BE 35% — suivi du TP" : "BE point d'entrée — heure";
+    $("beAtLabel").textContent = show35 ? "Heure du BE 35%" : "Heure du BE";
+    $("wrapTpHit").style.display = show35 ? "" : "none";
+    $("wrapTpHitAt").style.display = (show35 && fields.tpHit.checked) ? "" : "none";
+    clearBeAsk();
     updateTpHint();
+  }
+  // Saisie demandée mais facultative : un premier clic sur « Enregistrer » rappelle les champs vides, le second enregistre quand même
+  var beAsked = false;
+  function clearBeAsk(){
+    beAsked = false;
+    [fields.beAt, fields.tpHitAt].forEach(function(el){ el.classList.remove("ask-highlight"); });
+    $("beAtHint").textContent = ""; $("beAtHint").className = "hint";
   }
   fields.status.addEventListener("change", updateBe35UI);
   fields.tpHit.addEventListener("change", updateBe35UI);
-  fields.beAt.addEventListener("input", updateTpHint);
-  fields.tpHitAt.addEventListener("input", updateTpHint);
+  fields.beAt.addEventListener("input", function(){ clearBeAsk(); updateTpHint(); });
+  fields.tpHitAt.addEventListener("input", function(){ clearBeAsk(); updateTpHint(); });
   function setFormType(type){
     formType = (type === "observation" || type === "trap") ? type : "trade";
     var obs = formType !== "trade", trap = formType === "trap";
@@ -2603,6 +2622,7 @@
     fields.direction.value = "achat";
     fields.status.value = "en_cours";
     fields.tpHit.checked = false;
+    beAsked = false;
     $("deleteTradeBtn").style.display = "none";
     formShots = [];
     formRemoved = [];
@@ -2654,6 +2674,22 @@
   $("saveTradeBtn").addEventListener("click", function(){
     if(!getPair()){ (sdSel() ? $("f_pairSel") : fields.pair).focus(); return; }
     var isBe35 = formType === "trade" && fields.status.value === "be35";
+    var isBe = isBe35 || (formType === "trade" && fields.status.value === "breakeven");
+    if(isBe && !beAsked){
+      var missing = [];
+      if(!fields.beAt.value) missing.push(fields.beAt);
+      if(isBe35 && fields.tpHit.checked && !fields.tpHitAt.value) missing.push(fields.tpHitAt);
+      if(missing.length){
+        beAsked = true;
+        missing.forEach(function(el){ el.classList.add("ask-highlight"); });
+        var bh = $("beAtHint"), th = $("tpHitHint");
+        if(!fields.beAt.value){ bh.className = "hint ask"; bh.textContent = "Pense à renseigner la date et l'heure du BE. C'est facultatif : clique de nouveau sur « Enregistrer » pour continuer sans."; }
+        if(missing.indexOf(fields.tpHitAt) > -1){ th.className = "hint ask"; th.textContent = "Pense à renseigner la date et l'heure du TP touché (facultatif). Clique de nouveau sur « Enregistrer » pour continuer sans."; }
+        missing[0].scrollIntoView({ block:"center", behavior:"smooth" });
+        missing[0].focus();
+        return;
+      }
+    }
     if(isBe35 && fields.tpHit.checked){
       // dates facultatives : on ne contrôle la cohérence que si les deux sont renseignées
       var dH = (fields.beAt.value && fields.tpHitAt.value) ? tpDelayH(fromLocalInput(fields.beAt.value), fromLocalInput(fields.tpHitAt.value)) : null;
@@ -2694,7 +2730,7 @@
         exit: obsMode ? "" : fields.exit.value, pnl: obsMode ? "" : fields.pnl.value,
         geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim(),
         improve: fields.improve.value.trim(),
-        beAt: isBe35 ? fromLocalInput(fields.beAt.value) : "",
+        beAt: isBe ? fromLocalInput(fields.beAt.value) : "",
         tpHit: isBe35 ? !!fields.tpHit.checked : false,
         tpHitAt: (isBe35 && fields.tpHit.checked) ? fromLocalInput(fields.tpHitAt.value) : "",
         shots: formShots.map(function(sh){ return { id:sh.id, desc:(sh.desc || "").trim() }; })
