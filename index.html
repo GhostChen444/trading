@@ -439,6 +439,7 @@
   #cgSyncIndicator{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
 
   /* ---------- captures ---------- */
+  .trap-notes{min-height:130px;}
   .shot-item{display:flex; gap:12px; border:1px solid var(--border-soft); border-radius:var(--r); padding:10px; margin-bottom:10px;}
   .shot-thumb{width:104px; height:78px; flex-shrink:0; background:var(--bg-2); border:1px solid var(--border-soft); border-radius:2px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:10.5px; color:var(--text-faint); cursor:zoom-in; text-align:center;}
   .shot-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
@@ -783,7 +784,7 @@
     </div>
     <div class="modal-body">
       <div id="dayTradesList"></div>
-      <button class="addbtn" id="addTradeBtn">+ Ajouter un trade ou une observation</button>
+      <button class="addbtn" id="addTradeBtn">+ Ajouter un trade, une observation ou un setup trap</button>
     </div>
   </div>
 
@@ -822,6 +823,7 @@
           <div class="seg" id="typeSeg" style="margin-bottom:0;">
             <button type="button" class="active" data-type="trade">Trade pris</button>
             <button type="button" data-type="observation">Aucun trade (observation)</button>
+            <button type="button" data-type="trap">Setup trap</button>
           </div>
           <div class="hint" id="typeHint"></div>
         </div>
@@ -934,6 +936,17 @@
             <div class="field">
               <label for="f_stratDetails">Détails de cette stratégie pour ce trade</label>
               <textarea id="f_stratDetails" placeholder="critères de ta stratégie, conditions remplies, confirmations, timeframe, killzone..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div id="trapBlock" style="display:none;">
+          <div class="section-label">notes importantes — setup trap</div>
+          <div class="form-grid full">
+            <div class="field">
+              <label for="f_trapNotes">Ce qu'il faut retenir pour cette stratégie</label>
+              <textarea id="f_trapNotes" class="trap-notes" placeholder="le piège ou le setup type, ce qui l'a révélé, la règle à retenir...&#10;ex : zone déjà mitigée en H1 → ne pas entrer&#10;ex : CHoCH M5 trop rapide, attendre la clôture"></textarea>
+              <div class="hint">Ajoute ensuite tes captures plus bas (section « captures »). Chaque setup trap est daté dans le calendrier et rattaché à la stratégie choisie.</div>
             </div>
           </div>
         </div>
@@ -1155,6 +1168,7 @@
     var h = tpDelayH(t.beAt, t.tpHitAt);
     return h !== null && h >= 0 && h <= TP_WINDOW_H;
   }
+  function isTrap(t){ return !!(t && t.trap === true); }
   function isObs(t){ return !!(t && (t.observation === true || t.status === "observation")); }
   function tpTagHtml(t){
     if(!t || t.status !== "be35" || !t.tpHit) return "";
@@ -1162,7 +1176,7 @@
     if(tpCounted(t)) return '<span class="tag tp-ok">TP touché · +' + fmtDelay(h) + '</span>';
     return '<span class="tag tp-late">TP hors délai (non compté)</span>';
   }
-  function pdfTag(t){ return isObs(t) ? "Observation" : ((t.direction === "vente" ? "Vente" : "Achat") + ", " + (STATUS_LABEL[t.status] || "")); }
+  function pdfTag(t){ return isTrap(t) ? "Setup trap" : isObs(t) ? "Observation" : ((t.direction === "vente" ? "Vente" : "Achat") + ", " + (STATUS_LABEL[t.status] || "")); }
 
 
   // Modèle de données (version 2) :
@@ -1650,7 +1664,7 @@
   function accStats(acc){
     var s = { count:acc.trades.filter(function(t){ return !isObs(t); }).length, obs:0, wins:0, losses:0, be:0, be35:0, tpOk:0, open:0, gp:0, gl:0, pnl:0 };
     acc.trades.forEach(function(t){
-      if(isObs(t)){ s.obs++; return; }
+      if(isObs(t)){ if(!isTrap(t)) s.obs++; return; }
       if(t.status === "gagnant") s.wins++;
       else if(t.status === "perdant") s.losses++;
       else if(t.status === "breakeven") s.be++;
@@ -1866,7 +1880,7 @@
   function renderStatsMonth(){
     var prefix = viewYear + "-" + pad(viewMonth+1);
     var monthTrades = state.trades.filter(function(t){ return t.date && t.date.indexOf(prefix)===0; });
-    var obsCount = monthTrades.filter(isObs).length;
+    var obsCount = monthTrades.filter(function(t){ return isObs(t) && !isTrap(t); }).length;
     monthTrades = monthTrades.filter(function(t){ return !isObs(t); });
     var closed = monthTrades.filter(function(t){ return t.status==="gagnant" || t.status==="perdant"; });
     var wins = monthTrades.filter(function(t){ return t.status==="gagnant"; }).length;
@@ -2041,7 +2055,7 @@
     h += sect("identification");
     h += grid([
       item("Actif", t.pair), item("Date", t.date),
-      obs ? item("Type", "Observation") : item("Sens", t.direction === "vente" ? "Vente" : "Achat"),
+      obs ? item("Type", isTrap(t) ? "Setup trap" : "Observation") : item("Sens", t.direction === "vente" ? "Vente" : "Achat"),
       obs ? "" : item("Statut", STATUS_LABEL[t.status || "en_cours"]),
       item("Stratégie", t.strategy)
     ]);
@@ -2078,12 +2092,13 @@
       if(rg) h += '<div class="view-sub">Règles</div>' + rg;
       h += text("Autres détails setup", su.other);
     }
+    if(isTrap(t) && t.trapNotes && t.trapNotes.trim()){ h += sect("notes importantes") + text("", t.trapNotes); }
     if(t.stratDetails && t.stratDetails.trim()){ h += sect("détails de la stratégie") + text("", t.stratDetails); }
     var ctx = text("Contexte géopolitique", t.geo) + text("Contexte macroéconomique", t.macro) + text("Évolution du trade", t.evolution) + text("À améliorer", t.improve);
     if(ctx) h += sect("contexte") + ctx;
     if(!h.trim()) h = '<div class="empty-state">Aucune information enregistrée.</div>';
 
-    $("viewTitle").textContent = (t.pair || "—") + (obs ? " · observation" : "");
+    $("viewTitle").textContent = (t.pair || "—") + (obs ? (isTrap(t) ? " · setup trap" : " · observation") : "");
     $("viewSub").textContent = t.date || "";
     $("viewBody").innerHTML = h;
     var nShots = t.shots ? t.shots.length : 0, sb = $("viewShotsBtn");
@@ -2110,14 +2125,14 @@
           '<div class="trade-tags">' +
             '<span class="trade-pair">' + escapeHtml(t.pair||"—") + '</span>' +
             (isObs(t)
-              ? '<span class="tag status-observation">Observation</span>'
+              ? '<span class="tag status-observation">' + (isTrap(t) ? "Setup trap" : "Observation") + '</span>'
               : '<span class="tag dir-' + (t.direction||"achat") + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' +
                 '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' + tpTagHtml(t)) +
             (t.improve && t.improve.trim() ? '<span class="tag tag-improve" title="Éléments à améliorer renseignés">↗ à améliorer</span>' : '') +
           '</div>' +
           '<div class="trade-meta">' +
             (isObs(t)
-              ? (t.strategy ? escapeHtml(t.strategy) : "Aucun trade pris")
+              ? (t.strategy ? escapeHtml(t.strategy) : (isTrap(t) ? "Setup trap" : "Aucun trade pris"))
               : ('Lot ' + escapeHtml(t.lot||"—") +
                  ' · SL ' + escapeHtml(t.sl||"—") +
                  ' · TP ' + escapeHtml(t.tp||"—") +
@@ -2172,7 +2187,7 @@
     lot: $("f_lot"), entry: $("f_entry"), sl: $("f_sl"), tp: $("f_tp"), exit: $("f_exit"), pnl: $("f_pnl"),
     geo: $("f_geo"), macro: $("f_macro"), evolution: $("f_evolution"), improve: $("f_improve"),
     beAt: $("f_beAt"), tpHit: $("f_tpHit"), tpHitAt: $("f_tpHitAt"),
-    risk: $("f_risk"), stratDetails: $("f_stratDetails")
+    risk: $("f_risk"), stratDetails: $("f_stratDetails"), trapNotes: $("f_trapNotes")
   };
 
   // ---- stratégies : liste déroulante + ajout ----
@@ -2285,7 +2300,7 @@
     return "init";
   }
   function renderRisk(){
-    var show = sdSel() && formType !== "observation";
+    var show = sdSel() && formType === "trade";
     $("riskBlock").style.display = show ? "" : "none";
     if(!show) return;
     syncRiskOpts();
@@ -2330,8 +2345,9 @@
     var isNew = v === "__new__";
     var isSD = v === SD_NAME;
     var isCustom = !!v && !isNew && !isSD;
-    $("setupSD").style.display = isSD ? "" : "none";
-    $("setupCustom").style.display = isCustom ? "" : "none";
+    var trapMode = formType === "trap";
+    $("setupSD").style.display = (isSD && !trapMode) ? "" : "none";
+    $("setupCustom").style.display = (isCustom && !trapMode) ? "" : "none";
     syncPairUI();
     updateRulesUI();
     updateSetupHint();
@@ -2442,8 +2458,9 @@
   fields.beAt.addEventListener("input", updateTpHint);
   fields.tpHitAt.addEventListener("input", updateTpHint);
   function setFormType(type){
-    formType = (type === "observation") ? "observation" : "trade";
-    var obs = formType === "observation";
+    formType = (type === "observation" || type === "trap") ? type : "trade";
+    var obs = formType !== "trade", trap = formType === "trap";
+    $("trapBlock").style.display = trap ? "" : "none";
     document.querySelectorAll("#typeSeg button").forEach(function(b){
       b.classList.toggle("active", b.getAttribute("data-type") === formType);
     });
@@ -2452,13 +2469,16 @@
     $("execBlock").style.display = obs ? "none" : "";
     updateBe35UI();
     if(typeof renderRisk === "function") renderRisk();
-    $("f_pairLabel").innerHTML = (obs ? "Actif observé" : "Paire / Actif") + ' <span class="req">*</span>';
-    $("typeHint").textContent = obs
+    $("f_pairLabel").innerHTML = (trap ? "Actif concerné" : obs ? "Actif observé" : "Paire / Actif") + ' <span class="req">*</span>';
+    $("typeHint").textContent = trap
+      ? "Un setup piège (ou un setup type) à retenir pour une stratégie : choisis la stratégie, note l'essentiel et ajoute tes captures. Non compté dans les statistiques de trades."
+      : obs
       ? "Aucune position prise : seul l'actif observé est requis. Cette entrée n'est pas comptée dans les statistiques de trades."
       : "Seul l'actif est obligatoire, tous les autres champs sont facultatifs.";
     $("formModalTitle").textContent = editingTradeId
-      ? (obs ? "Modifier l'observation" : "Modifier le trade")
-      : (obs ? "Nouvelle observation" : "Nouveau trade");
+      ? (trap ? "Modifier le setup trap" : obs ? "Modifier l'observation" : "Modifier le trade")
+      : (trap ? "Nouveau setup trap" : obs ? "Nouvelle observation" : "Nouveau trade");
+    if(typeof updateStrategyUI === "function") updateStrategyUI();
   }
   document.querySelectorAll("#typeSeg button").forEach(function(b){
     b.addEventListener("click", function(){ setFormType(this.getAttribute("data-type")); });
@@ -2554,6 +2574,7 @@
         Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).value = su[k] || ""; });
         if(su.m5 && su.m5 !== "oui" && su.m5 !== "non") $("s_m5").value = "oui"; // ancien format OB/FVG
         fields.stratDetails.value = t.stratDetails || "";
+        fields.trapNotes.value = t.trapNotes || "";
         fields.risk.value = t.risk !== undefined ? t.risk : "";
         $("f_riskState").value = (t.riskState && RISK_STATES[t.riskState]) ? t.riskState : "";
         fields.status.value = t.status || "en_cours";
@@ -2575,7 +2596,7 @@
       $("deleteTradeBtn").style.display = "inline-block";
     }
     updateStrategyUI();
-    setFormType(tradeId && state.trades.some(function(x){ return x.id === tradeId && isObs(x); }) ? "observation" : "trade");
+    setFormType(!tradeId ? "trade" : state.trades.some(function(x){ return x.id === tradeId && isTrap(x); }) ? "trap" : state.trades.some(function(x){ return x.id === tradeId && isObs(x); }) ? "observation" : "trade");
     $("formModalSub").textContent = dayKey;
     renderShotList();
     showOnly(modalForm);
@@ -2599,20 +2620,22 @@
     btn.textContent = newOnes.length ? "Envoi des captures…" : "Enregistrement…";
 
     Promise.all(newOnes.map(uploadShot)).then(function(){
-      var obsMode = formType === "observation";
+      var obsMode = formType !== "trade", trapMode = formType === "trap";
       var stratVal = fields.strategy.value === "__new__" ? "" : fields.strategy.value.trim();
       var setupData = null;
-      if(stratVal === SD_NAME){
+      if(stratVal === SD_NAME && !trapMode){
         setupData = {};
         Object.keys(SETUP_IDS).forEach(function(k){ setupData[k] = $(SETUP_IDS[k]).value.trim(); });
         var keepKeys = ruleSpec(normPair($("f_pairSel").value)).map(function(r){ return r[0]; });
         ["rHorsAsie","rReintAsie","rCisd","rMitig","rLiq","rKzUs","rEntry"].forEach(function(k){ if(keepKeys.indexOf(k) < 0) setupData[k] = ""; });
       }
-      var isCustomStrat = !!stratVal && stratVal !== SD_NAME;
+      var isCustomStrat = !!stratVal && stratVal !== SD_NAME && !trapMode;
       var payload = {
         date: dayKey,
         pair: getPair(),
         observation: obsMode,
+        trap: trapMode,
+        trapNotes: trapMode ? fields.trapNotes.value.trim() : "",
         direction: obsMode ? "" : fields.direction.value,
         strategy: stratVal,
         setup: setupData,
@@ -3450,7 +3473,7 @@
       // 05 — FICHES DÉTAILLÉES
       // =====================================================
       var fiches = monthTrades.filter(function(t){
-        var txt = hasVal(t.geo) || hasVal(t.macro) || hasVal(t.evolution) || hasVal(t.improve) || hasVal(t.stratDetails) || !!t.setup;
+        var txt = hasVal(t.geo) || hasVal(t.macro) || hasVal(t.evolution) || hasVal(t.improve) || hasVal(t.stratDetails) || hasVal(t.trapNotes) || !!t.setup;
         return txt || (!isObs(t) && (hasVal(t.lot) || hasVal(t.exit)));
       });
       fichesCount = fiches.length;
@@ -3492,6 +3515,7 @@
             var zlines = rlines.slice(); zl.forEach(function(x){ zlines = zlines.concat(wrap(x, iW, 9)); });
             if(zlines.length) blocks.push({ label:"Setup - Supply & Demand en killzone", lines: zlines });
           }
+          if(hasVal(t.trapNotes)) blocks.push({ label:"Notes importantes (setup trap)", lines: wrap(t.trapNotes, iW, 9) });
           if(hasVal(t.stratDetails)) blocks.push({ label:"Détails de la stratégie", lines: wrap(t.stratDetails, iW, 9) });
           [["Contexte géopolitique", t.geo], ["Contexte macroéconomique", t.macro], ["Évolution du trade", t.evolution]].forEach(function(p){
             if(hasVal(p[1])) blocks.push({ label:p[0], lines: wrap(p[1], iW, 9) });
