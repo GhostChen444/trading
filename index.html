@@ -947,7 +947,7 @@
             <div class="field"><label for="r_mitig">L'OB / FVG à l'origine du plus haut ou plus bas a déjà été mitigé ? (corps de bougie H1 clôturant dans la zone ; des mèches = liquidité, pas mitigation)</label><select id="r_mitig"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_liq">Ma zone est-elle protégée par des liquidités à prendre en H1 ? (si non, je suis la liquidité)</label><select id="r_liq"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRKzUs"><label for="r_kzUs">Killzone US entre 13h et 17h UTC ?</label><select id="r_kzUs"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 06h UTC) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 08h UTC) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             </div>
             <div class="hint">Le CISD et la mitigation servent à éviter des SL : le CISD indique si le marché se retourne, une zone déjà mitigée est plus fragile.</div>
             <div class="hint" style="display:none;">Le CISD sert à éviter des SL : il indique si le marché se retourne ou non.</div>
@@ -2428,10 +2428,10 @@
     $("wrapREntry").style.display = nas ? "" : "none";
     $("asiaReminder").style.display = (known && pr !== "XAUUSD") ? "" : "none";
     var HOURS_TXT = {
-      NASDAQ: "Rappel NASDAQ : tes plages horaires vont de la pré-open US (12h UTC) à 17h UTC, les jours sans annonce importante.",
-      EURUSD: "Rappel EURUSD : tes plages horaires vont de 6h UTC à 17h UTC, les jours sans annonce importante.",
-      GBPUSD: "Rappel GBPUSD : tes plages horaires vont de 6h UTC à 17h UTC, les jours sans annonce importante.",
-      XAUUSD: "Rappel XAUUSD : tes plages horaires vont de 00h à 02h UTC, puis de 6h UTC à 17h UTC, les jours sans annonce importante."
+      NASDAQ: "Rappel NASDAQ : tes plages horaires vont de 13h30 UTC à 17h30 UTC, les jours sans annonce importante.",
+      EURUSD: "Rappel EURUSD : tes plages horaires vont de 8h UTC à 17h UTC, les jours sans annonce importante.",
+      GBPUSD: "Rappel GBPUSD : tes plages horaires vont de 8h UTC à 17h UTC, les jours sans annonce importante.",
+      XAUUSD: "Rappel XAUUSD : tes plages horaires vont de 00h à 02h UTC, puis de 8h UTC à 17h UTC, les jours sans annonce importante."
     };
     var RANGE_RULE_TXT = " Un OB est valable tant que la bougie qui récupère la liquidité se situe dans tes plages horaires. Un FVG dont toutes les bougies sont en dehors de ces plages n'est pas prenable : au moins une bougie doit se situer dans la plage.";
     $("hoursReminder").textContent = HOURS_TXT[pr] ? HOURS_TXT[pr] + RANGE_RULE_TXT : "";
