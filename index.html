@@ -440,6 +440,35 @@
 
   /* ---------- captures ---------- */
   .trap-notes{min-height:130px;}
+  .maintabs{display:flex; gap:4px; margin:-8px 0 20px; border-bottom:1px solid var(--border-soft);}
+  .maintabs button{background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font-size:14px; padding:10px 18px; margin-bottom:-1px;}
+  .maintabs button:hover{color:var(--text);}
+  .maintabs button.active{color:var(--gold); border-bottom-color:var(--gold);}
+  .maintabs .mt-count{font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-left:6px;}
+  .maintabs button.active .mt-count{color:var(--gold-soft);}
+  .tv-bar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:16px 20px; border-bottom:1px solid var(--border-soft);}
+  .tv-bar select{background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:8px 10px; min-width:0; max-width:100%;}
+  .tv-bar .tv-total{margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--text-faint);}
+  .tv-chips{display:flex; flex-wrap:wrap; gap:8px; padding:14px 20px; border-bottom:1px solid var(--border-soft);}
+  .tv-chip{background:transparent; border:1px solid var(--border); color:var(--text-dim); border-radius:999px; padding:5px 12px; font-size:12.5px;}
+  .tv-chip b{font-family:var(--mono); font-weight:500; color:var(--gold); margin-left:6px;}
+  .tv-chip:hover{border-color:var(--gold-soft); color:var(--text);}
+  .tv-chip.active{border-color:var(--gold); background:rgba(200,155,74,0.12); color:var(--text);}
+  .tv-list{padding:6px 20px 20px;}
+  .tv-item{padding:18px 0; border-bottom:1px solid var(--border-soft);}
+  .tv-item:last-child{border-bottom:none;}
+  .tv-top{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:8px;}
+  .tv-date{font-family:var(--mono); font-size:12px; color:var(--gold);}
+  .tv-pair{font-family:var(--serif); font-size:17px;}
+  .tv-actions{margin-left:auto; display:flex; gap:6px;}
+  .tv-notes{white-space:pre-wrap; font-size:14px; line-height:1.55; color:var(--text); margin:6px 0 10px;}
+  .tv-notes.dim{color:var(--text-faint); font-style:italic;}
+  .tv-improve{font-size:13px; color:var(--text-dim); white-space:pre-wrap; margin:0 0 10px;}
+  .tv-shots{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px;}
+  .tv-shot{cursor:zoom-in;}
+  .tv-shot .thumb{aspect-ratio:4/3; background:var(--bg-2); border:1px solid var(--border-soft); border-radius:2px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:10.5px; color:var(--text-faint);}
+  .tv-shot .thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .tv-shot .cap{font-size:11.5px; color:var(--text-dim); margin-top:4px; line-height:1.35; overflow-wrap:anywhere;}
   .shot-item{display:flex; gap:12px; border:1px solid var(--border-soft); border-radius:var(--r); padding:10px; margin-bottom:10px;}
   .shot-thumb{width:104px; height:78px; flex-shrink:0; background:var(--bg-2); border:1px solid var(--border-soft); border-radius:2px; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:10.5px; color:var(--text-faint); cursor:zoom-in; text-align:center;}
   .shot-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
@@ -726,7 +755,26 @@
     </div>
   </header>
 
-  <main>
+  <nav class="maintabs" id="mainTabs">
+    <button type="button" class="active" data-mtab="cal">Calendrier</button>
+    <button type="button" data-mtab="traps">Setups trap<span class="mt-count" id="trapTabCount"></span></button>
+  </nav>
+
+  <section class="card" id="trapsView" style="display:none;">
+    <div class="tv-bar">
+      <select id="tvStrat" aria-label="Filtrer par stratégie"></select>
+      <select id="tvPair" aria-label="Filtrer par actif"></select>
+      <select id="tvSort" aria-label="Tri par date">
+        <option value="desc">Plus récents d'abord</option>
+        <option value="asc">Plus anciens d'abord</option>
+      </select>
+      <span class="tv-total" id="tvTotal"></span>
+    </div>
+    <div class="tv-chips" id="tvChips"></div>
+    <div class="tv-list" id="tvList"></div>
+  </section>
+
+  <main id="mainCal">
     <section class="card">
       <div class="cal-head">
         <button class="navbtn" id="prevMonth" aria-label="Mois précédent">‹</button>
@@ -1805,7 +1853,9 @@
     state = acc;
     viewYear = today.getFullYear();
     viewMonth = today.getMonth();
+    tvStrat = ""; tvPair = "";
     refreshApp();
+    setMainTab("cal");
     showView("app");
   }
 
@@ -1813,6 +1863,7 @@
     renderBrand();
     renderCalendar();
     renderStatsGlobal();
+    if(typeof updateTrapTabCount === "function"){ if(mainTab === "traps" && !fromTraps) renderTrapsTab(); else updateTrapTabCount(); }
   }
 
   function renderBrand(){
@@ -2010,6 +2061,7 @@
   }
   function closeOverlay(){
     overlay.classList.remove("show");
+    if(fromTraps){ fromTraps = false; if(mainTab === "traps") renderTrapsTab(); }
     activeDayKey = null;
     editingTradeId = null;
   }
@@ -2177,7 +2229,7 @@
   }
 
   $("addTradeBtn").addEventListener("click", function(){ openTradeForm(activeDayKey, null); });
-  window.backToDayModal = function(){ if(activeDayKey){ openDayModal(activeDayKey); } else { closeOverlay(); } };
+  window.backToDayModal = function(){ if(fromTraps){ closeOverlay(); } else if(activeDayKey){ openDayModal(activeDayKey); } else { closeOverlay(); } };
 
   // ---- formulaire de trade ----
   var form = $("tradeForm");
@@ -2664,7 +2716,7 @@
       formRemoved = [];
       save();
       renderCalendar();
-      openDayModal(dayKey);
+      if(fromTraps){ closeOverlay(); } else { openDayModal(dayKey); }
     }).catch(function(e){
       console.error("Envoi des captures échoué :", e);
       deleteShots(newOnes.map(function(sh){ return sh.id; })); // nettoie d'éventuels envois partiels
@@ -2681,9 +2733,161 @@
       removeTrade(editingTradeId);
       save();
       renderCalendar();
-      openDayModal(activeDayKey);
+      if(fromTraps){ closeOverlay(); } else { openDayModal(activeDayKey); }
     }
   });
+
+
+  // =====================================================================
+  // Onglet « Setups trap » : vue globale (lecture + modification)
+  // =====================================================================
+  var mainTab = "cal";
+  var fromTraps = false;
+  var tvStrat = "", tvPair = "", tvSort = "desc";
+  var NO_STRAT_LABEL = "Sans stratégie";
+
+  function trapEntries(){
+    return (state ? state.trades : []).filter(isTrap);
+  }
+  function fmtTrapDate(key){
+    var p = (key || "").split("-");
+    if(p.length !== 3) return key || "—";
+    var d = new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
+    var wd = ["dim.","lun.","mar.","mer.","jeu.","ven.","sam."];
+    return wd[d.getDay()] + " " + parseInt(p[2]) + " " + MONTHS_FR[parseInt(p[1])-1].toLowerCase() + " " + p[0];
+  }
+  function setMainTab(tab){
+    mainTab = tab === "traps" ? "traps" : "cal";
+    document.querySelectorAll("#mainTabs button").forEach(function(b){
+      b.classList.toggle("active", b.getAttribute("data-mtab") === mainTab);
+    });
+    $("mainCal").style.display = mainTab === "cal" ? "" : "none";
+    $("trapsView").style.display = mainTab === "traps" ? "" : "none";
+    if(mainTab === "traps") renderTrapsTab();
+  }
+  function updateTrapTabCount(){
+    var n = trapEntries().length;
+    $("trapTabCount").textContent = n ? n : "";
+  }
+  function renderTrapsTab(){
+    updateTrapTabCount();
+    var all = trapEntries();
+
+    // compteurs par stratégie
+    var counts = {}, order = [];
+    all.forEach(function(t){
+      var k = (t.strategy || "").trim() || NO_STRAT_LABEL;
+      if(!(k in counts)){ counts[k] = 0; order.push(k); }
+      counts[k]++;
+    });
+    order.sort(function(a, b){ return counts[b] - counts[a] || a.localeCompare(b); });
+    if(tvStrat && !(tvStrat in counts)) tvStrat = "";
+
+    var pairs = [];
+    all.forEach(function(t){
+      var pr = (t.pair || "").trim();
+      if(pr && pairs.indexOf(pr) < 0) pairs.push(pr);
+    });
+    pairs.sort();
+    if(tvPair && pairs.indexOf(tvPair) < 0) tvPair = "";
+
+    var sSel = $("tvStrat"), pSel = $("tvPair");
+    sSel.innerHTML = '<option value="">Toutes les stratégies</option>' + order.map(function(k){
+      return '<option value="' + escapeHtml(k) + '">' + escapeHtml(k) + ' (' + counts[k] + ')</option>';
+    }).join("");
+    sSel.value = tvStrat;
+    pSel.innerHTML = '<option value="">Tous les actifs</option>' + pairs.map(function(x){
+      return '<option value="' + escapeHtml(x) + '">' + escapeHtml(x) + '</option>';
+    }).join("");
+    pSel.value = tvPair;
+    $("tvSort").value = tvSort;
+
+    var chips = $("tvChips");
+    if(!order.length){ chips.style.display = "none"; }
+    else {
+      chips.style.display = "";
+      chips.innerHTML = '<button type="button" class="tv-chip' + (!tvStrat ? " active" : "") + '" data-strat="">Toutes<b>' + all.length + '</b></button>' +
+        order.map(function(k){
+          return '<button type="button" class="tv-chip' + (tvStrat === k ? " active" : "") + '" data-strat="' + escapeHtml(k) + '">' + escapeHtml(k) + '<b>' + counts[k] + '</b></button>';
+        }).join("");
+      chips.querySelectorAll(".tv-chip").forEach(function(b){
+        b.addEventListener("click", function(){ tvStrat = this.getAttribute("data-strat"); renderTrapsTab(); });
+      });
+    }
+
+    var list = all.filter(function(t){
+      var k = (t.strategy || "").trim() || NO_STRAT_LABEL;
+      return (!tvStrat || k === tvStrat) && (!tvPair || (t.pair || "").trim() === tvPair);
+    });
+    list.sort(function(a, b){
+      var c = (a.date || "").localeCompare(b.date || "");
+      if(!c) c = (a.createdAt || "").localeCompare(b.createdAt || "");
+      return tvSort === "asc" ? c : -c;
+    });
+    $("tvTotal").textContent = list.length + " setup" + (list.length > 1 ? "s" : "") + " trap" + ((tvStrat || tvPair) ? " affiché" + (list.length > 1 ? "s" : "") : "");
+
+    var box = $("tvList");
+    if(!list.length){
+      box.innerHTML = '<div class="empty-state">' + (all.length
+        ? "Aucun setup trap ne correspond à ces filtres."
+        : "Aucun setup trap pour l'instant. Ajoute-en depuis le calendrier : ouvre un jour, puis « Ajouter » et choisis l'onglet « Setup trap ».") + '</div>';
+      return;
+    }
+    box.innerHTML = "";
+    list.forEach(function(t){
+      var item = document.createElement("div");
+      item.className = "tv-item";
+      var notes = (t.trapNotes || "").trim();
+      var improve = (t.improve || "").trim();
+      item.innerHTML =
+        '<div class="tv-top">' +
+          '<span class="tv-date">' + escapeHtml(fmtTrapDate(t.date)) + '</span>' +
+          '<span class="tv-pair">' + escapeHtml(t.pair || "—") + '</span>' +
+          '<span class="tag status-observation">' + escapeHtml((t.strategy || "").trim() || NO_STRAT_LABEL) + '</span>' +
+          '<div class="tv-actions">' +
+            '<button type="button" class="iconbtn" data-act="day">Voir le jour</button>' +
+            '<button type="button" class="iconbtn" data-act="edit">Modifier</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="tv-notes' + (notes ? "" : " dim") + '">' + (notes ? escapeHtml(notes) : "Aucune note.") + '</div>' +
+        (improve ? '<div class="tv-improve"><span style="color:var(--gold);">À améliorer · </span>' + escapeHtml(improve) + '</div>' : "") +
+        '<div class="tv-shots"></div>';
+
+      item.querySelector('[data-act="day"]').addEventListener("click", function(){
+        var p = (t.date || "").split("-");
+        if(p.length === 3){ viewYear = parseInt(p[0]); viewMonth = parseInt(p[1]) - 1; }
+        setMainTab("cal");
+        renderCalendar();
+        if(t.date) openDayModal(t.date);
+      });
+      item.querySelector('[data-act="edit"]').addEventListener("click", function(){
+        fromTraps = true;
+        openTradeForm(t.date, t.id);
+      });
+
+      var shots = t.shots || [], sh = item.querySelector(".tv-shots");
+      if(!shots.length){ sh.remove(); }
+      shots.forEach(function(s, i){
+        var cell = document.createElement("div");
+        cell.className = "tv-shot";
+        cell.innerHTML = '<div class="thumb">Chargement…</div>' + (s.desc ? '<div class="cap">' + escapeHtml(s.desc) + '</div>' : "");
+        cell.addEventListener("click", function(){ openLightbox(shots, i); });
+        sh.appendChild(cell);
+        loadShotUrl(s).then(function(url){
+          var img = document.createElement("img");
+          img.src = url; img.alt = s.desc || "Capture"; img.loading = "lazy";
+          var th = cell.querySelector(".thumb"); th.textContent = ""; th.appendChild(img);
+        }).catch(function(){ cell.querySelector(".thumb").textContent = "Image indisponible"; });
+      });
+      box.appendChild(item);
+    });
+  }
+  document.querySelectorAll("#mainTabs button").forEach(function(b){
+    b.addEventListener("click", function(){ setMainTab(this.getAttribute("data-mtab")); });
+  });
+  $("tvStrat").addEventListener("change", function(){ tvStrat = this.value; renderTrapsTab(); });
+  $("tvPair").addEventListener("change", function(){ tvPair = this.value; renderTrapsTab(); });
+  $("tvSort").addEventListener("change", function(){ tvSort = this.value; renderTrapsTab(); });
 
   // ---- visionneuse de captures ----
   var lbItems = [], lbIndex = 0;
