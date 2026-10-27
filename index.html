@@ -2428,12 +2428,12 @@
     $("wrapREntry").style.display = nas ? "" : "none";
     $("asiaReminder").style.display = (known && pr !== "XAUUSD") ? "" : "none";
     var HOURS_TXT = {
-      NASDAQ: "Rappel NASDAQ : tes OB et FVG ne sont repérables qu'en session US, entre la pré-open (12h UTC) et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
-      EURUSD: "Rappel EURUSD : tes OB et FVG ne sont repérables qu'entre 6h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
-      GBPUSD: "Rappel GBPUSD : tes OB et FVG ne sont repérables qu'entre 6h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas.",
-      XAUUSD: "Rappel XAUUSD : tes OB et FVG ne sont repérables qu'entre 00h et 02h UTC, puis entre 6h UTC et 17h UTC, les jours sans annonce importante. Au-delà de ces horaires, ne les repère pas."
+      NASDAQ: "Rappel NASDAQ : tes plages horaires vont de la pré-open US (12h UTC) à 17h UTC, les jours sans annonce importante.",
+      EURUSD: "Rappel EURUSD : tes plages horaires vont de 6h UTC à 17h UTC, les jours sans annonce importante.",
+      GBPUSD: "Rappel GBPUSD : tes plages horaires vont de 6h UTC à 17h UTC, les jours sans annonce importante.",
+      XAUUSD: "Rappel XAUUSD : tes plages horaires vont de 00h à 02h UTC, puis de 6h UTC à 17h UTC, les jours sans annonce importante."
     };
-    var RANGE_RULE_TXT = " Un OB ou un FVG dont toutes les bougies sont en dehors de ces plages horaires n'est pas prenable : au moins une bougie doit se situer dans la plage.";
+    var RANGE_RULE_TXT = " Un OB est valable tant que la bougie qui récupère la liquidité se situe dans tes plages horaires. Un FVG dont toutes les bougies sont en dehors de ces plages n'est pas prenable : au moins une bougie doit se situer dans la plage.";
     $("hoursReminder").textContent = HOURS_TXT[pr] ? HOURS_TXT[pr] + RANGE_RULE_TXT : "";
     $("hoursReminder").style.display = HOURS_TXT[pr] ? "" : "none";
     $("rulesNote").textContent = asia
