@@ -914,7 +914,7 @@
           <div class="section-label">BE 35% — suivi du TP</div>
           <div class="form-grid">
             <div class="field">
-              <label for="f_beAt">Heure du BE 35%</label>
+              <label for="f_beAt">Heure du BE 35% <span class="hint" style="display:inline;">(facultatif)</span></label>
               <input type="datetime-local" id="f_beAt">
             </div>
             <div class="field">
@@ -922,7 +922,7 @@
               <label class="chk-row"><input type="checkbox" id="f_tpHit"> Oui, le TP a été touché</label>
             </div>
             <div class="field" id="wrapTpHitAt" style="display:none;">
-              <label for="f_tpHitAt">TP touché le (date et heure)</label>
+              <label for="f_tpHitAt">TP touché le (date et heure) <span class="hint" style="display:inline;">(facultatif)</span></label>
               <input type="datetime-local" id="f_tpHitAt">
               <div class="hint" id="tpHitHint"></div>
             </div>
@@ -1214,14 +1214,15 @@
   function tpCounted(t){
     if(!t || t.status !== "be35" || !t.tpHit) return false;
     var h = tpDelayH(t.beAt, t.tpHitAt);
-    return h !== null && h >= 0 && h <= TP_WINDOW_H;
+    if(h === null) return true; // dates non renseignées : le TP coché est compté, sans mesure du délai
+    return h >= 0 && h <= TP_WINDOW_H;
   }
   function isTrap(t){ return !!(t && t.trap === true); }
   function isObs(t){ return !!(t && (t.observation === true || t.status === "observation")); }
   function tpTagHtml(t){
     if(!t || t.status !== "be35" || !t.tpHit) return "";
     var h = tpDelayH(t.beAt, t.tpHitAt);
-    if(tpCounted(t)) return '<span class="tag tp-ok">TP touché · +' + fmtDelay(h) + '</span>';
+    if(tpCounted(t)) return '<span class="tag tp-ok">TP touché' + (h === null ? '' : ' · +' + fmtDelay(h)) + '</span>';
     return '<span class="tag tp-late">TP hors délai (non compté)</span>';
   }
   function pdfTag(t){ return isTrap(t) ? "Setup trap" : isObs(t) ? "Observation" : ((t.direction === "vente" ? "Vente" : "Achat") + ", " + (STATUS_LABEL[t.status] || "")); }
@@ -2489,8 +2490,7 @@
     if(!fields.tpHit.checked){ hint.textContent = ""; return; }
     var beIso = fromLocalInput(fields.beAt.value), tpIso = fromLocalInput(fields.tpHitAt.value);
     var h = tpDelayH(beIso, tpIso);
-    if(!fields.beAt.value){ hint.textContent = "Renseigne d'abord l'heure du BE 35%."; return; }
-    if(h === null){ hint.textContent = "Indique la date et l'heure exactes où le TP a été touché (max " + TP_WINDOW_H + " h après le BE)."; return; }
+    if(h === null){ hint.textContent = "Facultatif. Si tu renseignes l'heure du BE et celle du TP, le délai est mesuré (max " + TP_WINDOW_H + " h après le BE) ; sinon le TP est compté comme touché."; return; }
     if(h < 0){ hint.className = "hint field-warn"; hint.textContent = "Le TP ne peut pas être touché avant le BE."; return; }
     if(h > TP_WINDOW_H){ hint.className = "hint field-warn"; hint.textContent = "+" + fmtDelay(h) + " après le BE : au-delà de " + TP_WINDOW_H + " h, ce TP ne sera pas comptabilisé."; return; }
     hint.textContent = "+" + fmtDelay(h) + " après le BE : comptabilisé.";
@@ -2499,10 +2499,6 @@
     var show = formType === "trade" && fields.status.value === "be35";
     $("be35Block").style.display = show ? "" : "none";
     $("wrapTpHitAt").style.display = (show && fields.tpHit.checked) ? "" : "none";
-    if(show && !fields.beAt.value && activeDayKey){
-      var n = new Date();
-      fields.beAt.value = activeDayKey + "T" + pad2(n.getHours()) + ":" + pad2(n.getMinutes());
-    }
     updateTpHint();
   }
   fields.status.addEventListener("change", updateBe35UI);
@@ -2659,10 +2655,9 @@
     if(!getPair()){ (sdSel() ? $("f_pairSel") : fields.pair).focus(); return; }
     var isBe35 = formType === "trade" && fields.status.value === "be35";
     if(isBe35 && fields.tpHit.checked){
-      if(!fields.beAt.value){ fields.beAt.focus(); alert("Renseigne l'heure du BE 35% pour pouvoir mesurer le délai du TP."); return; }
-      if(!fields.tpHitAt.value){ fields.tpHitAt.focus(); alert("Indique la date et l'heure exactes où le TP a été touché."); return; }
-      var dH = tpDelayH(fromLocalInput(fields.beAt.value), fromLocalInput(fields.tpHitAt.value));
-      if(dH === null || dH < 0){ fields.tpHitAt.focus(); alert("Le TP ne peut pas être touché avant le BE."); return; }
+      // dates facultatives : on ne contrôle la cohérence que si les deux sont renseignées
+      var dH = (fields.beAt.value && fields.tpHitAt.value) ? tpDelayH(fromLocalInput(fields.beAt.value), fromLocalInput(fields.tpHitAt.value)) : null;
+      if(dH !== null && dH < 0){ fields.tpHitAt.focus(); alert("Le TP ne peut pas être touché avant le BE."); return; }
       if(dH > TP_WINDOW_H && !confirm("Le TP a été touché " + fmtDelay(dH) + " après le BE, au-delà de " + TP_WINDOW_H + " h : il ne sera pas comptabilisé. Enregistrer quand même ?")) return;
     }
     var btn = this;
