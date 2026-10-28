@@ -448,6 +448,21 @@
   .maintabs button.active{color:var(--gold); border-bottom-color:var(--gold);}
   .maintabs .mt-count{font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-left:6px;}
   .maintabs button.active .mt-count{color:var(--gold-soft);}
+  .tv-reminder{border-bottom:1px solid var(--border-soft); padding:0;}
+  .tv-reminder summary{cursor:pointer; list-style:none; display:flex; align-items:center; gap:10px; padding:16px 20px; font-family:var(--serif); font-size:17px; color:var(--text);}
+  .tv-reminder summary::-webkit-details-marker{display:none;}
+  .tv-reminder summary::before{content:"▸"; color:var(--gold); font-size:13px; transition:transform .15s;}
+  .tv-reminder[open] summary::before{transform:rotate(90deg);}
+  .tv-reminder summary .tv-rem-tag{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--gold); letter-spacing:.06em; text-transform:uppercase;}
+  .tv-rem-body{padding:0 20px 20px; font-size:14px; line-height:1.6; color:var(--text);}
+  .tv-rem-body h4{font-family:var(--mono); font-size:11.5px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin:18px 0 8px;}
+  .tv-rem-body h4:first-child{margin-top:4px;}
+  .tv-rem-body p{margin:0 0 8px; color:var(--text-dim);}
+  .tv-rem-body ol{margin:0 0 8px; padding-left:22px;}
+  .tv-rem-body li{margin-bottom:6px;}
+  .tv-rem-rule{border-left:2px solid var(--gold); background:rgba(200,155,74,0.08); padding:10px 14px; margin:12px 0; border-radius:0 var(--r) var(--r) 0;}
+  .tv-rem-alert{border-left:2px solid var(--red); background:var(--red-soft); padding:10px 14px; margin:10px 0 0; border-radius:0 var(--r) var(--r) 0;}
+  .tv-rem-alert b{color:var(--red);}
   .tv-bar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:16px 20px; border-bottom:1px solid var(--border-soft);}
   .tv-bar select{background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:8px 10px; min-width:0; max-width:100%;}
   .tv-bar .tv-total{margin-left:auto; font-family:var(--mono); font-size:11.5px; color:var(--text-faint);}
@@ -763,6 +778,31 @@
   </nav>
 
   <section class="card" id="trapsView" style="display:none;">
+    <details class="tv-reminder" open>
+      <summary>Rappel : comment éviter les setups trap <span class="tv-rem-tag">à relire avant chaque entrée</span></summary>
+      <div class="tv-rem-body">
+        <p>Les setups trap sont des liquidités. Comment les repérer&nbsp;?</p>
+
+        <h4>Il n'y a pas de trap lorsque</h4>
+        <ol>
+          <li>La zone de supply ou demand ayant entraîné le BOS est la zone la plus attractive.</li>
+          <li>La zone de supply ou demand ayant entraîné le BOS est en OTE.</li>
+          <li>La zone de supply ou demand ayant entraîné le BOS est dans la plage horaire de mes killzones.</li>
+          <li>En confirmation de sortie du trap, on a un BOS effectif.</li>
+        </ol>
+        <div class="tv-rem-rule">Si parmi ces 4 conditions une seule ne figure pas, alors nous sommes dans un trap.</div>
+
+        <h4>Comment savoir si le prix est sorti du trap</h4>
+        <ol>
+          <li>Le prix vient liquider la zone (supply ou demand) créée, en allant chercher la vraie zone de supply ou demand, pas forcément pour repartir en BOS par la suite. Une fois le trap liquidé, c'est bon signe.</li>
+          <li>Le prix fait un CISD.</li>
+        </ol>
+
+        <h4>Cas à surveiller</h4>
+        <p>Le prix n'a ni fait de CISD ni liquidé le trap, et part faire un BOS&nbsp;:</p>
+        <div class="tv-rem-alert"><b>Alerte&nbsp;!</b> Le prix part simplement en BOS sans récupérer cette liquidité. Dans ce cas, attendre le prochain BOS (la prochaine cassure) avant d'entreprendre quoi que ce soit.</div>
+      </div>
+    </details>
     <div class="tv-bar">
       <select id="tvStrat" aria-label="Filtrer par stratégie"></select>
       <select id="tvPair" aria-label="Filtrer par actif"></select>
