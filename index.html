@@ -794,8 +794,8 @@
 
         <h4>Comment savoir si le prix est sorti du trap</h4>
         <ol>
-          <li>Le prix vient liquider la zone (supply ou demand) créée, en allant chercher la vraie zone de supply ou demand, pas forcément pour repartir en BOS par la suite. Une fois le trap liquidé, c'est bon signe.</li>
-          <li>Le prix fait un CISD.</li>
+          <li>Le prix vient liquider la zone (supply ou demand) créée, en allant chercher la vraie zone de supply ou demand <b>ou</b> pas forcément pour repartir en BOS par la suite. Une fois le trap liquidé, c'est bon signe.</li>
+          <li>Le prix fait un CISD en clôturant au-dessus ou en dessous de la liquidité récupérée (tout dépend de la tendance) : le CISD est alors effectif et on sort du trap. S'il y a une zone de supply ou demand juste près du CISD, attendre un IFVG ou une cassure de l'OB (inversion de FVG, donc renverser ou casser la zone) pour plus de confirmations.</li>
         </ol>
 
         <h4>Cas à surveiller</h4>
@@ -955,19 +955,9 @@
         <div id="be35Block" style="display:none;">
           <div class="section-label" id="beSectionLabel">BE 35% — suivi du TP</div>
           <div class="form-grid">
-            <div class="field">
-              <label for="f_beAt"><span id="beAtLabel">Heure du BE 35%</span> <span class="hint" style="display:inline;">(facultatif)</span></label>
-              <input type="datetime-local" id="f_beAt">
-              <div class="hint" id="beAtHint"></div>
-            </div>
             <div class="field" id="wrapTpHit">
               <label>TP touché ? (facultatif)</label>
               <label class="chk-row"><input type="checkbox" id="f_tpHit"> Oui, le TP a été touché</label>
-            </div>
-            <div class="field" id="wrapTpHitAt" style="display:none;">
-              <label for="f_tpHitAt">TP touché le (date et heure) <span class="hint" style="display:inline;">(facultatif)</span></label>
-              <input type="datetime-local" id="f_tpHitAt">
-              <div class="hint" id="tpHitHint"></div>
             </div>
           </div>
         </div>
@@ -987,7 +977,7 @@
             <div class="field"><label for="r_mitig">L'OB / FVG à l'origine du plus haut ou plus bas a déjà été mitigé ? (corps de bougie H1 clôturant dans la zone ; des mèches = liquidité, pas mitigation)</label><select id="r_mitig"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_liq">Ma zone est-elle protégée par des liquidités à prendre en H1 ? (si non, je suis la liquidité)</label><select id="r_liq"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRKzUs"><label for="r_kzUs">Killzone US entre 13h et 17h UTC ?</label><select id="r_kzUs"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 08h UTC) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 06h UTC, pré-session de Londres incluse) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             </div>
             <div class="hint">Le CISD et la mitigation servent à éviter des SL : le CISD indique si le marché se retourne, une zone déjà mitigée est plus fragile.</div>
             <div class="hint" style="display:none;">Le CISD sert à éviter des SL : il indique si le marché se retourne ou non.</div>
@@ -1000,6 +990,8 @@
             • FVG dont la bougie du milieu est plus longue que la première (celle qui émet l'impulsion) : SL au-dessus ou au-dessous de la bougie précédente.<br>
             • FVG à trois bougies équilibrées : SL toujours au-dessus ou au-dessous de la bougie précédente. Même si la bougie du milieu est plus petite, le SL reste au même niveau, car on cherche toujours à entrer sur le niveau le plus bas ou le plus haut du FVG.
           </div>
+          <div class="reminder">Rappel : pour l'exécution en M5, assure-toi d'avoir repéré toutes les liquidités présentes dans ta zone de supply &amp; demand, absolument toutes celles qui se trouvent dans la zone.</div>
+          <div class="reminder-red">Le FOMO est à bannir : après avoir raté une entrée dans tes plages d'exécution et à tes niveaux, ne plus rien faire.</div>
           <div class="form-grid">
             <div class="field"><label for="s_dir">Zone repérée</label><select id="s_dir"><option value="">— choisir —</option><option value="demand">Demand</option><option value="supply">Supply</option></select></div>
             <div class="field"><label for="s_type">Type de zone (OB ou FVG, jamais les deux)</label><select id="s_type"><option value="">— choisir —</option><option value="OB">OB</option><option value="FVG">FVG</option></select></div>
@@ -2157,15 +2149,13 @@
     h += grid([
       item("Actif", t.pair), item("Date", t.date),
       obs ? item("Type", isTrap(t) ? "Setup trap" : "Observation") : item("Sens", t.direction === "vente" ? "Vente" : "Achat"),
+      (obs && !isTrap(t) && t.direction) ? item("Sens", t.direction === "vente" ? "Vente" : "Achat") : "",
       obs ? "" : item("Statut", STATUS_LABEL[t.status || "en_cours"]),
       item("Stratégie", t.strategy)
     ]);
-    if(!obs && t.status === "breakeven" && t.beAt){
-      h += grid([ item("BE posé le", fmtViewDt(t.beAt)) ]);
-    }
     if(!obs && t.status === "be35"){
       var tg = tpTagHtml(t);
-      h += grid([ item("BE 35% posé le", fmtViewDt(t.beAt)), item("TP touché", t.tpHit ? "Oui" : "Non"), item("TP touché le", fmtViewDt(t.tpHitAt)) ]);
+      h += grid([ item("TP touché", t.tpHit ? "Oui" : "Non") ]);
       if(tg) h += '<div style="margin:-6px 0 14px;">' + tg + '</div>';
     }
     if(!obs){
@@ -2229,7 +2219,7 @@
           '<div class="trade-tags">' +
             '<span class="trade-pair">' + escapeHtml(t.pair||"—") + '</span>' +
             (isObs(t)
-              ? '<span class="tag status-observation">' + (isTrap(t) ? "Setup trap" : "Observation") + '</span>'
+              ? '<span class="tag status-observation">' + (isTrap(t) ? "Setup trap" : "Observation") + '</span>' + ((!isTrap(t) && t.direction) ? '<span class="tag dir-' + t.direction + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' : '')
               : '<span class="tag dir-' + (t.direction||"achat") + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' +
                 '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' + tpTagHtml(t)) +
             (t.improve && t.improve.trim() ? '<span class="tag tag-improve" title="Éléments à améliorer renseignés">↗ à améliorer</span>' : '') +
@@ -2290,7 +2280,7 @@
     pair: $("f_pair"), direction: $("f_direction"), strategy: $("f_strategy"), status: $("f_status"),
     lot: $("f_lot"), entry: $("f_entry"), sl: $("f_sl"), tp: $("f_tp"), exit: $("f_exit"), pnl: $("f_pnl"),
     geo: $("f_geo"), macro: $("f_macro"), evolution: $("f_evolution"), improve: $("f_improve"),
-    beAt: $("f_beAt"), tpHit: $("f_tpHit"), tpHitAt: $("f_tpHitAt"),
+    tpHit: $("f_tpHit"),
     risk: $("f_risk"), stratDetails: $("f_stratDetails"), trapNotes: $("f_trapNotes")
   };
 
@@ -2469,9 +2459,9 @@
     $("asiaReminder").style.display = (known && pr !== "XAUUSD") ? "" : "none";
     var HOURS_TXT = {
       NASDAQ: "Rappel NASDAQ : tes plages horaires vont de 13h30 UTC à 17h30 UTC, les jours sans annonce importante.",
-      EURUSD: "Rappel EURUSD : tes plages horaires vont de 8h UTC à 17h UTC, les jours sans annonce importante.",
-      GBPUSD: "Rappel GBPUSD : tes plages horaires vont de 8h UTC à 17h UTC, les jours sans annonce importante.",
-      XAUUSD: "Rappel XAUUSD : tes plages horaires vont de 00h à 02h UTC, puis de 8h UTC à 17h UTC, les jours sans annonce importante."
+      EURUSD: "Rappel EURUSD : tes plages horaires vont de 6h UTC (pré-session de Londres) à 17h UTC, les jours sans annonce importante.",
+      GBPUSD: "Rappel GBPUSD : tes plages horaires vont de 6h UTC (pré-session de Londres) à 17h UTC, les jours sans annonce importante.",
+      XAUUSD: "Rappel XAUUSD : tes plages horaires vont de 00h à 02h UTC, puis de 6h UTC (pré-session de Londres) à 17h UTC, les jours sans annonce importante."
     };
     var RANGE_RULE_TXT = " Un OB est valable tant que la bougie qui récupère la liquidité se situe dans tes plages horaires. Un FVG dont toutes les bougies sont en dehors de ces plages n'est pas prenable : au moins une bougie doit se situer dans la plage.";
     $("hoursReminder").textContent = HOURS_TXT[pr] ? HOURS_TXT[pr] + RANGE_RULE_TXT : "";
@@ -2534,41 +2524,12 @@
   fields.direction.addEventListener("change", updateSetupHint);
   var formType = "trade";
 
-  // ---- BE 35% : suivi du TP touché (fenêtre max 36 h) ----
-  function updateTpHint(){
-    var hint = $("tpHitHint");
-    hint.className = "hint";
-    if(!fields.tpHit.checked){ hint.textContent = ""; return; }
-    var beIso = fromLocalInput(fields.beAt.value), tpIso = fromLocalInput(fields.tpHitAt.value);
-    var h = tpDelayH(beIso, tpIso);
-    if(h === null){ hint.textContent = "Facultatif. Si tu renseignes l'heure du BE et celle du TP, le délai est mesuré (max " + TP_WINDOW_H + " h après le BE) ; sinon le TP est compté comme touché."; return; }
-    if(h < 0){ hint.className = "hint field-warn"; hint.textContent = "Le TP ne peut pas être touché avant le BE."; return; }
-    if(h > TP_WINDOW_H){ hint.className = "hint field-warn"; hint.textContent = "+" + fmtDelay(h) + " après le BE : au-delà de " + TP_WINDOW_H + " h, ce TP ne sera pas comptabilisé."; return; }
-    hint.textContent = "+" + fmtDelay(h) + " après le BE : comptabilisé.";
-  }
+  // ---- BE 35% : suivi du TP touché ----
   function updateBe35UI(){
-    var st = fields.status.value;
-    var show35 = formType === "trade" && st === "be35";
-    var show = show35 || (formType === "trade" && st === "breakeven");
-    $("be35Block").style.display = show ? "" : "none";
-    $("beSectionLabel").textContent = show35 ? "BE 35% — suivi du TP" : "BE point d'entrée — heure";
-    $("beAtLabel").textContent = show35 ? "Heure du BE 35%" : "Heure du BE";
-    $("wrapTpHit").style.display = show35 ? "" : "none";
-    $("wrapTpHitAt").style.display = (show35 && fields.tpHit.checked) ? "" : "none";
-    clearBeAsk();
-    updateTpHint();
-  }
-  // Saisie demandée mais facultative : un premier clic sur « Enregistrer » rappelle les champs vides, le second enregistre quand même
-  var beAsked = false;
-  function clearBeAsk(){
-    beAsked = false;
-    [fields.beAt, fields.tpHitAt].forEach(function(el){ el.classList.remove("ask-highlight"); });
-    $("beAtHint").textContent = ""; $("beAtHint").className = "hint";
+    $("be35Block").style.display = (formType === "trade" && fields.status.value === "be35") ? "" : "none";
   }
   fields.status.addEventListener("change", updateBe35UI);
   fields.tpHit.addEventListener("change", updateBe35UI);
-  fields.beAt.addEventListener("input", function(){ clearBeAsk(); updateTpHint(); });
-  fields.tpHitAt.addEventListener("input", function(){ clearBeAsk(); updateTpHint(); });
   function setFormType(type){
     formType = (type === "observation" || type === "trap") ? type : "trade";
     var obs = formType !== "trade", trap = formType === "trap";
@@ -2576,7 +2537,7 @@
     document.querySelectorAll("#typeSeg button").forEach(function(b){
       b.classList.toggle("active", b.getAttribute("data-type") === formType);
     });
-    $("wrapDirection").style.display = obs ? "none" : "";
+    $("wrapDirection").style.display = trap ? "none" : "";
     $("wrapStatus").style.display = obs ? "none" : "";
     $("execBlock").style.display = obs ? "none" : "";
     updateBe35UI();
@@ -2585,7 +2546,7 @@
     $("typeHint").textContent = trap
       ? "Un setup piège (ou un setup type) à retenir pour une stratégie : choisis la stratégie, note l'essentiel et ajoute tes captures. Non compté dans les statistiques de trades."
       : obs
-      ? "Aucune position prise : seul l'actif observé est requis. Cette entrée n'est pas comptée dans les statistiques de trades."
+      ? "Aucune position prise : seul l'actif observé est requis (indique le sens, achat ou vente, du trade observé). Cette entrée n'est pas comptée dans les statistiques de trades."
       : "Seul l'actif est obligatoire, tous les autres champs sont facultatifs.";
     $("formModalTitle").textContent = editingTradeId
       ? (trap ? "Modifier le setup trap" : obs ? "Modifier l'observation" : "Modifier le trade")
@@ -2667,7 +2628,6 @@
     fields.direction.value = "achat";
     fields.status.value = "en_cours";
     fields.tpHit.checked = false;
-    beAsked = false;
     $("deleteTradeBtn").style.display = "none";
     formShots = [];
     formRemoved = [];
@@ -2701,9 +2661,7 @@
         fields.macro.value = t.macro || "";
         fields.evolution.value = t.evolution || "";
         fields.improve.value = t.improve || "";
-        fields.beAt.value = toLocalInput(t.beAt);
         fields.tpHit.checked = !!t.tpHit;
-        fields.tpHitAt.value = toLocalInput(t.tpHitAt);
         formShots = (t.shots || []).map(function(sh){ return { id:sh.id, desc:sh.desc || "", dataUrl:null, isNew:false }; });
       }
       $("deleteTradeBtn").style.display = "inline-block";
@@ -2719,28 +2677,6 @@
   $("saveTradeBtn").addEventListener("click", function(){
     if(!getPair()){ (sdSel() ? $("f_pairSel") : fields.pair).focus(); return; }
     var isBe35 = formType === "trade" && fields.status.value === "be35";
-    var isBe = isBe35 || (formType === "trade" && fields.status.value === "breakeven");
-    if(isBe && !beAsked){
-      var missing = [];
-      if(!fields.beAt.value) missing.push(fields.beAt);
-      if(isBe35 && fields.tpHit.checked && !fields.tpHitAt.value) missing.push(fields.tpHitAt);
-      if(missing.length){
-        beAsked = true;
-        missing.forEach(function(el){ el.classList.add("ask-highlight"); });
-        var bh = $("beAtHint"), th = $("tpHitHint");
-        if(!fields.beAt.value){ bh.className = "hint ask"; bh.textContent = "Pense à renseigner la date et l'heure du BE. C'est facultatif : clique de nouveau sur « Enregistrer » pour continuer sans."; }
-        if(missing.indexOf(fields.tpHitAt) > -1){ th.className = "hint ask"; th.textContent = "Pense à renseigner la date et l'heure du TP touché (facultatif). Clique de nouveau sur « Enregistrer » pour continuer sans."; }
-        missing[0].scrollIntoView({ block:"center", behavior:"smooth" });
-        missing[0].focus();
-        return;
-      }
-    }
-    if(isBe35 && fields.tpHit.checked){
-      // dates facultatives : on ne contrôle la cohérence que si les deux sont renseignées
-      var dH = (fields.beAt.value && fields.tpHitAt.value) ? tpDelayH(fromLocalInput(fields.beAt.value), fromLocalInput(fields.tpHitAt.value)) : null;
-      if(dH !== null && dH < 0){ fields.tpHitAt.focus(); alert("Le TP ne peut pas être touché avant le BE."); return; }
-      if(dH > TP_WINDOW_H && !confirm("Le TP a été touché " + fmtDelay(dH) + " après le BE, au-delà de " + TP_WINDOW_H + " h : il ne sera pas comptabilisé. Enregistrer quand même ?")) return;
-    }
     var btn = this;
     var dayKey = activeDayKey;
     var newOnes = formShots.filter(function(sh){ return sh.isNew; });
@@ -2764,7 +2700,7 @@
         observation: obsMode,
         trap: trapMode,
         trapNotes: trapMode ? fields.trapNotes.value.trim() : "",
-        direction: obsMode ? "" : fields.direction.value,
+        direction: trapMode ? "" : fields.direction.value,
         strategy: stratVal,
         setup: setupData,
         stratDetails: isCustomStrat ? fields.stratDetails.value.trim() : "",
@@ -2775,9 +2711,7 @@
         exit: obsMode ? "" : fields.exit.value, pnl: obsMode ? "" : fields.pnl.value,
         geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim(),
         improve: fields.improve.value.trim(),
-        beAt: isBe ? fromLocalInput(fields.beAt.value) : "",
         tpHit: isBe35 ? !!fields.tpHit.checked : false,
-        tpHitAt: (isBe35 && fields.tpHit.checked) ? fromLocalInput(fields.tpHitAt.value) : "",
         shots: formShots.map(function(sh){ return { id:sh.id, desc:(sh.desc || "").trim() }; })
       };
       if(editingTradeId){
@@ -3724,7 +3658,7 @@
           return [
             dm(t.date),
             pdfText(t.pair),
-            isObs(t) ? "—" : (t.direction === "vente" ? "Vente" : "Achat"),
+            (isObs(t) && !t.direction) ? "—" : (t.direction === "vente" ? "Vente" : "Achat"),
             STATUS_LABEL[t.status] || "",
             isObs(t) ? "" : pdfText(t.entry),
             isObs(t) ? "" : pdfText(t.sl),
