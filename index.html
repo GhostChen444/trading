@@ -176,6 +176,7 @@
   .dot.perdant{background:var(--red);}
   .dot.en_cours{background:var(--blue);}
   .dot.breakeven{background:var(--gray);}
+  .dot.cloture_main{background:var(--gold);}
   .dot.be35{background:var(--gold);}
   .dot.observation{background:transparent; border:1.5px solid var(--gold);}
   .day-pnl{font-family:var(--mono); font-size:10.5px;}
@@ -247,6 +248,7 @@
   .tag.status-perdant{background:var(--red-soft); color:var(--red); border-color:transparent;}
   .tag.status-en_cours{background:var(--blue-soft); color:var(--blue); border-color:transparent;}
   .tag.status-breakeven{background:var(--gray-soft); color:var(--gray); border-color:transparent;}
+  .tag.status-cloture_main{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
   .tag.status-be35{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
   .tag.tp-ok{background:var(--green-soft); color:var(--green); border-color:transparent;}
   .tag.tp-late{background:var(--red-soft); color:var(--red); border-color:transparent;}
@@ -948,6 +950,7 @@
               <option value="perdant">Perdant</option>
               <option value="breakeven">BE point d'entrée</option>
               <option value="be35">BE 35%</option>
+              <option value="cloture_main">Clôture manuelle</option>
             </select>
           </div>
         </div>
@@ -1219,7 +1222,7 @@
       if(el.scrollHeight > 0) el.style.height = Math.min(el.scrollHeight + 2, window.innerHeight * 0.6) + "px";
     }
   });
-  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", observation:"Observation"};
+  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", cloture_main:"Clôture manuelle", observation:"Observation"};
   var TP_WINDOW_H = 36; // au-delà de 36 h après le BE, le TP touché n'est plus comptabilisé
   var RISK_STATES = {
     init:   { label:"Compte à l'état initial / à BE", model:1 },
@@ -1751,13 +1754,14 @@
   function num(v){ var n = parseFloat(v); return isNaN(n) ? 0 : n; }
 
   function accStats(acc){
-    var s = { count:acc.trades.filter(function(t){ return !isObs(t); }).length, obs:0, wins:0, losses:0, be:0, be35:0, tpOk:0, open:0, gp:0, gl:0, pnl:0 };
+    var s = { count:acc.trades.filter(function(t){ return !isObs(t); }).length, obs:0, wins:0, losses:0, be:0, be35:0, manual:0, tpOk:0, open:0, gp:0, gl:0, pnl:0 };
     acc.trades.forEach(function(t){
       if(isObs(t)){ if(!isTrap(t)) s.obs++; return; }
       if(t.status === "gagnant") s.wins++;
       else if(t.status === "perdant") s.losses++;
       else if(t.status === "breakeven") s.be++;
       else if(t.status === "be35"){ s.be++; s.be35++; if(tpCounted(t)) s.tpOk++; }
+      else if(t.status === "cloture_main") s.manual++;
       else s.open++;
       var p = num(t.pnl);
       s.pnl += p;
@@ -2069,7 +2073,7 @@
     } else {
       var total = s.count;
       wrap.innerHTML = donutSVG(
-        [{v:s.wins, color:"var(--green)"}, {v:s.losses, color:"var(--red)"}, {v:s.be, color:"var(--gray)"}, {v:s.open, color:"var(--blue)"}],
+        [{v:s.wins, color:"var(--green)"}, {v:s.losses, color:"var(--red)"}, {v:s.be, color:"var(--gray)"}, {v:s.manual, color:"var(--gold)"}, {v:s.open, color:"var(--blue)"}],
         s.winrate === null ? "—" : s.winrate + "%", "taux de réussite",
         s.winrate === null ? "var(--text-dim)" : (s.winrate >= 50 ? "var(--green)" : "var(--red)"), "Répartition des trades");
       verdict.innerHTML = '<span class="tag">' + total + ' trade' + (total > 1 ? "s" : "") + ' au total</span>';
@@ -2078,6 +2082,7 @@
         legendRow("Gagnants", s.wins + pctOf(s.wins), "", "var(--green)") +
         legendRow("Perdants", s.losses + pctOf(s.losses), "", "var(--red)") +
         legendRow("Breakeven", s.be + pctOf(s.be), "", "var(--gray)") +
+        legendRow("Clôture manuelle", s.manual + pctOf(s.manual), "", "var(--gold)") +
         legendRow("En cours", s.open + pctOf(s.open), "", "var(--blue)");
     }
   }
@@ -3255,7 +3260,7 @@
           if(t.status==="gagnant") g.w++;
           else if(t.status==="perdant") g.l++;
           else if(t.status==="breakeven" || t.status==="be35") g.be++;
-          else g.open++;
+          else if(t.status!=="cloture_main") g.open++;
           g.pnl += parseFloat(t.pnl)||0;
         }
         splitImprove(t.improve).forEach(function(line){
