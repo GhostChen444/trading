@@ -3207,45 +3207,71 @@
     y = 44 + 10;
 
     // =====================================================
-    // 01 — SYNTHÈSE
+    // PARTIE 1 — STATISTIQUES GLOBALES + ÉVALUATION DE RENTABILITÉ
     // =====================================================
-    section("1", "Synthèse du mois", "Les chiffres clés en un coup d'œil");
-    var gap = 4, cw = (CW - 3*gap) / 4;
-    var rowY = y;
-    kpi(MX,               rowY, cw, 25, "Résultat du mois", fmtPdfMoney(pnlMonth), signColor(pnlMonth), true);
-    kpi(MX + (cw+gap),    rowY, cw, 25, "Taux de réussite", winrateNum === null ? "—" : winrateNum + "%", winrateNum === null ? null : (winrateNum >= 50 ? C.green : C.red), true);
-    kpi(MX + 2*(cw+gap),  rowY, cw, 25, "Trades pris", String(taken), null, true);
-    kpi(MX + 3*(cw+gap),  rowY, cw, 25, "Observations", String(obsCount), null, true);
+    section("1", "Statistiques du mois", "Vue globale et évaluation de ta rentabilité");
+
+    var played = monthTrades.filter(function(t){ return !isObs(t); });
+    var settled = played.filter(function(t){ return t.status !== "en_cours" && hasVal(t.pnl); });
+    var gp = 0, gl = 0, nW = 0, nL = 0, bestT = null, worstT = null;
+    var streakW = 0, streakL = 0, curW = 0, curL = 0, cum = 0, peak = 0, maxDD = 0;
+    settled.forEach(function(t){
+      var v = parseFloat(t.pnl) || 0;
+      if(v > 0){ gp += v; nW++; curW++; curL = 0; if(curW > streakW) streakW = curW; }
+      else if(v < 0){ gl += -v; nL++; curL++; curW = 0; if(curL > streakL) streakL = curL; }
+      else { curW = 0; curL = 0; }
+      if(!bestT || v > parseFloat(bestT.pnl)) bestT = t;
+      if(!worstT || v < parseFloat(worstT.pnl)) worstT = t;
+      cum += v; if(cum > peak) peak = cum; if(peak - cum > maxDD) maxDD = peak - cum;
+    });
+    var nS = settled.length, netSettled = gp - gl;
+    var avgWin = nW ? gp / nW : 0, avgLoss = nL ? gl / nL : 0;
+    var pf = gl > 0 ? gp / gl : (gp > 0 ? Infinity : null);
+    var expect = nS ? netSettled / nS : null;
+    var ratioWL = (nW && nL) ? avgWin / avgLoss : null;
+    var beWr = (nW && nL) ? avgLoss / (avgWin + avgLoss) : null;
+    var wrP = (nW + nL) ? nW / (nW + nL) : null;
+    var priorPnl = state.trades.reduce(function(s,t){ return (t.date && t.date < prefix + "-01") ? s + (parseFloat(t.pnl)||0) : s; }, 0);
+    var startBal = initial + priorPnl;
+    var retPct = startBal > 0 ? pnlMonth / startBal * 100 : null;
+    function fmtPf(v){ return v === null ? "—" : (v === Infinity ? "∞" : v.toFixed(2)); }
+    function fmtPct(v, d){ return (v > 0 ? "+" : "") + v.toFixed(d === undefined ? 1 : d).replace(".", ",") + " %"; }
+
+    var gap = 4, cw = (CW - 3*gap) / 4, rowY = y;
+    kpi(MX,              rowY, cw, 25, "Résultat net", fmtPdfMoney(pnlMonth), signColor(pnlMonth), true);
+    kpi(MX + (cw+gap),   rowY, cw, 25, "Rendement du mois", retPct === null ? "—" : fmtPct(retPct), retPct === null ? null : signColor(retPct), true);
+    kpi(MX + 2*(cw+gap), rowY, cw, 25, "Taux de réussite", winrateNum === null ? "—" : winrateNum + "%", winrateNum === null ? null : (winrateNum >= 50 ? C.green : C.red), true);
+    kpi(MX + 3*(cw+gap), rowY, cw, 25, "Profit factor", fmtPf(pf), pf === null ? null : (pf >= 1.5 ? C.green : (pf >= 1 ? C.gold : C.red)), true);
     rowY += 25 + gap;
-    kpi(MX,               rowY, cw, 19, "Solde actuel", fmtPdfMoney(currentBalance, true), null, false);
-    kpi(MX + (cw+gap),    rowY, cw, 19, "Capital initial", fmtPdfMoney(initial, true), null, false);
-    kpi(MX + 2*(cw+gap),  rowY, cw, 19, "BE 35% · TP touché", be35tp + " / " + be35All, null, false);
-    kpi(MX + 3*(cw+gap),  rowY, cw, 19, "En cours", String(open), null, false);
+    kpi(MX,              rowY, cw, 19, "Espérance / trade", expect === null ? "—" : fmtPdfMoney(expect), expect === null ? null : signColor(expect), false);
+    kpi(MX + (cw+gap),   rowY, cw, 19, "Gain moyen", nW ? fmtPdfMoney(avgWin) : "—", nW ? C.green : null, false);
+    kpi(MX + 2*(cw+gap), rowY, cw, 19, "Perte moyenne", nL ? fmtPdfMoney(-avgLoss) : "—", nL ? C.red : null, false);
+    kpi(MX + 3*(cw+gap), rowY, cw, 19, "Ratio gain / perte", ratioWL === null ? "—" : "1 : " + ratioWL.toFixed(2), null, false);
+    rowY += 19 + gap;
+    kpi(MX,              rowY, cw, 19, "Trades pris", String(taken), null, false);
+    kpi(MX + (cw+gap),   rowY, cw, 19, "Observations", String(obsCount), null, false);
+    kpi(MX + 2*(cw+gap), rowY, cw, 19, "Solde actuel", fmtPdfMoney(currentBalance, true), null, false);
+    kpi(MX + 3*(cw+gap), rowY, cw, 19, "BE 35% · TP touché", be35tp + " / " + be35All, null, false);
     y = rowY + 19 + 10;
 
-    // barre de répartition
     if(taken){
       doc.setFont("helvetica","bold"); doc.setFontSize(8); setTxt(C.dim);
-      doc.text("RÉPARTITION DES TRADES PRIS", MX, y);
-      y += 3.5;
-      var segs = [["Gagnants", wins, C.green], ["Perdants", losses, C.red], ["Break-even", be, C.gray], ["En cours", open, C.blue]];
+      doc.text("RÉPARTITION DES TRADES PRIS", MX, y); y += 3.5;
+      var manualN = monthTrades.filter(function(t){ return t.status === "cloture_main"; }).length;
+      var segs = [["Gagnants", wins, C.green], ["Perdants", losses, C.red], ["Break-even", be, C.gray], ["Clôture manuelle", manualN, C.gold], ["En cours", open, C.blue]];
       var sx = MX;
-      segs.forEach(function(sg){
-        if(!sg[1]) return;
-        var w = CW * sg[1] / taken;
-        setFill(sg[2]); doc.rect(sx, y, w, 4.5, "F");
-        sx += w;
-      });
+      segs.forEach(function(sg){ if(!sg[1]) return; var w = CW * sg[1] / taken; setFill(sg[2]); doc.rect(sx, y, w, 4.5, "F"); sx += w; });
       y += 4.5 + 6;
       var lx = MX;
       segs.forEach(function(sg){
+        if(!sg[1]) return;
         var txt = sg[0] + " " + sg[1] + " (" + Math.round(sg[1]/taken*100) + "%)";
         doc.setFont("helvetica","normal"); doc.setFontSize(8);
         setFill(sg[2]); doc.rect(lx, y - 2.4, 2.6, 2.6, "F");
         setTxt(C.text); doc.text(txt, lx + 4.2, y);
         lx += doc.getTextWidth(txt) + 13;
       });
-      y += 8;
+      y += 10;
     }
 
     if(!monthTrades.length){
@@ -3254,475 +3280,178 @@
       doc.text("Aucun trade enregistré pour ce mois.", MX, y);
     } else {
 
-      // =====================================================
-      // 02 — SETUPS PAR STRATÉGIE
-      // =====================================================
-      var NO_STRAT = "Sans stratégie renseignée";
-      var groups = {}, order = [];
-      monthTrades.forEach(function(t){
-        var raw = (t.strategy||"").trim();
-        var key = raw ? normKey(raw) : "";
-        if(!key){ key = "__none__"; raw = NO_STRAT; }
-        if(!groups[key]){ groups[key] = { label:raw, taken:0, obs:0, w:0, l:0, be:0, open:0, pnl:0, rules:{}, ruleOrder:[] }; order.push(key); }
-        var g = groups[key];
-        if(isObs(t)){ g.obs++; }
-        else {
-          g.taken++;
-          if(t.status==="gagnant") g.w++;
-          else if(t.status==="perdant") g.l++;
-          else if(t.status==="breakeven" || t.status==="be35") g.be++;
-          else if(t.status!=="cloture_main") g.open++;
-          g.pnl += parseFloat(t.pnl)||0;
-        }
-        splitImprove(t.improve).forEach(function(line){
-          var rk = normKey(line); if(!rk) return;
-          if(!g.rules[rk]){ g.rules[rk] = { text:line, n:0, srcs:[] }; g.ruleOrder.push(rk); }
-          var r = g.rules[rk]; r.n++;
-          var res = isObs(t) ? "observation" : (t.status==="gagnant" ? "gagnant" : t.status==="perdant" ? "perdant" : (STATUS_LABEL[t.status]||"").toLowerCase());
-          r.srcs.push(dm(t.date) + " " + pdfText(t.pair) + " (" + res + ")");
-        });
-      });
-      order.sort(function(a,b){ return (groups[b].taken+groups[b].obs) - (groups[a].taken+groups[a].obs); });
-
-      section("2", "Setups par stratégie", "Performance de chaque stratégie sur le mois");
-      doc.autoTable({
-        startY: y,
-        head: [["Stratégie","Trades","Obs.","Gagn.","Perd.","BE","Winrate","P&L"]],
-        body: order.map(function(k){
-          var g = groups[k], done = g.w + g.l;
-          return [pdfText(g.label), String(g.taken), String(g.obs), String(g.w), String(g.l), String(g.be),
-                  done ? Math.round(g.w/done*100) + "%" : "—", g.taken ? fmtPdfMoney(g.pnl) : "—"];
-        }),
-        foot: [["Total", String(taken), String(obsCount), String(wins), String(losses), String(be),
-                winrateNum === null ? "—" : winrateNum + "%", fmtPdfMoney(pnlMonth)]],
-        showFoot: "lastPage",
-        theme: "striped",
-        styles: { fontSize: 9, cellPadding: { top:3.4, bottom:3.4, left:3, right:3 }, textColor: C.text, lineWidth: 0 },
-        headStyles: { fillColor: C.ink, textColor: 255, fontStyle: "bold", fontSize: 8 },
-        footStyles: { fillColor: C.goldSoft, textColor: C.ink, fontStyle: "bold" },
-        alternateRowStyles: { fillColor: C.soft },
-        columnStyles: { 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"center"}, 6:{halign:"center"}, 7:{halign:"right"} },
-        didParseCell: function(d){
-          if(d.section !== "body") return;
-          var g = groups[order[d.row.index]];
-          if(d.column.index === 6 && (g.w + g.l)){ d.cell.styles.textColor = (g.w/(g.w+g.l) >= 0.5) ? C.green : C.red; d.cell.styles.fontStyle = "bold"; }
-          if(d.column.index === 7 && g.taken){ d.cell.styles.textColor = signColor(g.pnl); d.cell.styles.fontStyle = "bold"; }
-          if(d.column.index === 0){ d.cell.styles.fontStyle = "bold"; }
-        },
-        margin: { left: MX, right: MX, top: TOP, bottom: BOTTOM }
-      });
-      y = doc.lastAutoTable.finalY + 14;
-
-      // =====================================================
-      // 03 — STRATÉGIE MISE À JOUR
-      // =====================================================
-      var withRules = order.filter(function(k){ return groups[k].ruleOrder.length; });
-      section("3", "Stratégie mise à jour", "Éléments à améliorer issus de tes observations : ils font désormais partie de la stratégie");
-      if(!withRules.length){
-        doc.setFont("helvetica","italic"); doc.setFontSize(9.5); setTxt(C.dim);
-        doc.text("Aucun élément à améliorer renseigné ce mois-ci.", MX, y);
-        y += 12;
+      // ---------- évaluation de rentabilité ----------
+      var verdict;
+      if(!nS){
+        verdict = { label:"Évaluation impossible", col:C.gray, txt:"Aucun trade clôturé avec un résultat chiffré ce mois-ci : renseigne le P&L des trades terminés pour obtenir l'évaluation." };
+      } else if(netSettled > 0 && pf !== null && pf >= 1.5){
+        verdict = { label:"Mois rentable et solide", col:C.green, txt:"Tes gains couvrent largement tes pertes : chaque unité risquée a rapporté plus qu'elle n'a coûté." };
+      } else if(netSettled > 0){
+        verdict = { label:"Mois rentable, mais fragile", col:C.gold, txt:"Tu termines dans le vert, mais la marge est mince : quelques pertes de plus et le mois basculait." };
+      } else if(netSettled === 0){
+        verdict = { label:"Mois à l'équilibre", col:C.gray, txt:"Gains et pertes se compensent exactement : la rentabilité reste à construire." };
       } else {
-        withRules.forEach(function(k){
-          var g = groups[k];
-          g.ruleOrder.sort(function(a,b){ return g.rules[b].n - g.rules[a].n; });
-          ensure(34);
-          // en-tête de stratégie
-          setFill(C.ink); doc.roundedRect(MX, y, CW, 9, 1.6, 1.6, "F");
-          doc.setFont("helvetica","bold"); doc.setFontSize(10); doc.setTextColor(255,255,255);
-          doc.text(pdfText(g.label), MX + 4, y + 6);
-          var done = g.w + g.l;
-          var meta = g.taken + " trade" + (g.taken>1?"s":"") + (done ? "   ·   winrate " + Math.round(g.w/done*100) + "%" : "") + "   ·   " + g.ruleOrder.length + " point" + (g.ruleOrder.length>1?"s":"");
-          doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.setTextColor(210,214,218);
-          doc.text(meta, PW - MX - 4, y + 5.9, { align:"right" });
-          y += 9 + 6;
+        verdict = { label:"Mois non rentable", col:C.red, txt:"Tes pertes dépassent tes gains sur la période : c'est le point à corriger en priorité le mois prochain." };
+      }
+      var caveat = (nS && nS < 10) ? "Échantillon réduit (" + nS + " trade" + (nS > 1 ? "s" : "") + " clôturé" + (nS > 1 ? "s" : "") + ") : cette évaluation est indicative et doit se confirmer sur plusieurs mois." : "";
+      var vLines = wrap(verdict.txt, CW - 12, 9.5, "normal"), cLines = caveat ? wrap(caveat, CW - 12, 8.5, "italic") : [];
+      var vH = 7 + 6.5 + vLines.length * 4.6 + (cLines.length ? cLines.length * 4.1 + 2 : 0) + 5;
+      ensure(vH + 14);
+      doc.setFont("helvetica","bold"); doc.setFontSize(8); setTxt(C.dim);
+      doc.text("ÉVALUATION DE TA RENTABILITÉ", MX, y); y += 4;
+      setFill(C.soft); setDraw(C.line); doc.setLineWidth(0.2); doc.roundedRect(MX, y, CW, vH, 2, 2, "FD");
+      setFill(verdict.col); doc.rect(MX, y + 3, 1.6, vH - 6, "F");
+      doc.setFont("helvetica","bold"); doc.setFontSize(13); setTxt(verdict.col);
+      doc.text(pdfText(verdict.label), MX + 7, y + 8.5);
+      doc.setFont("helvetica","normal"); doc.setFontSize(9.5); setTxt(C.text);
+      doc.text(vLines, MX + 7, y + 15);
+      if(cLines.length){ doc.setFont("helvetica","italic"); doc.setFontSize(8.5); setTxt(C.dim); doc.text(cLines, MX + 7, y + 15 + vLines.length * 4.6 + 2.5); }
+      y += vH + 8;
 
-          g.ruleOrder.forEach(function(rk, idx){
-            var r = g.rules[rk];
-            var textLines = wrap(r.text, CW - 22, 9.5, "bold");
-            var srcLines = wrap("Observé : " + r.srcs.join("  ·  "), CW - 22, 7.5, "normal");
-            var h = textLines.length * 4.6 + srcLines.length * 3.7 + 6;
-            ensure(h);
-            // pastille numérotée
-            setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.3);
-            doc.circle(MX + 5, y + 2.2, 3.4, "FD");
-            doc.setFont("helvetica","bold"); doc.setFontSize(8.5); setTxt(C.gold);
-            doc.text(String(idx + 1), MX + 5, y + 3.3, { align:"center" });
-            // texte
-            doc.setFont("helvetica","bold"); doc.setFontSize(9.5); setTxt(C.ink);
-            doc.text(textLines, MX + 13, y + 3.1);
-            // compteur
-            if(r.n > 1){
-              doc.setFont("helvetica","bold"); doc.setFontSize(8); setTxt(C.gold);
-              doc.text("x" + r.n, PW - MX, y + 3.1, { align:"right" });
-            }
-            var ty = y + 3.1 + (textLines.length - 1) * 4.6 + 4.6;
-            doc.setFont("helvetica","normal"); doc.setFontSize(7.5); setTxt(C.dim);
-            doc.text(srcLines, MX + 13, ty);
-            y += h;
-          });
-          y += 8;
+      var reads = [];
+      reads.push(["Résultat", fmtPdfMoney(pnlMonth) + (retPct !== null ? " (" + fmtPct(retPct) + " du solde de début de mois)." : "."), signColor(pnlMonth)]);
+      if(pf !== null) reads.push(["Profit factor " + fmtPf(pf), pf >= 1.5 ? "Solide : les gains valent au moins 1,5 fois les pertes." : (pf >= 1 ? "Positif mais fragile : entre 1 et 1,5." : "Inférieur à 1 : les pertes dépassent les gains."), pf >= 1.5 ? C.green : (pf >= 1 ? C.gold : C.red)]);
+      if(expect !== null) reads.push(["Espérance", "En moyenne, un trade clôturé te " + (expect >= 0 ? "rapporte " : "coûte ") + fmtPdfMoney(Math.abs(expect), true) + ".", signColor(expect)]);
+      if(ratioWL !== null) reads.push(["Gain moyen vs perte moyenne", "Ratio 1 : " + ratioWL.toFixed(2) + ". Avec ce ratio, il faut gagner au moins " + Math.round(beWr * 100) + " % des trades pour être à l'équilibre ; tu es à " + Math.round(wrP * 100) + " %.", wrP >= beWr ? C.green : C.red]);
+      if(maxDD > 0) reads.push(["Plus forte baisse du mois", fmtPdfMoney(-maxDD) + (startBal > 0 ? " (" + (maxDD / startBal * 100).toFixed(1).replace(".", ",") + " % du solde de début de mois)." : "."), C.red]);
+      if(streakW || streakL) reads.push(["Séries", "Plus longue série gagnante : " + streakW + " · plus longue série perdante : " + streakL + ".", null]);
+      if(bestT && worstT && nS > 1) reads.push(["Meilleur / pire trade", dm(bestT.date) + " " + pdfText(bestT.pair) + " " + fmtPdfMoney(parseFloat(bestT.pnl)) + "  ·  " + dm(worstT.date) + " " + pdfText(worstT.pair) + " " + fmtPdfMoney(parseFloat(worstT.pnl)) + ".", null]);
+      reads.forEach(function(r){
+        var ls = wrap(r[1], CW - 8, 9, "normal");
+        ensure(6 + ls.length * 4.3 + 3);
+        setFill(r[2] || C.dim); doc.rect(MX, y - 3, 1.4, 4, "F");
+        doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.ink);
+        doc.text(pdfText(r[0]), MX + 4, y); y += 4.6;
+        doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.text);
+        doc.text(ls, MX + 4, y); y += ls.length * 4.3 + 3;
+      });
+      y += 4;
+
+      // ---------- tableaux par actif / par stratégie ----------
+      function groupStats(keyFn){
+        var g = {}, order = [];
+        played.forEach(function(t){
+          var k = keyFn(t) || "Non renseigné";
+          if(!g[k]){ g[k] = { label:k, n:0, w:0, l:0, be:0, pnl:0 }; order.push(k); }
+          var o = g[k]; o.n++;
+          if(t.status === "gagnant") o.w++; else if(t.status === "perdant") o.l++; else if(t.status === "breakeven" || t.status === "be35") o.be++;
+          o.pnl += parseFloat(t.pnl) || 0;
         });
+        order.sort(function(a,b){ return g[b].pnl - g[a].pnl; });
+        return { g:g, order:order };
+      }
+      function groupTable(title, gs){
+        if(!gs.order.length) return;
+        ensure(36);
+        doc.autoTable({
+          startY: y, margin: { left: MX, right: MX },
+          head: [[title, "Trades", "Gagn.", "Perd.", "BE", "Winrate", "P&L"]],
+          body: gs.order.map(function(k){
+            var o = gs.g[k], d = o.w + o.l;
+            return [pdfText(o.label), String(o.n), String(o.w), String(o.l), String(o.be), d ? Math.round(o.w/d*100) + "%" : "—", fmtPdfMoney(o.pnl)];
+          }),
+          theme: "striped",
+          styles: { fontSize: 9, cellPadding: { top:3, bottom:3, left:3, right:3 }, textColor: C.text, lineWidth: 0 },
+          headStyles: { fillColor: C.ink, textColor: 255, fontStyle: "bold", fontSize: 8 },
+          alternateRowStyles: { fillColor: C.soft },
+          columnStyles: { 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"center"}, 6:{halign:"right"} },
+          didParseCell: function(d){
+            if(d.section === "head" && d.column.index > 0) d.cell.styles.halign = d.column.index === 6 ? "right" : "center";
+            if(d.section !== "body") return;
+            var o = gs.g[gs.order[d.row.index]];
+            if(d.column.index === 0) d.cell.styles.fontStyle = "bold";
+            if(d.column.index === 6){ d.cell.styles.textColor = signColor(o.pnl); d.cell.styles.fontStyle = "bold"; }
+          }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      }
+      if(played.length){
+        groupTable("Par actif", groupStats(function(t){ return t.pair; }));
+        groupTable("Par stratégie", groupStats(function(t){ return t.strategy; }));
       }
 
-
       // =====================================================
-      // 04 — ANALYSE DE L'EDGE (Supply & Demand en killzone)
-      // =====================================================
-      var edgeSec = 0;
-      (function(){
-        var YN2 = { oui:"Oui", non:"Non" };
-        var KZM = { asie:"Asie", londres:"Londres", us:"US" };
-        function closedSD(t){
-          return !isObs(t) && t.strategy === SD_NAME && t.setup &&
-                 (t.status === "gagnant" || t.status === "perdant" || t.status === "breakeven" || t.status === "be35");
-        }
-        var all = state.trades.filter(closedSD);
-        if(!all.length) return;
-        edgeSec = 1;
-        var inMonth = all.filter(function(t){ return monthTrades.indexOf(t) > -1; }).length;
-
-        function rulesOk(t){
-          var su = t.setup, spec = ruleSpec(normPair(t.pair));
-          if(!spec.length) return null;
-          for(var i = 0; i < spec.length; i++){ if(!su[spec[i][0]]) return null; }
-          return spec.every(function(r){ return su[r[0]] === r[1]; });
-        }
-        function confOk(t){
-          var su = t.setup, v = [su.ote, su.chH1, su.chM5, su.confirm];
-          for(var i = 0; i < v.length; i++){ if(!v[i]) return null; }
-          return v.every(function(x){ return x === "oui"; });
-        }
-        function simple(k, map){ return function(t){ var v = t.setup[k]; if(k === "m5" && v && v !== "oui" && v !== "non") v = "oui"; return v ? (map ? map[v] : v) : null; }; }
-        var DIMS = [
-          { label:"Actif", get:function(t){ var n = normPair(t.pair); return n || null; }, order:SD_PAIRS },
-          { label:"Zone", get:simple("dir",{demand:"Demand",supply:"Supply"}), order:["Demand","Supply"] },
-          { label:"Type de zone", get:simple("type"), order:["OB","FVG"] },
-          { label:"Killzone de repérage", get:simple("zoneKz",KZM), order:["Asie","Londres","US"] },
-          { label:"Structure H1", get:simple("h1",{haussiere:"Haussière",baissiere:"Baissière",range:"Range"}), order:["Haussière","Baissière","Range"] },
-          { label:"Zone d'entrée repérée M5", get:simple("m5",YN2), order:["Oui","Non"] },
-          { label:"Zone OTE H1", get:simple("ote",YN2), order:["Oui","Non"] },
-          { label:"CHoCH H1 (réintégration)", get:simple("chH1",YN2), order:["Oui","Non"] },
-          { label:"CHoCH M5 (réintégration)", get:simple("chM5",YN2), order:["Oui","Non"] },
-          { label:"Confirmation d'entrée M5", get:simple("confirm",YN2), order:["Oui","Non"] },
-          { label:"Killzone d'entrée", get:simple("entryKz",KZM), order:["Asie","Londres","US"] },
-          { label:"Règle : zone hors Asie", get:simple("rHorsAsie",YN2), order:["Oui","Non"] },
-          { label:"Règle : réintégration en Asie", get:simple("rReintAsie",YN2), order:["Oui","Non"] },
-          { label:"Règle : CISD H1 vérifié", get:simple("rCisd",YN2), order:["Oui","Non"] },
-          { label:"Règle : zone déjà mitigée", get:simple("rMitig",YN2), order:["Oui","Non"] },
-          { label:"Règle : zone protégée par liquidités H1", get:simple("rLiq",YN2), order:["Oui","Non"] },
-          { label:"Règle Nasdaq : KZ US 13h-17h UTC", get:simple("rKzUs",YN2), order:["Oui","Non"] },
-          { label:"Règle Nasdaq : entrée entre Londres et US", get:simple("rEntry",YN2), order:["Oui","Non"] },
-          { label:"Confirmations (OTE, CHoCH H1, CHoCH M5, M5)", get:function(t){ var c = confOk(t); return c === null ? null : (c ? "4/4 validées" : "Moins de 4/4"); }, order:["4/4 validées","Moins de 4/4"] },
-          { label:"Règles de l'actif", get:function(t){ var r = rulesOk(t); return r === null ? null : (r ? "Toutes respectées" : "Au moins une violée"); }, order:["Toutes respectées","Au moins une violée"] },
-          { label:"Plan complet (confirmations + règles)", get:function(t){ var c = confOk(t), r = rulesOk(t); if(c === null || r === null) return null; return (c && r) ? "Plan respecté" : "Plan non respecté"; }, order:["Plan respecté","Plan non respecté"] }
-        ];
-        function blank(){ return { n:0, w:0, l:0, be:0, pnl:0, gp:0, gl:0 }; }
-        function add(a, t){
-          var pv = parseFloat(t.pnl) || 0; a.n++; a.pnl += pv; if(pv > 0) a.gp += pv; else a.gl += -pv;
-          if(t.status === "gagnant") a.w++; else if(t.status === "perdant") a.l++; else a.be++;
-        }
-        function wilson(w, n){
-          if(!n) return null;
-          var z = 1.96, ph = w / n, d = 1 + z*z/n;
-          var c = ph + z*z/(2*n), m = z * Math.sqrt(ph*(1-ph)/n + z*z/(4*n*n));
-          return [Math.max(0,(c - m)/d), Math.min(1,(c + m)/d)];
-        }
-        var base = blank(); all.forEach(function(t){ add(base, t); });
-        var baseDone = base.w + base.l, baseWr = baseDone ? base.w / baseDone : null;
-        var MIN_N = 5;
-
-        var rows = [], meta = [], found = [], planMap = null;
-        DIMS.forEach(function(dm_){
-          var map = {};
-          all.forEach(function(t){ var v = dm_.get(t); if(v === null || v === undefined || v === "") return; if(!map[v]) map[v] = blank(); add(map[v], t); });
-          var keys = Object.keys(map); if(!keys.length) return;
-          if(dm_.label.indexOf("Plan complet") === 0) planMap = map;
-          keys.sort(function(a,b){ var ia = dm_.order.indexOf(a), ib = dm_.order.indexOf(b); if(ia < 0) ia = 99; if(ib < 0) ib = 99; return ia - ib || map[b].n - map[a].n; });
-          rows.push([{ content: pdfText(dm_.label), colSpan:8, styles:{ fillColor:C.soft, textColor:C.ink, fontStyle:"bold", fontSize:8 } }]);
-          meta.push(null);
-          keys.forEach(function(k){
-            var a = map[k], done = a.w + a.l, wr = done ? a.w / done : null, avg = a.n ? a.pnl / a.n : 0;
-            var ci = wilson(a.w, done), cls = "low", lecture = "Données insuffisantes";
-            if(a.n >= MIN_N && wr !== null && baseWr !== null){
-              var diff = wr - baseWr;
-              if(diff >= 0.10 && avg > 0){ cls = "edge"; lecture = "Edge potentiel" + (a.n < 20 ? " (indicatif)" : ""); }
-              else if(diff <= -0.10 && avg < 0){ cls = "avoid"; lecture = "À éviter" + (a.n < 20 ? " (indicatif)" : ""); }
-              else { cls = "neutral"; lecture = "Neutre"; }
-            }
-            rows.push([pdfText(k), String(a.n), a.w + " / " + a.l + " / " + a.be,
-                       wr === null ? "-" : Math.round(wr*100) + "%",
-                       ci ? Math.round(ci[0]*100) + " - " + Math.round(ci[1]*100) + "%" : "-",
-                       fmtPdfMoney(avg), a.gl > 0 ? (a.gp / a.gl).toFixed(2) : (a.gp > 0 ? "n/a" : "-"), lecture]);
-            meta.push({ cls:cls, avg:avg });
-            if(cls === "edge" || cls === "avoid") found.push({ cls:cls, text: dm_.label + " = " + k, n:a.n, wr:wr, avg:avg });
-          });
-        });
-
-        doc.addPage(); y = TOP;
-        section("4", "Analyse de l'edge", "Supply & Demand en killzone : quels critères font la différence ?");
-
-        // encadré de contexte
-        var intro = "Base : " + all.length + " trade" + (all.length > 1 ? "s" : "") + " S&D clôturé" + (all.length > 1 ? "s" : "") + " sur ce compte (dont " + inMonth + " ce mois-ci). Winrate de référence : " +
-                    (baseWr === null ? "-" : Math.round(baseWr*100) + "%") + ". Un critère est signalé à partir de " + MIN_N + " trades, avec un écart d'au moins 10 points de winrate ET un P&L moyen de même signe.";
-        var introLines = wrap(intro, CW - 8, 8.5, "normal");
-        var boxH = introLines.length * 4 + 6;
-        ensure(boxH + 4);
-        setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
-        doc.roundedRect(MX, y - 2, CW, boxH, 1.8, 1.8, "FD");
-        doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.ink);
-        doc.text(introLines, MX + 4, y + 2.6);
-        y += boxH + 4;
-        if(all.length < 10){
-          var wl = wrap("Échantillon encore trop faible (" + all.length + "/10 minimum) pour tirer des conclusions : lis ce tableau comme un suivi, pas comme un verdict.", CW, 8.5, "italic");
-          doc.setFont("helvetica","italic"); doc.setFontSize(8.5); setTxt(C.red);
-          ensure(wl.length * 4 + 4); doc.text(wl, MX, y); y += wl.length * 4 + 4;
-        }
-
-
-        // =============== VERDICT GLOBAL : y a-t-il un edge ? ===============
-        var G = (function(){
-          var srt = all.slice().sort(function(a,b){ return (a.date || "").localeCompare(b.date || "") || (a.createdAt || "").localeCompare(b.createdAt || ""); });
-          var P = srt.filter(function(t){ return t.pnl !== "" && t.pnl !== null && t.pnl !== undefined && !isNaN(parseFloat(t.pnl)); });
-          var nP = P.length, g = { n: all.length, nP: nP };
-          var W = all.filter(function(t){ return t.status === "gagnant"; }), L = all.filter(function(t){ return t.status === "perdant"; });
-          g.w = W.length; g.l = L.length; g.be = all.length - W.length - L.length;
-          g.wr = (g.w + g.l) ? g.w / (g.w + g.l) : null;
-          g.wrCi = wilson(g.w, g.w + g.l);
-          var vals = P.map(function(t){ return parseFloat(t.pnl); });
-          var sum = vals.reduce(function(a,b){ return a + b; }, 0);
-          g.mean = nP ? sum / nP : 0;
-          var sd = 0; if(nP > 1){ sd = Math.sqrt(vals.reduce(function(a,v){ return a + (v - g.mean) * (v - g.mean); }, 0) / (nP - 1)); }
-          var tTab = [12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.160,2.145,2.131,2.120,2.110,2.101,2.093,2.086,2.080,2.074,2.069,2.064,2.060,2.056,2.052,2.048,2.045,2.042];
-          var df = nP - 1, tc = df < 1 ? null : (df <= 30 ? tTab[df - 1] : (df <= 60 ? 2.0 : 1.96));
-          g.ci = (tc && nP > 1) ? [g.mean - tc * sd / Math.sqrt(nP), g.mean + tc * sd / Math.sqrt(nP)] : null;
-          var gp = 0, gl = 0, sw = 0, nw = 0, sl = 0, nl = 0;
-          P.forEach(function(t){ var v = parseFloat(t.pnl); if(v > 0) gp += v; else gl += -v; if(t.status === "gagnant"){ sw += v; nw++; } else if(t.status === "perdant"){ sl += -v; nl++; } });
-          g.gp = gp; g.gl = gl; g.pf = gl > 0 ? gp / gl : (gp > 0 ? null : 0);
-          g.avgWin = nw ? sw / nw : null; g.avgLoss = nl ? sl / nl : null;
-          g.payoff = (g.avgWin && g.avgLoss) ? g.avgWin / g.avgLoss : null;
-          g.beWr = (g.avgWin && g.avgLoss) ? g.avgLoss / (g.avgWin + g.avgLoss) : null;
-          // espérance en R (à partir d'entrée / SL / sortie)
-          var Rs = [];
-          all.forEach(function(t){
-            var e = parseFloat(t.entry), sl_ = parseFloat(t.sl), x = parseFloat(t.exit);
-            if(isNaN(e) || isNaN(sl_) || isNaN(x) || e === sl_) return;
-            var sign = t.direction === "vente" ? -1 : 1;
-            Rs.push(sign * (x - e) / Math.abs(e - sl_));
-          });
-          g.nR = Rs.length; g.expR = Rs.length ? Rs.reduce(function(a,b){ return a + b; }, 0) / Rs.length : null;
-          // courbe, drawdown
-          var eq = [0], peak = 0, dd = 0, run = 0;
-          P.forEach(function(t){ run += parseFloat(t.pnl); eq.push(run); if(run > peak) peak = run; if(peak - run > dd) dd = peak - run; });
-          g.eq = eq; g.dd = dd; g.total = run;
-          var streak = 0, maxStreak = 0;
-          srt.forEach(function(t){ if(t.status === "perdant"){ streak++; if(streak > maxStreak) maxStreak = streak; } else if(t.status === "gagnant"){ streak = 0; } });
-          g.maxLoss = maxStreak;
-          // stabilité : 1re moitié vs 2e moitié
-          if(nP >= 10){
-            var half = Math.floor(nP / 2), m1 = vals.slice(0, half), m2 = vals.slice(half);
-            g.h1 = m1.reduce(function(a,b){ return a + b; }, 0) / m1.length; g.h2 = m2.reduce(function(a,b){ return a + b; }, 0) / m2.length;
-          }
-          // verdict
-          var enough = nP >= 30;
-          if(nP < 2){ g.verdict = "Pas assez de données"; g.cls = "low"; }
-          else if(!enough){
-            var dirTxt = (g.mean > 0 && g.pf !== 0 && (g.pf === null || g.pf > 1)) ? "signal positif" : (g.mean <= 0 ? "signal négatif" : "signal mitigé");
-            g.verdict = "Trop tôt pour conclure (" + nP + "/30 trades) : " + dirTxt; g.cls = "low";
-          } else if(g.ci && g.ci[0] > 0 && (g.pf === null || g.pf > 1)){ g.verdict = "Edge démontré statistiquement"; g.cls = "edge"; }
-          else if(g.mean > 0 && (g.pf === null || g.pf > 1)){ g.verdict = "Edge probable, à confirmer"; g.cls = "probable"; }
-          else if(g.ci && g.ci[1] <= 0){ g.verdict = "Pas d'edge : espérance négative"; g.cls = "avoid"; }
-          else { g.verdict = "Pas d'edge démontré"; g.cls = "avoid"; }
-          return g;
-        })();
-        function money(v){ return (v === null || v === undefined || isNaN(v)) ? "-" : fmtPdfMoney(v); }
-
-        ensure(70);
-        doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.ink);
-        doc.text("Verdict global", MX, y + 2); y += 7;
-        var vFill = G.cls === "edge" ? [228,241,234] : (G.cls === "avoid" ? [246,228,225] : (G.cls === "probable" ? C.goldSoft : C.soft));
-        var vCol = G.cls === "edge" ? C.green : (G.cls === "avoid" ? C.red : (G.cls === "probable" ? C.gold : C.gray));
-        setFill(vFill); setDraw(vCol); doc.setLineWidth(0.4);
-        doc.roundedRect(MX, y - 2, CW, 12, 1.8, 1.8, "FD");
-        doc.setFont("helvetica","bold"); doc.setFontSize(11.5); setTxt(vCol);
-        doc.text(G.verdict, MX + 4, y + 5.6);
-        y += 15;
-
-        // cartes de métriques
-        var cards = [
-          ["Espérance / trade", money(G.mean), G.mean > 0 ? C.green : (G.mean < 0 ? C.red : C.text)],
-          ["Profit factor", G.pf === null ? "n/a" : G.pf.toFixed(2), (G.pf === null || G.pf > 1) ? C.green : C.red],
-          ["Winrate", G.wr === null ? "-" : Math.round(G.wr * 100) + "%", C.text],
-          ["Winrate de rentabilité", G.beWr === null ? "-" : Math.round(G.beWr * 100) + "%", C.text],
-          ["Payoff (gain / perte moy.)", G.payoff === null ? "-" : G.payoff.toFixed(2), C.text],
-          ["Espérance en R", G.expR === null ? "-" : (G.expR >= 0 ? "+" : "") + G.expR.toFixed(2) + " R", G.expR === null ? C.text : (G.expR > 0 ? C.green : C.red)],
-          ["Drawdown max", money(G.dd ? -G.dd : 0), G.dd ? C.red : C.text],
-          ["Série de pertes max", String(G.maxLoss), C.text]
-        ];
-        var gap = 3, cw = (CW - gap * 3) / 4, ch = 16;
-        ensure(ch * 2 + gap + 4);
-        cards.forEach(function(cd, i){
-          var cx = MX + (i % 4) * (cw + gap), cy = y - 2 + Math.floor(i / 4) * (ch + gap);
-          setFill(C.soft); doc.roundedRect(cx, cy, cw, ch, 1.8, 1.8, "F");
-          doc.setFont("helvetica","normal"); doc.setFontSize(7); setTxt(C.dim);
-          doc.text(cd[0], cx + 3, cy + 5);
-          doc.setFont("helvetica","bold"); doc.setFontSize(11); setTxt(cd[2]);
-          doc.text(cd[1], cx + 3, cy + 12);
-        });
-        y += ch * 2 + gap + 4;
-
-        // pourquoi ce verdict
-        var why = [];
-        if(G.ci) why.push("Espérance : " + money(G.mean) + " par trade, intervalle de confiance à 95% de " + money(G.ci[0]) + " à " + money(G.ci[1]) + (G.ci[0] > 0 ? " (entièrement positif)." : (G.ci[1] < 0 ? " (entièrement négatif)." : " (inclut zéro : le hasard n'est pas exclu).")));
-        if(G.wr !== null && G.beWr !== null && G.wrCi){
-          var rel = G.wrCi[0] > G.beWr ? "au-dessus du seuil, même dans le pire cas de l'intervalle" : (G.wr > G.beWr ? "au-dessus du seuil, mais l'intervalle le recouvre" : "sous le seuil de rentabilité");
-          why.push("Winrate " + Math.round(G.wr * 100) + "% (IC 95% : " + Math.round(G.wrCi[0] * 100) + " - " + Math.round(G.wrCi[1] * 100) + "%) contre " + Math.round(G.beWr * 100) + "% nécessaires avec ton payoff de " + G.payoff.toFixed(2) + " : " + rel + ".");
-        }
-        if(G.pf !== null) why.push("Profit factor " + G.pf.toFixed(2) + " : " + (G.pf > 1 ? "les gains dépassent les pertes" : "les pertes dépassent les gains") + ".");
-        if(G.expR !== null && G.nR >= Math.ceil(all.length * 0.7)) why.push("Espérance en R : " + (G.expR >= 0 ? "+" : "") + G.expR.toFixed(2) + " R sur " + G.nR + " trades (calculée avec entrée, SL et sortie : indépendante de la taille de lot).");
-        else if(G.nR < all.length) why.push("Espérance en R non fiable : entrée, SL et sortie ne sont renseignés que pour " + G.nR + " trade(s) sur " + all.length + ".");
-        if(G.h1 !== undefined) why.push("Stabilité : espérance " + money(G.h1) + " sur la 1re moitié des trades contre " + money(G.h2) + " sur la 2e" + (G.h2 < G.h1 && G.h1 > 0 ? " (dégradation à surveiller)." : "."));
-        if(planMap && planMap["Plan respecté"] && planMap["Plan non respecté"]){
-          var pr_ = planMap["Plan respecté"], pn_ = planMap["Plan non respecté"];
-          function wrTxt(a){ return (a.w + a.l) ? Math.round(a.w / (a.w + a.l) * 100) + "%" : "-"; }
-          why.push("Discipline : plan respecté = winrate " + wrTxt(pr_) + ", P&L moyen " + money(pr_.pnl / pr_.n) + " (" + pr_.n + " trades) ; plan non respecté = winrate " + wrTxt(pn_) + ", P&L moyen " + money(pn_.pnl / pn_.n) + " (" + pn_.n + " trades).");
-        }
-        if(G.nP < 30) why.push("Il manque " + (30 - G.nP) + " trade(s) avec P&L pour atteindre le minimum de 30 qui rend le verdict interprétable.");
-        why.push("Un edge se démontre si l'espérance est positive de façon stable ET que son intervalle de confiance exclut zéro : un bon winrate seul ne suffit pas.");
-        var wl2 = []; why.forEach(function(x){ wl2.push(wrap("-  " + x, CW - 8, 8.5, "normal")); });
-        var wh = 8 + wl2.reduce(function(a,l){ return a + l.length * 4 + 1.2; }, 0);
-        ensure(wh + 4);
-        setFill(C.soft); doc.roundedRect(MX, y - 2, CW, wh, 1.8, 1.8, "F");
-        setFill(vCol); doc.rect(MX, y - 2, 1.6, wh, "F");
-        doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.ink); doc.text("Pourquoi ce verdict", MX + 5, y + 3);
-        var yy2 = y + 8; doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.text);
-        wl2.forEach(function(l){ doc.text(l, MX + 5, yy2); yy2 += l.length * 4 + 1.2; });
-        y += wh + 6;
-
-        // courbe de P&L cumulé
-        if(G.eq.length > 2){
-          var chH = 38; ensure(chH + 14);
-          doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.ink); doc.text("P&L cumulé de la stratégie (trade après trade)", MX, y + 2);
-          var x0 = MX, wC = CW, y0 = y + 6;
-          setFill(C.soft); doc.rect(x0, y0, wC, chH, "F");
-          var mn = Math.min.apply(null, G.eq.concat([0])), mx = Math.max.apply(null, G.eq.concat([0])); if(mx === mn){ mx += 1; mn -= 1; }
-          function px(i){ return x0 + 3 + (wC - 6) * i / (G.eq.length - 1); }
-          function py(v){ return y0 + 3 + (chH - 6) * (1 - (v - mn) / (mx - mn)); }
-          setDraw(C.gray); doc.setLineWidth(0.2); doc.line(x0 + 3, py(0), x0 + wC - 3, py(0));
-          setDraw(G.total >= 0 ? C.green : C.red); doc.setLineWidth(0.7);
-          for(var i2 = 1; i2 < G.eq.length; i2++){ doc.line(px(i2 - 1), py(G.eq[i2 - 1]), px(i2), py(G.eq[i2])); }
-          doc.setFont("helvetica","normal"); doc.setFontSize(7); setTxt(C.dim);
-          doc.text("max " + money(mx), x0 + 4, y0 + 5); doc.text("min " + money(mn), x0 + 4, y0 + chH - 2);
-          y = y0 + chH + 8;
-        }
-
-        ensure(24);
-        doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.ink);
-        doc.text("Quels critères portent l'edge ?", MX, y + 2); y += 6;
-
-        doc.autoTable({
-          startY: y,
-          head: [["Valeur","Trades","G / P / BE","Winrate","IC 95%","P&L moyen","PF","Lecture"]],
-          body: rows,
-          theme: "plain",
-          styles: { fontSize: 8, cellPadding: { top:2.2, bottom:2.2, left:3, right:3 }, textColor: C.text, lineWidth: 0 },
-          headStyles: { fillColor: C.ink, textColor: 255, fontStyle: "bold", fontSize: 7.5 },
-          columnStyles: { 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"right"}, 6:{halign:"center"} },
-          didParseCell: function(d){
-            if(d.section !== "body") return;
-            var m = meta[d.row.index]; if(!m) return;
-            if(d.column.index === 7){
-              d.cell.styles.fontStyle = "bold";
-              d.cell.styles.textColor = m.cls === "edge" ? C.green : (m.cls === "avoid" ? C.red : C.dim);
-            }
-            if(d.column.index === 5){ d.cell.styles.textColor = signColor(m.avg); }
-          },
-          margin: { left: MX, right: MX, top: TOP, bottom: BOTTOM }
-        });
-        y = doc.lastAutoTable.finalY + 10;
-
-        // synthèse
-        var edges = found.filter(function(f){ return f.cls === "edge"; }).sort(function(a,b){ return b.wr - a.wr || b.n - a.n; }).slice(0, 4);
-        var avoids = found.filter(function(f){ return f.cls === "avoid"; }).sort(function(a,b){ return a.wr - b.wr || b.n - a.n; }).slice(0, 4);
-        function fl(f){ return f.text + "  (winrate " + Math.round(f.wr*100) + "%, " + f.n + " trades, P&L moyen " + fmtPdfMoney(f.avg) + ")"; }
-        var parts = [];
-        parts.push({ h:"Edges potentiels à jouer", c:C.green, items: edges.length ? edges.map(fl) : ["Aucun critère ne se détache encore avec assez de trades."] });
-        parts.push({ h:"Conditions à éviter", c:C.red, items: avoids.length ? avoids.map(fl) : ["Aucune condition clairement perdante pour l'instant."] });
-        var caution = "Lecture prudente : chaque critère est testé séparément et sur peu de trades. Un écart de 10 points peut n'être que du hasard, surtout sous 30 trades (voir l'IC 95%). Tester autant de critères en même temps fait aussi apparaître de faux positifs par hasard. Ne modifie ton plan qu'après confirmation sur plusieurs mois, et teste un seul critère à la fois.";
-        ensure(30);
-        parts.forEach(function(pt){
-          var lines = []; pt.items.forEach(function(it){ lines.push(wrap("-  " + it, CW - 6, 9, "normal")); });
-          var h = 7 + lines.reduce(function(sum,l){ return sum + l.length * 4.3 + 1; }, 0) + 3;
-          ensure(h + 3);
-          setFill(C.soft); doc.roundedRect(MX, y - 2, CW, h, 1.8, 1.8, "F");
-          setFill(pt.c); doc.rect(MX, y - 2, 1.6, h, "F");
-          doc.setFont("helvetica","bold"); doc.setFontSize(9.5); setTxt(pt.c);
-          doc.text(pt.h, MX + 5, y + 3);
-          var yy = y + 8;
-          doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.text);
-          lines.forEach(function(l){ doc.text(l, MX + 5, yy); yy += l.length * 4.3 + 1; });
-          y += h + 4;
-        });
-        var cl = wrap(caution, CW, 8.5, "italic");
-        ensure(cl.length * 4 + 4);
-        doc.setFont("helvetica","italic"); doc.setFontSize(8.5); setTxt(C.dim);
-        doc.text(cl, MX, y); y += cl.length * 4 + 6;
-      })();
-
-      // =====================================================
-      // 04 — JOURNAL DES TRADES
+      // PARTIE 2 — REVUE TRADE PAR TRADE
       // =====================================================
       doc.addPage(); y = TOP;
-      section(String(4 + edgeSec), "Journal des trades", "Vue d'ensemble chronologique du mois");
-      doc.autoTable({
-        startY: y,
-        head: [["Date","Paire","Sens","Statut","Entrée","SL","TP","P&L","Stratégie"]],
-        body: monthTrades.map(function(t){
-          return [
-            dm(t.date),
-            pdfText(t.pair),
-            (isObs(t) && !t.direction) ? "—" : (t.direction === "vente" ? "Vente" : "Achat"),
-            STATUS_LABEL[t.status] || "",
-            isObs(t) ? "" : pdfText(t.entry),
-            isObs(t) ? "" : pdfText(t.sl),
-            isObs(t) ? "" : pdfText(t.tp),
-            hasVal(t.pnl) ? fmtPdfMoney(parseFloat(t.pnl)) : "",
-            pdfText(t.strategy)
-          ];
-        }),
-        theme: "striped",
-        styles: { fontSize: 8, cellPadding: { top:3.4, bottom:3.4, left:2.4, right:2.4 }, textColor: C.text, lineWidth: 0, overflow: "linebreak" },
-        headStyles: { fillColor: C.ink, textColor: 255, fontStyle: "bold", fontSize: 7.5 },
-        alternateRowStyles: { fillColor: C.soft },
-        columnStyles: { 0:{cellWidth:14}, 1:{cellWidth:22, fontStyle:"bold"}, 2:{cellWidth:14}, 3:{cellWidth:26}, 7:{halign:"right", cellWidth:28} },
-        didParseCell: function(d){
-          if(d.section !== "body") return;
-          var t = monthTrades[d.row.index];
-          if(d.column.index === 2 && !isObs(t)){ d.cell.styles.textColor = t.direction === "vente" ? C.red : C.green; }
-          if(d.column.index === 3){ d.cell.styles.textColor = statusColor(t); d.cell.styles.fontStyle = "bold"; }
-          if(d.column.index === 7 && hasVal(t.pnl)){ d.cell.styles.textColor = signColor(parseFloat(t.pnl)||0); d.cell.styles.fontStyle = "bold"; }
-        },
-        margin: { left: MX, right: MX, top: TOP, bottom: BOTTOM }
-      });
-      y = doc.lastAutoTable.finalY + 14;
+      section("2", "Revue trade par trade", monthTrades.length + " trade" + (monthTrades.length > 1 ? "s" : "") + " du mois, dans l'ordre chronologique, avec toutes leurs informations");
 
-      // =====================================================
-      // 05 — FICHES DÉTAILLÉES
-      // =====================================================
-      var fiches = monthTrades.filter(function(t){
-        var txt = hasVal(t.geo) || hasVal(t.macro) || hasVal(t.evolution) || hasVal(t.improve) || hasVal(t.stratDetails) || hasVal(t.trapNotes) || !!t.setup;
-        return txt || (!isObs(t) && (hasVal(t.lot) || hasVal(t.exit)));
-      });
-      fichesCount = fiches.length;
-      if(fiches.length){
-        doc.addPage(); y = TOP;
-        section(String(5 + edgeSec), "Fiches détaillées", "Exécution, contexte, évolution et points à améliorer de chaque trade");
-        fiches.forEach(function(t){
-          var col = statusColor(t);
-          var iX = MX + 6, iW = CW - 6;
-          var exec = [["Lot", t.lot], ["Risque", hasVal(t.risk) ? t.risk + "%" : ""], ["Entrée", t.entry], ["SL", t.sl], ["TP", t.tp], ["Sortie", t.exit]]
-            .filter(function(p){ return !isObs(t) && hasVal(p[1]); })
-            .map(function(p){ return p[0] + " " + pdfText(p[1]); }).join("     ·     ");
+      var KZL = { asie:"Asie", londres:"Londres", us:"US" }, H1L = { haussiere:"Haussière", baissiere:"Baissière", range:"Range" }, YNL = { oui:"Oui", non:"Non" };
+      var RSL = { init:"Compte à l'état initial / à BE", dd:"Compte en drawdown", be35:"Compte après un BE 35 %", tp:"Compte après un TP", be35x2:"Compte après 2 BE 35 % enchaînés" };
+      function numv(v){ var n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? null : n; }
+      var iX = MX + 6, iW = CW - 6;
+      function ln(h){ if(y + h > PH - BOTTOM){ doc.addPage(); y = TOP; } }
+
+      monthTrades.forEach(function(t, idx){
+        var col = statusColor(t), obsT = isObs(t);
+        ln(48);
+        // en-tête
+        setDraw(C.line); doc.setLineWidth(0.3); doc.line(MX, y, PW - MX, y); y += 7;
+        setFill(col); doc.rect(MX, y - 4.6, 1.6, 7, "F");
+        doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
+        var hd = "#" + (idx + 1) + "   " + dmy(t.date); doc.text(hd, iX, y);
+        var px = iX + doc.getTextWidth(hd) + 5;
+        doc.setFont("helvetica","bold"); doc.setFontSize(12); setTxt(C.ink);
+        var pt = pdfText(t.pair); doc.text(pt, px, y);
+        px += doc.getTextWidth(pt) + 4;
+        doc.setFont("helvetica","bold"); doc.setFontSize(8.5); setTxt(col); doc.text(pdfTag(t), px, y);
+        if(hasVal(t.pnl)){
+          var pv = parseFloat(t.pnl) || 0;
+          doc.setFont("helvetica","bold"); doc.setFontSize(12); setTxt(signColor(pv));
+          doc.text(fmtPdfMoney(pv), PW - MX, y, { align:"right" });
+        }
+        y += 8;
+
+        // fiche d'identité du trade
+        var en = numv(t.entry), sl = numv(t.sl), tp = numv(t.tp), ex = numv(t.exit);
+        var rrPlan = null, rrReal = null;
+        if(en !== null && sl !== null && en !== sl){
+          var rk = Math.abs(en - sl);
+          if(tp !== null) rrPlan = "1 : " + (Math.abs(tp - en) / rk).toFixed(2);
+          if(ex !== null){ var sg = (t.direction === "vente") ? -1 : 1, rv = (ex - en) * sg / rk; rrReal = (rv > 0 ? "+" : "") + rv.toFixed(2).replace(".", ",") + " R"; }
+        }
+        var cells = [];
+        if(isTrap(t)) cells.push(["Type", "Setup trap"]);
+        else if(obsT) cells.push(["Type", "Observation"]);
+        if(hasVal(t.direction) && !isTrap(t)) cells.push(["Sens", t.direction === "vente" ? "Vente" : "Achat"]);
+        if(!obsT){
+          cells.push(["Statut", STATUS_LABEL[t.status] || t.status || ""]);
+          if(hasVal(t.risk)) cells.push(["Risque", t.risk + " %"]);
+          if(hasVal(t.riskState)) cells.push(["Contexte du risque", RSL[t.riskState] || t.riskState]);
+          if(hasVal(t.lot)) cells.push(["Lot", t.lot]);
+          if(hasVal(t.entry)) cells.push(["Entrée", t.entry]);
+          if(hasVal(t.sl)) cells.push(["Stop loss", t.sl]);
+          if(hasVal(t.tp)) cells.push(["Take profit", t.tp]);
+          if(hasVal(t.exit)) cells.push(["Sortie", t.exit]);
+          if(rrPlan) cells.push(["RR prévu", rrPlan]);
+          if(rrReal) cells.push(["RR réalisé", rrReal]);
+          if(t.status === "be35") cells.push(["TP touché", t.tpHit ? "Oui" : "Non"]);
+          if(hasVal(t.pnl)) cells.push(["Résultat", fmtPdfMoney(parseFloat(t.pnl) || 0)]);
+        }
+        if(hasVal(t.strategy)){
+          ln(8);
+          doc.setFont("helvetica","normal"); doc.setFontSize(6.8); setTxt(C.dim);
+          doc.text("STRATÉGIE", iX, y);
+          doc.setFont("helvetica","bold"); doc.setFontSize(9.5); setTxt(C.ink);
+          doc.text(pdfText(t.strategy), iX, y + 4.6);
+          y += 10.5;
+        }
+        var gcw = CW / 4;
+        for(var ci = 0; ci < cells.length; ci += 4){
+          ln(11);
+          cells.slice(ci, ci + 4).forEach(function(c, k){
+            var cx = MX + 6 + k * (gcw - 1.5);
+            doc.setFont("helvetica","normal"); doc.setFontSize(6.8); setTxt(C.dim);
+            doc.text(pdfText(c[0]).toUpperCase(), cx, y);
+            doc.setFont("helvetica","bold"); doc.setFontSize(9.5); setTxt(c[0] === "Résultat" ? signColor(parseFloat(t.pnl) || 0) : C.ink);
+            var vv = pdfText(c[1]); while(doc.getTextWidth(vv) > gcw - 4 && vv.length > 4) vv = vv.slice(0, -2);
+            doc.text(vv === pdfText(c[1]) ? vv : vv + "…", cx, y + 4.6);
+          });
+          y += 10.5;
+        }
+        y += 2;
+
+        // blocs d'informations (setup, notes, contexte, évolution)
           var blocks = [];
           if(t.setup){
             var su = t.setup, KZL = { asie:"Asie", londres:"Londres", us:"US" }, H1L = { haussiere:"Haussière", baissiere:"Baissière", range:"Range" }, YNL = { oui:"Oui", non:"Non" };
@@ -3757,130 +3486,68 @@
           [["Contexte géopolitique", t.geo], ["Contexte macroéconomique", t.macro], ["Évolution du trade", t.evolution]].forEach(function(p){
             if(hasVal(p[1])) blocks.push({ label:p[0], lines: wrap(p[1], iW, 9) });
           });
-          var imps = splitImprove(t.improve).map(function(l){ return wrap(l, iW - 14, 9); });
-
-          // hauteur totale
-          var total = 9;
-          if(exec) total += 6;
-          if(hasVal(t.strategy)) total += 6;
-          blocks.forEach(function(b){ total += 4.5 + b.lines.length * 4.3 + 3.5; });
-          var impH = 0;
-          if(imps.length){ impH = 4 + 4.5 + imps.reduce(function(s,l){ return s + l.length * 4.3 + 1.4; }, 0) + 3; total += impH + 2; }
-          var fits = total <= (PH - TOP - BOTTOM);
-          if(fits) ensure(total); else ensure(40);
-          var y0 = y, pg = doc.internal.getCurrentPageInfo().pageNumber;
-
-          if(fits){ setFill(col); doc.rect(MX, y0, 1.6, total - 2, "F"); }
-
-          // titre
-          doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
-          var dTxt = dmy(t.date); doc.text(dTxt, iX, y + 4);
-          var px = iX + doc.getTextWidth(dTxt) + 5;
-          doc.setFont("helvetica","bold"); doc.setFontSize(11.5); setTxt(C.ink);
-          var pairTxt = pdfText(t.pair); doc.text(pairTxt, px, y + 4);
-          px += doc.getTextWidth(pairTxt) + 4;
-          doc.setFont("helvetica","bold"); doc.setFontSize(8.5); setTxt(col);
-          doc.text(pdfTag(t), px, y + 4);
-          if(hasVal(t.pnl)){
-            var pv = parseFloat(t.pnl)||0;
-            doc.setFont("helvetica","bold"); doc.setFontSize(11); setTxt(signColor(pv));
-            doc.text(fmtPdfMoney(pv), PW - MX, y + 4, { align:"right" });
-          }
-          y += 9;
-          function ln(h){ if(y + h > PH - BOTTOM){ doc.addPage(); y = TOP; } }
-          if(hasVal(t.strategy)){
-            ln(6); doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
-            doc.text("Stratégie : ", iX, y);
-            var sw = doc.getTextWidth("Stratégie : ");
-            doc.setFont("helvetica","bold"); setTxt(C.text); doc.text(pdfText(t.strategy), iX + sw, y);
-            y += 6;
-          }
-          if(exec){
-            ln(6); doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
-            doc.text(exec, iX, y); y += 6;
-          }
-          blocks.forEach(function(b){
-            ln(10);
-            doc.setFont("helvetica","bold"); doc.setFontSize(7); setTxt(C.dim);
-            doc.text(pdfText(b.label).toUpperCase(), iX, y); y += 4.5;
-            doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.text);
-            b.lines.forEach(function(l){ ln(4.3); doc.text(l, iX, y); y += 4.3; });
-            y += 3.5;
-          });
-          if(imps.length){
-            ln(impH + 2);
-            var by = y - 1.5;
-            setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
-            doc.roundedRect(iX, by, iW, impH, 1.8, 1.8, "FD");
-            doc.setFont("helvetica","bold"); doc.setFontSize(7); setTxt(C.gold);
-            doc.text("À AMÉLIORER  ·  RÈGLES À INTÉGRER", iX + 4, by + 5.6);
-            var iy = by + 11.2;
-            imps.forEach(function(lines){
-              doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.gold);
-              doc.text("+", iX + 4, iy);
-              doc.setFont("helvetica","normal"); setTxt(C.ink);
-              doc.text(lines, iX + 10, iy);
-              iy += lines.length * 4.3 + 1.4;
-            });
-            y = by + impH + 3.5;
-          }
-          y += 9;
+        var imps = splitImprove(t.improve).map(function(l){ return wrap(l, iW - 14, 9); });
+        blocks.forEach(function(b){
+          ln(10);
+          doc.setFont("helvetica","bold"); doc.setFontSize(7); setTxt(C.dim);
+          doc.text(pdfText(b.label).toUpperCase(), iX, y); y += 4.5;
+          doc.setFont("helvetica","normal"); doc.setFontSize(9); setTxt(C.text);
+          b.lines.forEach(function(l){ ln(4.3); doc.text(l, iX, y); y += 4.3; });
+          y += 3.5;
         });
-      }
-    }
-
-    // =====================================================
-    // 06 — CAPTURES
-    // =====================================================
-    var shotTrades = monthTrades.filter(function(t){ return t.shots && t.shots.length; });
-    if(shotTrades.length){
-      var cgap = 6, colW = (CW - cgap) / 2, maxImgH = 70;
-      doc.addPage(); y = TOP;
-      section(String(5 + (edgeSec || 0) + (fichesCount ? 1 : 0)),
-              "Captures des trades", "Graphiques et annotations associés à chaque trade");
-
-      shotTrades.forEach(function(t){
-        var cells = t.shots.map(function(sh, i){
-          var url = shotUrls[sh.id] || null;
-          var w = colW, h = 0;
-          if(url){
-            try{
-              var props = doc.getImageProperties(url);
-              h = colW * props.height / props.width;
-              if(h > maxImgH){ w = colW * (maxImgH / h); h = maxImgH; }
-            }catch(e){ url = null; }
-          }
-          var caption = (i + 1) + ". " + (sh.desc ? pdfText(sh.desc) : "(sans description)") + (url ? "" : "  [image indisponible]");
-          var lines = wrap(caption, colW, 8.5, "normal");
-          return { url:url, w:w, h:h, lines:lines, capH: lines.length * 3.9 };
-        });
-
-        for(var r = 0; r < cells.length; r += 2){
-          var row = cells.slice(r, r + 2);
-          var rowH = Math.max.apply(null, row.map(function(c){ return c.h + 3 + c.capH; })) + 8;
-          ensure(rowH + (r === 0 ? 12 : 0));
-          if(r === 0){
-            setFill(statusColor(t)); doc.rect(MX, y - 3.6, 1.6, 6, "F");
-            doc.setFont("helvetica","bold"); doc.setFontSize(10); setTxt(C.ink);
-            doc.text(dmy(t.date) + "  ·  " + pdfText(t.pair), MX + 5, y);
-            doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(statusColor(t));
-            doc.text(pdfTag(t) + (hasVal(t.pnl) ? "   " + fmtPdfMoney(parseFloat(t.pnl)) : ""), PW - MX, y, { align:"right" });
-            y += 6;
-          }
-          row.forEach(function(c, k){
-            var x = MX + k * (colW + cgap);
-            if(c.url){
-              doc.addImage(c.url, "JPEG", x, y, c.w, c.h);
-              setDraw(C.line); doc.setLineWidth(0.3); doc.rect(x, y, c.w, c.h);
-            }
-            doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
-            doc.text(c.lines, x, y + c.h + 4.5);
+        if(imps.length){
+          var impH = 4 + 4.5 + imps.reduce(function(s,l){ return s + l.length * 4.3 + 1.4; }, 0) + 3;
+          ln(impH + 2);
+          var by = y - 1.5;
+          setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
+          doc.roundedRect(iX, by, iW, impH, 1.8, 1.8, "FD");
+          doc.setFont("helvetica","bold"); doc.setFontSize(7); setTxt(C.gold);
+          doc.text("À AMÉLIORER  ·  RÈGLES À INTÉGRER", iX + 4, by + 5.6);
+          var iy = by + 11.2;
+          imps.forEach(function(lines){
+            doc.setFont("helvetica","bold"); doc.setFontSize(9); setTxt(C.gold); doc.text("+", iX + 4, iy);
+            doc.setFont("helvetica","normal"); setTxt(C.ink); doc.text(lines, iX + 10, iy);
+            iy += lines.length * 4.3 + 1.4;
           });
-          y += rowH;
+          y = by + impH + 3.5;
         }
-        y += 4;
+
+        // captures du trade
+        if(t.shots && t.shots.length){
+          var cgap = 6, colW = (iW - cgap) / 2, maxImgH = 70;
+          ln(14);
+          doc.setFont("helvetica","bold"); doc.setFontSize(7); setTxt(C.dim);
+          doc.text("CAPTURES", iX, y); y += 4.5;
+          var sc = t.shots.map(function(sh, i){
+            var url = shotUrls[sh.id] || null, w = colW, h = 0;
+            if(url){
+              try{
+                var props = doc.getImageProperties(url);
+                h = colW * props.height / props.width;
+                if(h > maxImgH){ w = colW * (maxImgH / h); h = maxImgH; }
+              }catch(e){ url = null; }
+            }
+            var caption = (i + 1) + ". " + (sh.desc ? pdfText(sh.desc) : "(sans description)") + (url ? "" : "  [image indisponible]");
+            var lines = wrap(caption, colW, 8.5, "normal");
+            return { url:url, w:w, h:h, lines:lines, capH: lines.length * 3.9 };
+          });
+          for(var r = 0; r < sc.length; r += 2){
+            var row = sc.slice(r, r + 2);
+            var rowH = Math.max.apply(null, row.map(function(c){ return c.h + 3 + c.capH; })) + 6;
+            ln(rowH);
+            row.forEach(function(c, k){
+              var x = iX + k * (colW + cgap);
+              if(c.url){ doc.addImage(c.url, "JPEG", x, y, c.w, c.h); setDraw(C.line); doc.setLineWidth(0.3); doc.rect(x, y, c.w, c.h); }
+              doc.setFont("helvetica","normal"); doc.setFontSize(8.5); setTxt(C.dim);
+              doc.text(c.lines, x, y + c.h + 4.5);
+            });
+            y += rowH;
+          }
+        }
+        y += 8;
       });
     }
+
 
     // ---------- pied de page sur chaque page ----------
     var pageCount = doc.internal.getNumberOfPages();
