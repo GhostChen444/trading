@@ -1272,6 +1272,16 @@
     return h >= 0 && h <= TP_WINDOW_H;
   }
   function isTrap(t){ return !!(t && t.trap === true); }
+  // issue d'un trade : une clôture manuelle compte selon le signe de son résultat
+  function outcomeOf(t){
+    if(!t) return null;
+    if(t.status === "gagnant") return "w";
+    if(t.status === "perdant") return "l";
+    if(t.status === "breakeven") return "be";
+    if(t.status === "be35"){ var b = parseFloat(t.pnl); return (!isNaN(b) && b < 0) ? "l" : "w"; } // BE 35 % = résultat positif
+    if(t.status === "cloture_main"){ var v = parseFloat(t.pnl); return (isNaN(v) || v === 0) ? "be" : (v > 0 ? "w" : "l"); }
+    return null;
+  }
   function isObs(t){ return !!(t && (t.observation === true || t.status === "observation")); }
   function tpTagHtml(t){
     if(!t || t.status !== "be35" || !t.tpHit) return "";
@@ -1768,12 +1778,12 @@
     var s = { count:acc.trades.filter(function(t){ return !isObs(t); }).length, obs:0, wins:0, losses:0, be:0, be35:0, manual:0, tpOk:0, open:0, gp:0, gl:0, pnl:0 };
     acc.trades.forEach(function(t){
       if(isObs(t)){ if(!isTrap(t)) s.obs++; return; }
-      if(t.status === "gagnant") s.wins++;
-      else if(t.status === "perdant") s.losses++;
-      else if(t.status === "breakeven") s.be++;
-      else if(t.status === "be35"){ s.be++; s.be35++; if(tpCounted(t)) s.tpOk++; }
-      else if(t.status === "cloture_main") s.manual++;
+      var oc = outcomeOf(t);
+      if(oc === "w") s.wins++;
+      else if(oc === "l") s.losses++;
+      else if(oc === "be") s.be++;
       else s.open++;
+      if(t.status === "be35"){ s.be35++; if(tpCounted(t)) s.tpOk++; }
       var p = num(t.pnl);
       s.pnl += p;
       if(p > 0) s.gp += p; else if(p < 0) s.gl += -p;
@@ -1989,9 +1999,9 @@
     var monthTrades = state.trades.filter(function(t){ return t.date && t.date.indexOf(prefix)===0; });
     var obsCount = monthTrades.filter(function(t){ return isObs(t) && !isTrap(t); }).length;
     monthTrades = monthTrades.filter(function(t){ return !isObs(t); });
-    var closed = monthTrades.filter(function(t){ return t.status==="gagnant" || t.status==="perdant"; });
-    var wins = monthTrades.filter(function(t){ return t.status==="gagnant"; }).length;
-    var losses = monthTrades.filter(function(t){ return t.status==="perdant"; }).length;
+    var closed = monthTrades.filter(function(t){ var o = outcomeOf(t); return o === "w" || o === "l"; });
+    var wins = monthTrades.filter(function(t){ return outcomeOf(t) === "w"; }).length;
+    var losses = monthTrades.filter(function(t){ return outcomeOf(t) === "l"; }).length;
     var open = monthTrades.filter(function(t){ return t.status==="en_cours"; }).length;
     var be35n = monthTrades.filter(function(t){ return t.status==="be35"; }).length;
     var be35tp = monthTrades.filter(tpCounted).length;
@@ -2084,7 +2094,7 @@
     } else {
       var total = s.count;
       wrap.innerHTML = donutSVG(
-        [{v:s.wins, color:"var(--green)"}, {v:s.losses, color:"var(--red)"}, {v:s.be, color:"var(--gray)"}, {v:s.manual, color:"var(--gold)"}, {v:s.open, color:"var(--blue)"}],
+        [{v:s.wins, color:"var(--green)"}, {v:s.losses, color:"var(--red)"}, {v:s.be, color:"var(--gray)"}, {v:s.open, color:"var(--blue)"}],
         s.winrate === null ? "—" : s.winrate + "%", "taux de réussite",
         s.winrate === null ? "var(--text-dim)" : (s.winrate >= 50 ? "var(--green)" : "var(--red)"), "Répartition des trades");
       verdict.innerHTML = '<span class="tag">' + total + ' trade' + (total > 1 ? "s" : "") + ' au total</span>';
@@ -2093,7 +2103,6 @@
         legendRow("Gagnants", s.wins + pctOf(s.wins), "", "var(--green)") +
         legendRow("Perdants", s.losses + pctOf(s.losses), "", "var(--red)") +
         legendRow("Breakeven", s.be + pctOf(s.be), "", "var(--gray)") +
-        legendRow("Clôture manuelle", s.manual + pctOf(s.manual), "", "var(--gold)") +
         legendRow("En cours", s.open + pctOf(s.open), "", "var(--blue)");
     }
   }
@@ -3176,10 +3185,10 @@
     var totalPnlAll = state.trades.reduce(function(s,t){ return s + (parseFloat(t.pnl)||0); }, 0);
     var initial = parseFloat(state.account.initial)||0;
     var currentBalance = initial + totalPnlAll;
-    var wins = monthTrades.filter(function(t){ return t.status==="gagnant"; }).length;
-    var losses = monthTrades.filter(function(t){ return t.status==="perdant"; }).length;
+    var wins = monthTrades.filter(function(t){ return !isObs(t) && outcomeOf(t) === "w"; }).length;
+    var losses = monthTrades.filter(function(t){ return !isObs(t) && outcomeOf(t) === "l"; }).length;
     var open = monthTrades.filter(function(t){ return t.status==="en_cours"; }).length;
-    var be = monthTrades.filter(function(t){ return t.status==="breakeven" || t.status==="be35"; }).length;
+    var be = monthTrades.filter(function(t){ return !isObs(t) && outcomeOf(t) === "be"; }).length;
     var be35All = monthTrades.filter(function(t){ return t.status==="be35"; }).length;
     var be35tp = monthTrades.filter(tpCounted).length;
     var closedCount = wins + losses;
@@ -3248,7 +3257,8 @@
       if(!t.date || isObs(t) || t.date.slice(0,7) > prefix) return;
       var mk = t.date.slice(0,7); if(!byMonth[mk]) byMonth[mk] = { w:0, l:0, pnl:0 };
       byMonth[mk].pnl += parseFloat(t.pnl) || 0;
-      if(t.status === "gagnant"){ cumW++; byMonth[mk].w++; } else if(t.status === "perdant"){ cumL++; byMonth[mk].l++; }
+      var oc = outcomeOf(t);
+      if(oc === "w"){ cumW++; byMonth[mk].w++; } else if(oc === "l"){ cumL++; byMonth[mk].l++; }
     });
     var wrCum = (cumW + cumL) ? Math.round(cumW / (cumW + cumL) * 100) : null;
     var mWrs = Object.keys(byMonth).filter(function(k){ return byMonth[k].w + byMonth[k].l > 0; });
@@ -3272,8 +3282,7 @@
     if(taken){
       doc.setFont("helvetica","bold"); doc.setFontSize(8); setTxt(C.dim);
       doc.text("RÉPARTITION DES TRADES PRIS", MX, y); y += 3.5;
-      var manualN = monthTrades.filter(function(t){ return t.status === "cloture_main"; }).length;
-      var segs = [["Gagnants", wins, C.green], ["Perdants", losses, C.red], ["Break-even", be, C.gray], ["Clôture manuelle", manualN, C.gold], ["En cours", open, C.blue]];
+      var segs = [["Gagnants", wins, C.green], ["Perdants", losses, C.red], ["Break-even", be, C.gray], ["En cours", open, C.blue]];
       var sx = MX;
       segs.forEach(function(sg){ if(!sg[1]) return; var w = CW * sg[1] / taken; setFill(sg[2]); doc.rect(sx, y, w, 4.5, "F"); sx += w; });
       y += 4.5 + 6;
@@ -3325,7 +3334,7 @@
 
       var reads = [];
       reads.push(["Résultat", fmtPdfMoney(pnlMonth) + (retPct !== null ? " (" + fmtPct(retPct) + " du solde de début de mois)." : "."), signColor(pnlMonth)]);
-      if(winrateNum !== null) reads.push(["Win rate " + winrateNum + " %", wins + " gagnant" + (wins > 1 ? "s" : "") + " pour " + losses + " perdant" + (losses > 1 ? "s" : "") + " ce mois-ci" + (wrCum !== null ? ". Win rate cumulé depuis le début : " + wrCum + " % (" + cumW + " / " + (cumW + cumL) + " trades clôturés)." : "."), winrateNum >= 50 ? C.green : C.red]);
+      if(winrateNum !== null) reads.push(["Win rate " + winrateNum + " %", wins + " gagnant" + (wins > 1 ? "s" : "") + " pour " + losses + " perdant" + (losses > 1 ? "s" : "") + " ce mois-ci" + (be35All ? " (dont " + be35All + " BE 35 % comptés comme gagnants)" : "") + (wrCum !== null ? ". Win rate cumulé depuis le début : " + wrCum + " % (" + cumW + " / " + (cumW + cumL) + " trades clôturés)." : "."), winrateNum >= 50 ? C.green : C.red]);
       if(pf !== null) reads.push(["Profit factor " + fmtPf(pf), pf >= 1.5 ? "Solide : les gains valent au moins 1,5 fois les pertes." : (pf >= 1 ? "Positif mais fragile : entre 1 et 1,5." : "Inférieur à 1 : les pertes dépassent les gains."), pf >= 1.5 ? C.green : (pf >= 1 ? C.gold : C.red)]);
       if(expect !== null) reads.push(["Espérance", "En moyenne, un trade clôturé te " + (expect >= 0 ? "rapporte " : "coûte ") + fmtPdfMoney(Math.abs(expect), true) + ".", signColor(expect)]);
       if(ratioWL !== null) reads.push(["Gain moyen vs perte moyenne", "Ratio 1 : " + ratioWL.toFixed(2) + ". Avec ce ratio, il faut gagner au moins " + Math.round(beWr * 100) + " % des trades pour être à l'équilibre ; tu es à " + Math.round(wrP * 100) + " %.", wrP >= beWr ? C.green : C.red]);
@@ -3381,7 +3390,8 @@
           var k = keyFn(t) || "Non renseigné";
           if(!g[k]){ g[k] = { label:k, n:0, w:0, l:0, be:0, pnl:0 }; order.push(k); }
           var o = g[k]; o.n++;
-          if(t.status === "gagnant") o.w++; else if(t.status === "perdant") o.l++; else if(t.status === "breakeven" || t.status === "be35") o.be++;
+          var oc2 = outcomeOf(t);
+          if(oc2 === "w") o.w++; else if(oc2 === "l") o.l++; else if(oc2 === "be") o.be++;
           o.pnl += parseFloat(t.pnl) || 0;
         });
         order.sort(function(a,b){ return g[b].pnl - g[a].pnl; });
