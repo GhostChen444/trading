@@ -3240,9 +3240,24 @@
     var gap = 4, cw = (CW - 3*gap) / 4, rowY = y;
     kpi(MX,              rowY, cw, 25, "Résultat net", fmtPdfMoney(pnlMonth), signColor(pnlMonth), true);
     kpi(MX + (cw+gap),   rowY, cw, 25, "Rendement du mois", retPct === null ? "—" : fmtPct(retPct), retPct === null ? null : signColor(retPct), true);
-    kpi(MX + 2*(cw+gap), rowY, cw, 25, "Taux de réussite", winrateNum === null ? "—" : winrateNum + "%", winrateNum === null ? null : (winrateNum >= 50 ? C.green : C.red), true);
+    kpi(MX + 2*(cw+gap), rowY, cw, 25, "Win rate du mois", winrateNum === null ? "—" : winrateNum + "%", winrateNum === null ? null : (winrateNum >= 50 ? C.green : C.red), true);
     kpi(MX + 3*(cw+gap), rowY, cw, 25, "Profit factor", fmtPf(pf), pf === null ? null : (pf >= 1.5 ? C.green : (pf >= 1 ? C.gold : C.red)), true);
     rowY += 25 + gap;
+    var cumW = 0, cumL = 0, byMonth = {};
+    state.trades.forEach(function(t){
+      if(!t.date || isObs(t) || t.date.slice(0,7) > prefix) return;
+      var mk = t.date.slice(0,7); if(!byMonth[mk]) byMonth[mk] = { w:0, l:0, pnl:0 };
+      byMonth[mk].pnl += parseFloat(t.pnl) || 0;
+      if(t.status === "gagnant"){ cumW++; byMonth[mk].w++; } else if(t.status === "perdant"){ cumL++; byMonth[mk].l++; }
+    });
+    var wrCum = (cumW + cumL) ? Math.round(cumW / (cumW + cumL) * 100) : null;
+    var mWrs = Object.keys(byMonth).filter(function(k){ return byMonth[k].w + byMonth[k].l > 0; });
+    var wrAvgM = mWrs.length ? Math.round(mWrs.reduce(function(a,k){ return a + byMonth[k].w / (byMonth[k].w + byMonth[k].l); }, 0) / mWrs.length * 100) : null;
+    kpi(MX,              rowY, cw, 19, "Gagnants / Perdants / BE", wins + " / " + losses + " / " + be, null, false);
+    kpi(MX + (cw+gap),   rowY, cw, 19, "Win rate cumulé", wrCum === null ? "—" : wrCum + "%  (" + cumW + "/" + (cumW + cumL) + ")", wrCum === null ? null : (wrCum >= 50 ? C.green : C.red), false);
+    kpi(MX + 2*(cw+gap), rowY, cw, 19, "Win rate moyen mensuel", wrAvgM === null ? "—" : wrAvgM + "%  (" + mWrs.length + " mois)", null, false);
+    kpi(MX + 3*(cw+gap), rowY, cw, 19, "Win rate d'équilibre", (nW && nL) ? Math.round(avgLoss / (avgWin + avgLoss) * 100) + "%" : "—", null, false);
+    rowY += 19 + gap;
     kpi(MX,              rowY, cw, 19, "Espérance / trade", expect === null ? "—" : fmtPdfMoney(expect), expect === null ? null : signColor(expect), false);
     kpi(MX + (cw+gap),   rowY, cw, 19, "Gain moyen", nW ? fmtPdfMoney(avgWin) : "—", nW ? C.green : null, false);
     kpi(MX + 2*(cw+gap), rowY, cw, 19, "Perte moyenne", nL ? fmtPdfMoney(-avgLoss) : "—", nL ? C.red : null, false);
@@ -3310,6 +3325,7 @@
 
       var reads = [];
       reads.push(["Résultat", fmtPdfMoney(pnlMonth) + (retPct !== null ? " (" + fmtPct(retPct) + " du solde de début de mois)." : "."), signColor(pnlMonth)]);
+      if(winrateNum !== null) reads.push(["Win rate " + winrateNum + " %", wins + " gagnant" + (wins > 1 ? "s" : "") + " pour " + losses + " perdant" + (losses > 1 ? "s" : "") + " ce mois-ci" + (wrCum !== null ? ". Win rate cumulé depuis le début : " + wrCum + " % (" + cumW + " / " + (cumW + cumL) + " trades clôturés)." : "."), winrateNum >= 50 ? C.green : C.red]);
       if(pf !== null) reads.push(["Profit factor " + fmtPf(pf), pf >= 1.5 ? "Solide : les gains valent au moins 1,5 fois les pertes." : (pf >= 1 ? "Positif mais fragile : entre 1 et 1,5." : "Inférieur à 1 : les pertes dépassent les gains."), pf >= 1.5 ? C.green : (pf >= 1 ? C.gold : C.red)]);
       if(expect !== null) reads.push(["Espérance", "En moyenne, un trade clôturé te " + (expect >= 0 ? "rapporte " : "coûte ") + fmtPdfMoney(Math.abs(expect), true) + ".", signColor(expect)]);
       if(ratioWL !== null) reads.push(["Gain moyen vs perte moyenne", "Ratio 1 : " + ratioWL.toFixed(2) + ". Avec ce ratio, il faut gagner au moins " + Math.round(beWr * 100) + " % des trades pour être à l'équilibre ; tu es à " + Math.round(wrP * 100) + " %.", wrP >= beWr ? C.green : C.red]);
@@ -3326,6 +3342,37 @@
         doc.text(ls, MX + 4, y); y += ls.length * 4.3 + 3;
       });
       y += 4;
+
+      // ---------- historique du win rate ----------
+      var hk = Object.keys(byMonth).sort();
+      if(hk.length > 1){
+        ensure(36);
+        doc.autoTable({
+          startY: y, margin: { left: MX, right: MX },
+          head: [["Historique du win rate", "Trades clôturés", "Gagn.", "Perd.", "Win rate", "P&L"]],
+          body: hk.map(function(k){
+            var o = byMonth[k], d = o.w + o.l, pp = k.split("-");
+            return [MONTHS_FR[parseInt(pp[1],10)-1] + " " + pp[0], String(d), String(o.w), String(o.l), d ? Math.round(o.w/d*100) + "%" : "—", fmtPdfMoney(o.pnl)];
+          }),
+          foot: [["Cumul", String(cumW + cumL), String(cumW), String(cumL), wrCum === null ? "—" : wrCum + "%", ""]],
+          showFoot: "lastPage",
+          theme: "striped",
+          styles: { fontSize: 9, cellPadding: { top:3, bottom:3, left:3, right:3 }, textColor: C.text, lineWidth: 0 },
+          headStyles: { fillColor: C.ink, textColor: 255, fontStyle: "bold", fontSize: 8 },
+          footStyles: { fillColor: C.goldSoft, textColor: C.ink, fontStyle: "bold" },
+          alternateRowStyles: { fillColor: C.soft },
+          columnStyles: { 1:{halign:"center"}, 2:{halign:"center"}, 3:{halign:"center"}, 4:{halign:"center"}, 5:{halign:"right"} },
+          didParseCell: function(d){
+            if((d.section === "head" || d.section === "foot") && d.column.index > 0) d.cell.styles.halign = d.column.index === 5 ? "right" : "center";
+            if(d.section !== "body") return;
+            var o = byMonth[hk[d.row.index]];
+            if(d.column.index === 0) d.cell.styles.fontStyle = "bold";
+            if(d.column.index === 4 && (o.w + o.l)){ d.cell.styles.textColor = (o.w/(o.w+o.l) >= 0.5) ? C.green : C.red; d.cell.styles.fontStyle = "bold"; }
+            if(d.column.index === 5){ d.cell.styles.textColor = signColor(o.pnl); d.cell.styles.fontStyle = "bold"; }
+          }
+        });
+        y = doc.lastAutoTable.finalY + 8;
+      }
 
       // ---------- tableaux par actif / par stratégie ----------
       function groupStats(keyFn){
