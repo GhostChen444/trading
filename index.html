@@ -174,6 +174,8 @@
   .dot{width:6px; height:6px; border-radius:50%;}
   .dot.gagnant{background:var(--green);}
   .dot.perdant{background:var(--red);}
+  .dot.cloture_gagnante{background:var(--green);}
+  .dot.cloture_perdante{background:var(--red);}
   .dot.en_cours{background:var(--blue);}
   .dot.breakeven{background:var(--gray);}
   .dot.cloture_main{background:var(--gold);}
@@ -246,6 +248,8 @@
   .tag.dir-vente{color:var(--red); border-color:var(--red-soft);}
   .tag.status-gagnant{background:var(--green-soft); color:var(--green); border-color:transparent;}
   .tag.status-perdant{background:var(--red-soft); color:var(--red); border-color:transparent;}
+  .tag.status-cloture_gagnante{background:var(--green-soft); color:var(--green); border-color:transparent;}
+  .tag.status-cloture_perdante{background:var(--red-soft); color:var(--red); border-color:transparent;}
   .tag.status-en_cours{background:var(--blue-soft); color:var(--blue); border-color:transparent;}
   .tag.status-breakeven{background:var(--gray-soft); color:var(--gray); border-color:transparent;}
   .tag.status-cloture_main{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
@@ -952,7 +956,8 @@
               <option value="perdant">Perdant</option>
               <option value="breakeven">BE point d'entrée</option>
               <option value="be35">BE 35%</option>
-              <option value="cloture_main">Clôture manuelle</option>
+              <option value="cloture_gagnante">Clôture manuelle gagnante</option>
+              <option value="cloture_perdante">Clôture manuelle perdante</option>
             </select>
           </div>
         </div>
@@ -1233,7 +1238,7 @@
       if(el.scrollHeight > 0) el.style.height = Math.min(el.scrollHeight + 2, window.innerHeight * 0.6) + "px";
     }
   });
-  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", cloture_main:"Clôture manuelle", observation:"Observation"};
+  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", cloture_gagnante:"Clôture manuelle gagnante", cloture_perdante:"Clôture manuelle perdante", cloture_main:"Clôture manuelle", observation:"Observation"};
   var TP_WINDOW_H = 36; // au-delà de 36 h après le BE, le TP touché n'est plus comptabilisé
   var RISK_STATES = {
     init:   { label:"Compte à l'état initial / à BE", model:1 },
@@ -1275,8 +1280,8 @@
   // issue d'un trade : une clôture manuelle compte selon le signe de son résultat
   function outcomeOf(t){
     if(!t) return null;
-    if(t.status === "gagnant") return "w";
-    if(t.status === "perdant") return "l";
+    if(t.status === "gagnant" || t.status === "cloture_gagnante") return "w";
+    if(t.status === "perdant" || t.status === "cloture_perdante") return "l";
     if(t.status === "breakeven") return "be";
     if(t.status === "be35"){ var b = parseFloat(t.pnl); return (!isNaN(b) && b < 0) ? "l" : "w"; } // BE 35 % = résultat positif
     if(t.status === "cloture_main"){ var v = parseFloat(t.pnl); return (isNaN(v) || v === 0) ? "be" : (v > 0 ? "w" : "l"); }
@@ -3136,7 +3141,7 @@
     }
     function statusColor(t){
       if(isObs(t)) return C.gold;
-      return ({gagnant:C.green, perdant:C.red, en_cours:C.blue, breakeven:C.gray, be35:C.gold})[t.status] || C.gray;
+      return ({gagnant:C.green, perdant:C.red, cloture_gagnante:C.green, cloture_perdante:C.red, en_cours:C.blue, breakeven:C.gray, be35:C.gold})[t.status] || C.gray;
     }
     function signColor(n){ return n > 0 ? C.green : (n < 0 ? C.red : C.ink); }
 
