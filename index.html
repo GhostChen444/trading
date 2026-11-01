@@ -983,14 +983,14 @@
             <div class="form-grid">
             <div class="field" id="wrapRHors"><label for="r_horsAsie">Zone de supply / demand hors Asie ?</label><select id="r_horsAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRReint"><label for="r_reintAsie">Réintégration de la zone durant l'Asie ?</label><select id="r_reintAsie"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field"><label for="r_cisd">CISD vérifié en cas de retournement de tendance (H1 : cassure du dernier BOS et du dernier haut ou bas entraînant le BOS) ?</label><select id="r_cisd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="r_cisd">Vérification du CISD en cas de retournement de tendance (H1 : cassure du dernier BOS et du dernier haut ou bas entraînant le BOS) ?</label><select id="r_cisd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_mitig">L'OB / FVG à l'origine du plus haut ou plus bas a déjà été mitigé ? (corps de bougie H1 clôturant dans la zone ; des mèches = liquidité, pas mitigation)</label><select id="r_mitig"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_liq">Ma zone est-elle protégée par des liquidités à prendre en H1 ? (si non, je suis la liquidité)</label><select id="r_liq"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapRKzUs"><label for="r_kzUs">Killzone US entre 14h et 18h UTC ?</label><select id="r_kzUs"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 06h UTC) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             </div>
-            <div class="hint">Le CISD et la mitigation servent à éviter des SL : le CISD indique si le marché se retourne, une zone déjà mitigée est plus fragile.</div>
-            <div class="hint" style="display:none;">Le CISD sert à éviter des SL : il indique si le marché se retourne ou non.</div>
+            <div class="hint">La vérification du CISD et la mitigation servent à éviter les retournements et des SL : la vérification du CISD indique si le marché se retourne, une zone déjà mitigée est plus fragile.</div>
+            <div class="hint" style="display:none;">La vérification du CISD sert à éviter les retournements : elle indique si le marché se retourne ou non.</div>
           </div>
 
           <div class="section-label">setup — supply &amp; demand en killzone</div>
@@ -2209,7 +2209,7 @@
         item("Zone OTE H1", YNV[su.ote]), item("CHoCH H1 (cassure du BOS)", YNV[su.chH1]), item("CHoCH M5", YNV[su.chM5]), item("Confirmation M5", YNV[su.confirm])
       ]);
       var rg = grid([
-        item("Zone hors Asie", YNV[su.rHorsAsie]), item("Réintégration en Asie", YNV[su.rReintAsie]), item("CISD H1", YNV[su.rCisd]),
+        item("Zone hors Asie", YNV[su.rHorsAsie]), item("Réintégration en Asie", YNV[su.rReintAsie]), item("Vérification du CISD H1", YNV[su.rCisd]),
         item("Zone déjà mitigée", YNV[su.rMitig]), item("Zone protégée par liquidités H1", YNV[su.rLiq]),
         item("KZ US 14h-18h UTC", YNV[su.rKzUs]), item("Entrée Londres-US", YNV[su.rEntry])
       ]);
@@ -2504,7 +2504,7 @@
     $("hoursReminder").innerHTML = HOURS_TXT[pr] ? HOURS_TXT[pr] + RANGE_RULE_TXT + (EXEC_RANGE[pr] ? "<br>" + EXEC_RANGE[pr] : "") : "";
     $("hoursReminder").style.display = HOURS_TXT[pr] ? "" : "none";
     $("rulesNote").textContent = asia
-      ? pr + " performe moins en Asie : évite de lier la zone ou sa réintégration à l'Asie, et surveille le CISD."
+      ? pr + " performe moins en Asie : évite de lier la zone ou sa réintégration à l'Asie, et fais la vérification du CISD."
       : (nas ? "NASDAQ : killzone US entre 14h et 18h UTC, et entrée entre Londres et US."
              : (known ? "Sur l'or, les règles liées à l'Asie ne s'appliquent pas." : ""));
     refreshKzOptions();
@@ -3225,6 +3225,28 @@
     // =====================================================
     section("1", "Statistiques du mois", "Vue globale et évaluation de ta rentabilité");
 
+    if(prefix <= "2026-10"){
+      var oldLines = [
+        { b:true,  t:"Rappel · horaires des killzones pour les trades de cette période" },
+        { b:false, t:"Les killzones étaient : de 00h à 02h UTC (or), de 8h à 17h UTC et de 13h à 17h UTC (New York)." },
+        { b:false, t:"Changements d'horaire : Londres a changé d'horaire dès le 25 octobre et New York le 1er novembre. Les nouvelles plages sont de 8h à 18h UTC et de 14h à 18h UTC." }
+      ];
+      var boxLines = oldLines.map(function(o2){ return wrap(o2.t, CW - 12, 9, o2.b ? "bold" : "normal"); });
+      var boxH = 6 + boxLines.reduce(function(a2, l){ return a2 + l.length * 4.4 + 1.6; }, 0) + 2;
+      ensure(boxH + 6);
+      setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
+      doc.roundedRect(MX, y, CW, boxH, 2, 2, "FD");
+      var by2 = y + 6.5;
+      boxLines.forEach(function(lines, i2){
+        doc.setFont("helvetica", oldLines[i2].b ? "bold" : "normal"); doc.setFontSize(9);
+        setTxt(oldLines[i2].b ? C.gold : C.ink);
+        doc.text(lines, MX + 6, by2);
+        by2 += lines.length * 4.4 + 1.6;
+      });
+      y += boxH + 8;
+    }
+
+
     var played = monthTrades.filter(function(t){ return !isObs(t); });
     var settled = played.filter(function(t){ return t.status !== "en_cours" && hasVal(t.pnl); });
     var gp = 0, gl = 0, nW = 0, nL = 0, bestT = null, worstT = null;
@@ -3438,27 +3460,6 @@
       doc.addPage(); y = TOP;
       section("2", "Revue trade par trade", monthTrades.length + " trade" + (monthTrades.length > 1 ? "s" : "") + " du mois, dans l'ordre chronologique, avec toutes leurs informations");
 
-      if(prefix <= "2026-10"){
-        var oldLines = [
-          { b:true,  t:"Rappel · horaires des killzones pendant cette période" },
-          { b:false, t:"Les killzones étaient : de 00h à 02h UTC (or), de 8h à 17h UTC et de 13h à 17h UTC (New York)." },
-          { b:false, t:"Changements d'horaire : Londres a changé d'horaire dès le 25 octobre et New York le 1er novembre. Les nouvelles plages sont de 8h à 18h UTC et de 14h à 18h UTC." }
-        ];
-        var boxLines = oldLines.map(function(o2){ return wrap(o2.t, CW - 12, 9, o2.b ? "bold" : "normal"); });
-        var boxH = 6 + boxLines.reduce(function(a2, l){ return a2 + l.length * 4.4 + 1.6; }, 0) + 2;
-        ensure(boxH + 6);
-        setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
-        doc.roundedRect(MX, y, CW, boxH, 2, 2, "FD");
-        var by2 = y + 6.5;
-        boxLines.forEach(function(lines, i2){
-          doc.setFont("helvetica", oldLines[i2].b ? "bold" : "normal"); doc.setFontSize(9);
-          setTxt(oldLines[i2].b ? C.gold : C.ink);
-          doc.text(lines, MX + 6, by2);
-          by2 += lines.length * 4.4 + 1.6;
-        });
-        y += boxH + 8;
-      }
-
       var KZL = { asie:"Asie", londres:"Londres", us:"US" }, H1L = { haussiere:"Haussière", baissiere:"Baissière", range:"Range" }, YNL = { oui:"Oui", non:"Non" };
       var RSL = { init:"Compte à l'état initial / à BE", dd:"Compte en drawdown", be35:"Compte après un BE 35 %", tp:"Compte après un TP", be35x2:"Compte après 2 BE 35 % enchaînés" };
       function numv(v){ var n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? null : n; }
@@ -3542,7 +3543,7 @@
             var rl = [];
             if(su.rHorsAsie) rl.push("Zone hors Asie : " + YNL[su.rHorsAsie]);
             if(su.rReintAsie) rl.push("Réintégration en Asie : " + YNL[su.rReintAsie]);
-            if(su.rCisd) rl.push("CISD H1 : " + YNL[su.rCisd]);
+            if(su.rCisd) rl.push("Vérification du CISD H1 : " + YNL[su.rCisd]);
             if(su.rMitig) rl.push("Zone déjà mitigée : " + YNL[su.rMitig]);
             if(su.rLiq) rl.push("Zone protégée par liquidités H1 : " + YNL[su.rLiq]);
             if(su.rKzUs) rl.push("KZ US 14h-18h UTC : " + YNL[su.rKzUs]);
