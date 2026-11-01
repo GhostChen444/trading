@@ -663,7 +663,7 @@
     #futurHero{padding:10px 8px;} .screen{align-items:flex-start;}
   }
 
-  /* ===== Bannière de rappel Londres / New York (expire seule le 2 nov. 2026 à 24h UTC) ===== */
+  /* ===== Bannière de rappel Londres / New York (permanente) ===== */
   #ldnBanner{position:fixed; left:0; right:0; top:0; z-index:45; display:none; overflow:hidden; height:calc(32px + env(safe-area-inset-top,0px)); padding-top:env(safe-area-inset-top,0px);
     background:rgba(200,155,74,.16); border-bottom:1px solid var(--gold-soft); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;}
   body[data-view="app"] #ldnBanner{display:block;}
@@ -677,7 +677,7 @@
 </head>
 <body data-view="loading">
 <div id="futurBg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="grid"></div><div class="scan"></div></div>
-<div id="ldnBanner" role="status" aria-label="Rappel horaires Londres et New York"><div class="track"><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>Rappel :</b> mettre à jour le système horaire concernant <b>New York</b> après le changement d'heure du <b>1er novembre</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>Rappel :</b> mettre à jour le système horaire concernant <b>New York</b> après le changement d'heure du <b>1er novembre</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>Rappel :</b> mettre à jour le système horaire concernant <b>New York</b> après le changement d'heure du <b>1er novembre</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>Rappel :</b> mettre à jour le système horaire concernant <b>New York</b> après le changement d'heure du <b>1er novembre</b></span></div></div>
+<div id="ldnBanner" role="status" aria-label="Rappel horaires Londres et New York"><div class="track"><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>New York ouvre désormais à 14h UTC</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>New York ouvre désormais à 14h UTC</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>New York ouvre désormais à 14h UTC</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>New York ouvre désormais à 14h UTC</b></span></div></div>
 <div id="futurTicker" aria-hidden="true"><div class="track"><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Work again and again and again</span><b>◆</b><span>Smart work</span><b>◆</b><span>Discipline &gt; motivation</span><b>◆</b><span>Patience pays</span><b>◆</b><span>Process over profit</span><b>◆</b><span>One trade at a time</span><b>◆</b><span>Protect your capital</span><b>◆</b><span>Stay consistent</span><b>◆</b><span>Execute the plan</span><b>◆</b><span>Small edge, big discipline</span><b>◆</b><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Work again and again and again</span><b>◆</b><span>Smart work</span><b>◆</b><span>Discipline &gt; motivation</span><b>◆</b><span>Patience pays</span><b>◆</b><span>Process over profit</span><b>◆</b><span>One trade at a time</span><b>◆</b><span>Protect your capital</span><b>◆</b><span>Stay consistent</span><b>◆</b><span>Execute the plan</span><b>◆</b><span>Small edge, big discipline</span><b>◆</b></div></div>
 
 
@@ -986,7 +986,7 @@
             <div class="field"><label for="r_cisd">CISD vérifié en cas de retournement de tendance (H1 : cassure du dernier BOS et du dernier haut ou bas entraînant le BOS) ?</label><select id="r_cisd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_mitig">L'OB / FVG à l'origine du plus haut ou plus bas a déjà été mitigé ? (corps de bougie H1 clôturant dans la zone ; des mèches = liquidité, pas mitigation)</label><select id="r_mitig"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="r_liq">Ma zone est-elle protégée par des liquidités à prendre en H1 ? (si non, je suis la liquidité)</label><select id="r_liq"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field" id="wrapRKzUs"><label for="r_kzUs">Killzone US entre 13h et 17h UTC ?</label><select id="r_kzUs"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field" id="wrapRKzUs"><label for="r_kzUs">Killzone US entre 14h et 18h UTC ?</label><select id="r_kzUs"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field" id="wrapREntry"><label for="r_entry">Entrée entre Londres et US (à partir de 06h UTC) ?</label><select id="r_entry"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             </div>
             <div class="hint">Le CISD et la mitigation servent à éviter des SL : le CISD indique si le marché se retourne, une zone déjà mitigée est plus fragile.</div>
@@ -2211,7 +2211,7 @@
       var rg = grid([
         item("Zone hors Asie", YNV[su.rHorsAsie]), item("Réintégration en Asie", YNV[su.rReintAsie]), item("CISD H1", YNV[su.rCisd]),
         item("Zone déjà mitigée", YNV[su.rMitig]), item("Zone protégée par liquidités H1", YNV[su.rLiq]),
-        item("KZ US 13h-17h UTC", YNV[su.rKzUs]), item("Entrée Londres-US", YNV[su.rEntry])
+        item("KZ US 14h-18h UTC", YNV[su.rKzUs]), item("Entrée Londres-US", YNV[su.rEntry])
       ]);
       if(rg) h += '<div class="view-sub">Règles</div>' + rg;
       h += text("Autres détails setup", su.other);
@@ -2487,12 +2487,12 @@
     $("wrapRKzUs").style.display = nas ? "" : "none";
     $("wrapREntry").style.display = nas ? "" : "none";
     $("asiaReminder").style.display = (known && pr !== "XAUUSD") ? "" : "none";
-    var EXEC_TXT = "à 17h UTC, les jours sans annonce importante.";
+    var EXEC_TXT = "à 18h UTC, les jours sans annonce importante.";
     var HOURS_TXT = {
-      NASDAQ: "Rappel NASDAQ · plage horaire killzone : de 13h UTC à 17h UTC, les jours sans annonce importante.",
-      EURUSD: "Rappel " + pr + " · plage horaire killzone : de 8h UTC à 17h UTC, les jours sans annonce importante.",
-      GBPUSD: "Rappel " + pr + " · plage horaire killzone : de 8h UTC à 17h UTC, les jours sans annonce importante.",
-      XAUUSD: "Rappel " + pr + " · plage horaire killzone : de 00h à 02h UTC, puis de 8h UTC à 17h UTC, les jours sans annonce importante."
+      NASDAQ: "Rappel NASDAQ · plage horaire killzone : de 14h UTC à 18h UTC, les jours sans annonce importante.",
+      EURUSD: "Rappel " + pr + " · plage horaire killzone : de 8h UTC à 18h UTC, les jours sans annonce importante.",
+      GBPUSD: "Rappel " + pr + " · plage horaire killzone : de 8h UTC à 18h UTC, les jours sans annonce importante.",
+      XAUUSD: "Rappel " + pr + " · plage horaire killzone : de 00h à 02h UTC, puis de 8h UTC à 18h UTC, les jours sans annonce importante."
     };
     var EXEC_RANGE = {
       NASDAQ: "Plage horaire exécution : exécuter depuis 6h UTC (pré-session de Londres) " + EXEC_TXT,
@@ -2505,7 +2505,7 @@
     $("hoursReminder").style.display = HOURS_TXT[pr] ? "" : "none";
     $("rulesNote").textContent = asia
       ? pr + " performe moins en Asie : évite de lier la zone ou sa réintégration à l'Asie, et surveille le CISD."
-      : (nas ? "NASDAQ : killzone US entre 13h et 17h UTC, et entrée entre Londres et US."
+      : (nas ? "NASDAQ : killzone US entre 14h et 18h UTC, et entrée entre Londres et US."
              : (known ? "Sur l'or, les règles liées à l'Asie ne s'appliquent pas." : ""));
     refreshKzOptions();
   }
@@ -3524,7 +3524,7 @@
             if(su.rCisd) rl.push("CISD H1 : " + YNL[su.rCisd]);
             if(su.rMitig) rl.push("Zone déjà mitigée : " + YNL[su.rMitig]);
             if(su.rLiq) rl.push("Zone protégée par liquidités H1 : " + YNL[su.rLiq]);
-            if(su.rKzUs) rl.push("KZ US 13h-17h UTC : " + YNL[su.rKzUs]);
+            if(su.rKzUs) rl.push("KZ US 14h-18h UTC : " + YNL[su.rKzUs]);
             if(su.rEntry) rl.push("Entrée Londres-US : " + YNL[su.rEntry]);
             var rlines = []; if(rl.length) rlines = wrap("Règles : " + rl.join("  ·  "), iW, 9);
             if(su.dir || su.type) zl.push("Zone : " + [su.dir ? (su.dir === "demand" ? "Demand" : "Supply") : "", su.type || ""].join(" ").trim() + (su.zoneKz ? "  ·  KZ " + KZL[su.zoneKz] + (su.zoneTime ? " " + su.zoneTime : "") : ""));
@@ -3661,23 +3661,9 @@
 })();
 </script>
 <script>
-/* Bannière Londres / New York : expire seule le 2 novembre 2026 à 24h UTC (= 3 nov. 00h00 UTC) */
+/* Bannière Londres / New York : rappel permanent des ouvertures (8h UTC / 14h UTC) */
 (function(){
-  var EXPIRE = Date.UTC(2026, 10, 3, 0, 0, 0);
-  var timer;
-  function check(){
-    var el = document.getElementById("ldnBanner");
-    if(!el){ clearInterval(timer); return; }
-    if(Date.now() >= EXPIRE){
-      el.parentNode.removeChild(el);
-      document.body.classList.remove("has-ldn-banner");
-      clearInterval(timer);
-    } else {
-      document.body.classList.add("has-ldn-banner");
-    }
-  }
-  check();
-  timer = setInterval(check, 60000);
+  if(document.getElementById("ldnBanner")) document.body.classList.add("has-ldn-banner");
 })();
 </script>
 </body>
