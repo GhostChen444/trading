@@ -663,7 +663,7 @@
     #futurHero{padding:10px 8px;} .screen{align-items:flex-start;}
   }
 
-  /* ===== Bannière de rappel Londres / New York (permanente) ===== */
+  /* ===== Bannière de rappel Londres / New York (expire seule le 8 nov. 2026 à 00h UTC, soit 1 semaine) ===== */
   #ldnBanner{position:fixed; left:0; right:0; top:0; z-index:45; display:none; overflow:hidden; height:calc(32px + env(safe-area-inset-top,0px)); padding-top:env(safe-area-inset-top,0px);
     background:rgba(200,155,74,.16); border-bottom:1px solid var(--gold-soft); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;}
   body[data-view="app"] #ldnBanner{display:block;}
@@ -3438,6 +3438,27 @@
       doc.addPage(); y = TOP;
       section("2", "Revue trade par trade", monthTrades.length + " trade" + (monthTrades.length > 1 ? "s" : "") + " du mois, dans l'ordre chronologique, avec toutes leurs informations");
 
+      if(prefix <= "2026-10"){
+        var oldLines = [
+          { b:true,  t:"Rappel · horaires des killzones pendant cette période" },
+          { b:false, t:"Les killzones étaient : de 00h à 02h UTC (or), de 8h à 17h UTC et de 13h à 17h UTC (New York)." },
+          { b:false, t:"Changements d'horaire : Londres a changé d'horaire dès le 25 octobre et New York le 1er novembre. Les nouvelles plages sont de 8h à 18h UTC et de 14h à 18h UTC." }
+        ];
+        var boxLines = oldLines.map(function(o2){ return wrap(o2.t, CW - 12, 9, o2.b ? "bold" : "normal"); });
+        var boxH = 6 + boxLines.reduce(function(a2, l){ return a2 + l.length * 4.4 + 1.6; }, 0) + 2;
+        ensure(boxH + 6);
+        setFill(C.goldSoft); setDraw(C.gold); doc.setLineWidth(0.25);
+        doc.roundedRect(MX, y, CW, boxH, 2, 2, "FD");
+        var by2 = y + 6.5;
+        boxLines.forEach(function(lines, i2){
+          doc.setFont("helvetica", oldLines[i2].b ? "bold" : "normal"); doc.setFontSize(9);
+          setTxt(oldLines[i2].b ? C.gold : C.ink);
+          doc.text(lines, MX + 6, by2);
+          by2 += lines.length * 4.4 + 1.6;
+        });
+        y += boxH + 8;
+      }
+
       var KZL = { asie:"Asie", londres:"Londres", us:"US" }, H1L = { haussiere:"Haussière", baissiere:"Baissière", range:"Range" }, YNL = { oui:"Oui", non:"Non" };
       var RSL = { init:"Compte à l'état initial / à BE", dd:"Compte en drawdown", be35:"Compte après un BE 35 %", tp:"Compte après un TP", be35x2:"Compte après 2 BE 35 % enchaînés" };
       function numv(v){ var n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? null : n; }
@@ -3661,9 +3682,23 @@
 })();
 </script>
 <script>
-/* Bannière Londres / New York : rappel permanent des ouvertures (8h UTC / 14h UTC) */
+/* Bannière Londres / New York : expire seule après une semaine (le 8 novembre 2026 à 00h00 UTC) */
 (function(){
-  if(document.getElementById("ldnBanner")) document.body.classList.add("has-ldn-banner");
+  var EXPIRE = Date.UTC(2026, 10, 8, 0, 0, 0);
+  var timer;
+  function check(){
+    var el = document.getElementById("ldnBanner");
+    if(!el){ clearInterval(timer); return; }
+    if(Date.now() >= EXPIRE){
+      el.parentNode.removeChild(el);
+      document.body.classList.remove("has-ldn-banner");
+      clearInterval(timer);
+    } else {
+      document.body.classList.add("has-ldn-banner");
+    }
+  }
+  check();
+  timer = setInterval(check, 60000);
 })();
 </script>
 </body>
