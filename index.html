@@ -332,6 +332,8 @@
   .risk-badge{font-family:var(--mono); font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid;}
   .risk-badge.m1{color:var(--red); border-color:var(--red); background:var(--red-soft);}
   .risk-badge.m2{color:var(--green); border-color:var(--green); background:var(--green-soft);}
+  .risk-badge.m0{color:var(--gold); border-color:var(--gold); background:rgba(200,155,74,0.12);}
+  .rr-verdict{margin-top:10px;}
   .risk-head .rk-title{font-size:13px; color:var(--text);}
   .risk-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;}
   .risk-list li{display:flex; gap:10px; align-items:flex-start; font-size:13px; line-height:1.45; color:var(--text);}
@@ -949,6 +951,12 @@
             </div>
             <div class="hint field-warn" id="stratNewErr"></div>
           </div>
+          <div class="field" id="sdModeWrap" style="display:none; grid-column:1 / -1;">
+            <label>Sous-stratégie Supply &amp; Demand <span class="req">*</span></label>
+            <div class="risk-opts" id="sdModeOpts"></div>
+            <input type="hidden" id="f_sdMode" value="">
+            <div class="hint" id="sdModeHint">Chaque sous-stratégie a son propre plan d'exécution : choisis-en une pour afficher ses règles.</div>
+          </div>
           <div class="field" id="wrapStatus">
             <label for="f_status">Statut</label>
             <select id="f_status">
@@ -1038,6 +1046,43 @@
           <div class="hint" id="setupHint"></div>
         </div>
 
+
+        <div id="setupRetr" class="strat-block" style="display:none;">
+          <div class="section-label">retracement · règles à respecter</div>
+          <div class="reminder-red">Le FOMO est à bannir : les règles du retracement sont prédéfinies et à respecter. Si un critère manque, ne rien faire.</div>
+          <div class="reminder"><b>Concept du retracement</b><br>
+            Aller chercher de <b>petits RR</b> en appliquant les mécanismes SMC / ICT imbriqués avec le schéma <b>AMD</b>.<br>
+            1. Sur l'éventuel mouvement de base, repérer les <b>traps</b> formés par le prix : ils seront liquidés.<br>
+            2. Attendre un <b>CHoCH</b> du prix sur l'un des traps (cassure avec corps).<br>
+            3. Attendre que le prix libère un <b>FVG ou un OB</b>, dans mes killzones, avec une structure AMD repérée.<br>
+            4. Aller chercher le <b>50 % du fibo</b> de l'éventuel mouvement à aller chercher.
+          </div>
+          <div class="reminder">Zone d'entrée : <b>OB ou FVG, jamais les deux</b>. Exécution identique au mouvement de tendance : zones repérées en M5 et réaction du prix sur la zone.</div>
+          <div class="section-label">checklist retracement</div>
+          <div class="form-grid">
+            <div class="field"><label for="rt_trap">1. Trap(s) repéré(s) sur l'éventuel mouvement de base ?</label><select id="rt_trap"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="rt_choch">2. CHoCH effectué sur le trap (cassure avec corps) ?</label><select id="rt_choch"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="rt_amd">3. Structure AMD présente ?</label><select id="rt_amd"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="rt_zone">4. Le prix a libéré une zone de S&amp;D (OB ou FVG) en killzone ?</label><select id="rt_zone"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="rt_ote">5. La zone libérée est en OTE ?</label><select id="rt_ote"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="rt_elem">6. Élément d'entrée (OB ou FVG, jamais les deux)</label><select id="rt_elem"><option value="">— choisir —</option><option value="OB">OB</option><option value="FVG">FVG</option></select></div>
+            <div class="field"><label for="rt_m5">7. Zone repérée en M5 ?</label><select id="rt_m5"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="rt_react">8. Le prix a bien réagi sur la zone ?</label><select id="rt_react"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="rt_fibo">9. Objectif : 50 % du fibo de l'éventuel mouvement ?</label><select id="rt_fibo"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+          </div>
+          <div class="section-label">zone &amp; killzone</div>
+          <div class="form-grid">
+            <div class="field"><label for="rt_dir">Zone repérée</label><select id="rt_dir"><option value="">— choisir —</option><option value="demand">Demand</option><option value="supply">Supply</option></select></div>
+            <div class="field"><label for="rt_kz">Killzone d'entrée</label><select id="rt_kz"><option value="">— choisir —</option><option value="asie">Asie</option><option value="londres">Londres</option><option value="us">US</option></select></div>
+            <div class="field"><label for="rt_time">Heure d'entrée <span class="hint" style="display:inline;">(facultatif)</span></label><input type="text" id="rt_time" placeholder="ex : 14:35"></div>
+          </div>
+          <div class="section-label">autres détails setup</div>
+          <div class="form-grid full">
+            <div class="field"><textarea id="rt_other" placeholder="tout ce qui n'est pas couvert par la checklist ci-dessus..."></textarea></div>
+          </div>
+          <div class="hint" id="retrHint"></div>
+        </div>
+
         <div id="setupCustom" class="strat-block" style="display:none;">
           <div class="section-label">détails de la stratégie</div>
           <div class="form-grid full">
@@ -1062,6 +1107,15 @@
         <div id="execBlock">
         <div id="riskBlock" style="display:none;">
           <div class="section-label">gestion du risque — rappels selon l'état du compte</div>
+          <div id="retrRRWrap" style="display:none;">
+            <div class="reminder"><b>Retracement :</b> le RR du trade décide du modèle de gestion. RR ≥ 1,5 → trailing stop et modèles de gestion S&amp;D selon l'état du compte. RR &lt; 1,5 → le SL ne bouge qu'au point d'entrée (BE).</div>
+            <div class="form-grid">
+              <div class="field num"><label for="rt_rr">RR du trade <span class="req">*</span></label><input type="number" step="any" min="0" id="rt_rr" placeholder="ex : 1.5"></div>
+            </div>
+            <div class="hint" id="rrCalc"></div>
+            <div class="rr-verdict" id="rrVerdict"></div>
+          </div>
+          <div id="riskStateWrap">
           <div class="form-grid full">
             <div class="field">
               <label for="f_riskState">État du compte au moment de la prise de position</label>
@@ -1076,6 +1130,7 @@
               </select>
               <div class="risk-suggest" id="riskSuggest" style="display:none;"></div>
             </div>
+          </div>
           </div>
           <div id="riskPanel"></div>
         </div>
@@ -2182,7 +2237,7 @@
       obs ? item("Type", isTrap(t) ? "Setup trap" : "Observation") : item("Sens", t.direction === "vente" ? "Vente" : "Achat"),
       (obs && !isTrap(t) && t.direction) ? item("Sens", t.direction === "vente" ? "Vente" : "Achat") : "",
       obs ? "" : item("Statut", STATUS_LABEL[t.status || "en_cours"]),
-      item("Stratégie", t.strategy)
+      item("Stratégie", stratLabel(t))
     ]);
     if(!obs && t.status === "be35"){
       var tg = tpTagHtml(t);
@@ -2195,7 +2250,9 @@
                   item("Entrée", t.entry), item("Stop Loss", t.sl), item("Take Profit", t.tp), item("Sortie", t.exit),
                   item("P&L", (t.pnl !== undefined && t.pnl !== "" && t.pnl !== null) ? fmtMoney(parseFloat(t.pnl)) : ""),
                   item("État du compte", t.riskState && RISK_STATES[t.riskState] ? RISK_STATES[t.riskState].label : ""),
-                  item("Modèle de risque", t.riskState && RISK_STATES[t.riskState] ? RISK_MODEL_NAME[RISK_STATES[t.riskState].model] : "") ]);
+                  item("Modèle de risque", t.riskState && RISK_STATES[t.riskState] ? RISK_MODEL_NAME[RISK_STATES[t.riskState].model] : ""),
+                  item("RR du trade (retracement)", (t.retrRR !== undefined && t.retrRR !== null && t.retrRR !== "") ? t.retrRR : ""),
+                  item("Gestion du risque", (sdModeOf(t) === "retracement" && t.retrRR !== undefined && t.retrRR !== "") ? (parseFloat(t.retrRR) >= RR_MIN ? "Trailing autorisé (RR ≥ 1,5)" : "BE point d'entrée uniquement (RR < 1,5)") : "") ]);
     }
     if(t.setup){
       var su = t.setup;
@@ -2216,6 +2273,20 @@
       ]);
       if(rg) h += '<div class="view-sub">Règles</div>' + rg;
       h += text("Autres détails setup", su.other);
+    }
+    if(t.retr){
+      var rv = t.retr;
+      h += sect("setup — retracement");
+      h += '<div class="view-sub">Checklist</div>' + grid([
+        item("1. Trap(s) repéré(s)", YNV[rv.trap]), item("2. CHoCH sur le trap", YNV[rv.choch]), item("3. Structure AMD", YNV[rv.amd]),
+        item("4. Zone libérée en killzone", YNV[rv.zone]), item("5. Zone en OTE", YNV[rv.ote]), item("6. Élément d'entrée", rv.elem),
+        item("7. Zone repérée en M5", YNV[rv.m5]), item("8. Réaction sur la zone", YNV[rv.react]), item("9. Objectif 50 % du fibo", YNV[rv.fibo])
+      ]);
+      h += grid([
+        item("Zone repérée", rv.dir === "demand" ? "Demand" : (rv.dir === "supply" ? "Supply" : "")),
+        item("Killzone d'entrée", KZV[rv.kz]), item("Heure d'entrée", rv.time)
+      ]);
+      h += text("Autres détails setup", rv.other);
     }
     if(isTrap(t) && t.trapNotes && t.trapNotes.trim()){ h += sect("notes importantes") + text("", t.trapNotes); }
     if(t.stratDetails && t.stratDetails.trim()){ h += sect("détails de la stratégie") + text("", t.stratDetails); }
@@ -2257,11 +2328,11 @@
           '</div>' +
           '<div class="trade-meta">' +
             (isObs(t)
-              ? (t.strategy ? escapeHtml(t.strategy) : (isTrap(t) ? "Setup trap" : "Aucun trade pris"))
+              ? (t.strategy ? escapeHtml(stratLabel(t)) : (isTrap(t) ? "Setup trap" : "Aucun trade pris"))
               : ('Lot ' + escapeHtml(t.lot||"—") +
                  ' · SL ' + escapeHtml(t.sl||"—") +
                  ' · TP ' + escapeHtml(t.tp||"—") +
-                 (t.strategy ? ' · ' + escapeHtml(t.strategy) : ""))) +
+                 (t.strategy ? ' · ' + escapeHtml(stratLabel(t)) : ""))) +
             (t.shots && t.shots.length ? ' · ' + t.shots.length + ' capture' + (t.shots.length>1?'s':'') : "") +
             (t.pnl!==undefined && t.pnl!=="" && t.pnl!==null ? ' · ' + escapeHtml(fmtMoney(parseFloat(t.pnl))) : "") +
           '</div>' +
@@ -2321,6 +2392,22 @@
                     chM5:"s_chM5", chH1:"s_chH1", entryKz:"s_entryKz", entryTime:"s_entryTime", confirm:"s_confirm",
                     ote:"s_ote", other:"s_other", rHorsAsie:"r_horsAsie", rReintAsie:"r_reintAsie", rCisd:"r_cisd", rMitig:"r_mitig", rLiq:"r_liq", rKzUs:"r_kzUs", rEntry:"r_entry" };
   var SD_PAIRS = ["XAUUSD","GBPUSD","EURUSD","NASDAQ"];
+  // sous-stratégies de S&D : mouvement de tendance (mouvements de base) et retracement
+  var SD_MODES = { tendance:"Mouvement de tendance", retracement:"Retracement" };
+  var SD_MODE_SUB = { tendance:"Mouvements de base", retracement:"Petits RR · SMC / ICT · AMD" };
+  var RR_MIN = 1.5;
+  var RETR_IDS = { trap:"rt_trap", choch:"rt_choch", amd:"rt_amd", zone:"rt_zone", ote:"rt_ote", elem:"rt_elem", m5:"rt_m5", react:"rt_react", fibo:"rt_fibo", dir:"rt_dir", kz:"rt_kz", time:"rt_time", other:"rt_other" };
+  var RETR_YN = ["trap","choch","amd","zone","ote","m5","react","fibo"];
+  // les anciens trades S&D (sans sous-stratégie) sont des trades de tendance
+  function sdModeOf(t){
+    if(!t || t.strategy !== SD_NAME || t.trap === true) return "";
+    return t.sdMode === undefined ? "tendance" : (t.sdMode || "");
+  }
+  function stratLabel(t){
+    var s = ((t && t.strategy) || "").trim();
+    var m = sdModeOf(t);
+    return (s === SD_NAME && m && SD_MODES[m]) ? s + " · " + SD_MODES[m] : s;
+  }
   var NO_ASIA_KZ = ["GBPUSD","EURUSD"];
   var ASIA_REMINDER_PAIRS = ["NASDAQ","GBPUSD","EURUSD"];
   var ASIA_PAIRS = ["GBPUSD","EURUSD"];
@@ -2340,7 +2427,7 @@
   function refreshKzOptions(){
     var pr = sdSel() ? $("f_pairSel").value : "";
     var noAsia = NO_ASIA_KZ.indexOf(pr) > -1;
-    ["s_zoneKz","s_entryKz"].forEach(function(id){
+    ["s_zoneKz","s_entryKz","rt_kz"].forEach(function(id){
       var sel = $(id), cur = sel.value, h = '<option value="">— choisir —</option>';
       if(!noAsia || cur === "asie") h += '<option value="asie">Asie' + (noAsia ? " (hors plan)" : "") + '</option>';
       h += '<option value="londres">Londres</option><option value="us">US</option>';
@@ -2424,10 +2511,44 @@
     if(last.status === "perdant") return "dd";
     return "init";
   }
+  function sdMode(){ return sdSel() ? $("f_sdMode").value : ""; }
+  function rrValue(){ var v = parseFloat(String($("rt_rr").value).replace(",", ".")); return (isNaN(v) || v <= 0) ? null : v; }
+  function rrCalc(){
+    var e = parseFloat(fields.entry.value), sl = parseFloat(fields.sl.value), tp = parseFloat(fields.tp.value);
+    if(isNaN(e) || isNaN(sl) || isNaN(tp) || e === sl) return null;
+    var r = Math.abs(tp - e) / Math.abs(e - sl);
+    return isFinite(r) ? r : null;
+  }
+  function fmtRR(v){ return (Math.round(v * 100) / 100).toString().replace(".", ","); }
   function renderRisk(){
     var show = sdSel() && formType === "trade";
     $("riskBlock").style.display = show ? "" : "none";
     if(!show) return;
+    var retr = sdMode() === "retracement", panel0 = $("riskPanel");
+    $("retrRRWrap").style.display = retr ? "" : "none";
+    var needState = true;
+    if(retr){
+      var calc = rrCalc(), cEl = $("rrCalc");
+      if(calc){
+        cEl.innerHTML = 'RR calculé d\'après entrée / SL / TP : <b>' + fmtRR(calc) + '</b> <button type="button" id="rrUseBtn">Utiliser</button>';
+        $("rrUseBtn").onclick = function(){ $("rt_rr").value = Math.round(calc * 100) / 100; renderRisk(); };
+      } else { cEl.textContent = "Tu peux aussi renseigner entrée, SL et TP plus bas pour obtenir un RR calculé."; }
+      var rr = rrValue(), vd = $("rrVerdict");
+      if(rr === null){
+        needState = false; vd.innerHTML = "";
+        panel0.innerHTML = '<div class="hint field-warn">Renseigne d\'abord le RR du trade : il détermine le modèle de gestion du risque à appliquer.</div>';
+      } else if(rr < RR_MIN){
+        needState = false; vd.innerHTML = "";
+        panel0.innerHTML = '<div class="risk-card"><div class="risk-head"><span class="risk-badge m0">RR &lt; 1,5 · BE uniquement</span><span class="rk-title">RR du trade : ' + fmtRR(rr) + '</span></div><ul class="risk-list">' +
+          '<li><span class="rk-tag be">BE</span><span>Le SL ne se déplace qu\'<b>au point d\'entrée (BE)</b>, et nulle part ailleurs.</span></li>' +
+          '<li><span class="rk-tag asie">Interdit</span><span><b>Pas de trailing stop</b> : aucun modèle de gestion S&amp;D (BE 35 %, 55 %…) n\'est appliqué sous 1,5 de RR.</span></li>' +
+          '</ul></div>';
+      } else {
+        vd.innerHTML = '<div class="reminder">RR de <b>' + fmtRR(rr) + '</b> (≥ 1,5) : trailing stop autorisé. Tous les modèles de gestion du risque de la stratégie S&amp;D s\'appliquent : choisis-le selon l\'état du compte.</div>';
+      }
+    }
+    $("riskStateWrap").style.display = needState ? "" : "none";
+    if(!needState) return;
     syncRiskOpts();
     var sel = $("f_riskState").value, panel = $("riskPanel");
     var sug = riskSuggestState(), sg = $("riskSuggest");
@@ -2465,13 +2586,61 @@
   function applyRiskDefault(){ if($("f_riskState").value && fields.risk.value === "") fields.risk.value = "1"; }
   $("f_riskState").addEventListener("change", function(){ renderRisk(); applyRiskDefault(); });
 
+  function buildModeOpts(){
+    var box = $("sdModeOpts"); box.innerHTML = "";
+    Object.keys(SD_MODES).forEach(function(k){
+      var b = document.createElement("button");
+      b.type = "button"; b.setAttribute("data-sm", k);
+      b.innerHTML = escapeHtml(SD_MODES[k]) + "<small>" + escapeHtml(SD_MODE_SUB[k]) + "</small>";
+      b.addEventListener("click", function(){
+        $("f_sdMode").value = ($("f_sdMode").value === k) ? "" : k;
+        updateStrategyUI();
+      });
+      box.appendChild(b);
+    });
+  }
+  function syncModeOpts(){
+    var cur = $("f_sdMode").value;
+    document.querySelectorAll("#sdModeOpts button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-sm") === cur); });
+  }
+  buildModeOpts();
+  function updateRetrHint(){
+    var h = $("retrHint"); if(!h) return;
+    if(sdMode() !== "retracement"){ h.textContent = ""; h.className = "hint"; return; }
+    var ok = 0, bad = 0;
+    RETR_YN.forEach(function(k){ var v = $(RETR_IDS[k]).value; if(v === "oui") ok++; else if(v === "non") bad++; });
+    var msg = "Critères validés : " + ok + "/" + RETR_YN.length + ".";
+    if(bad) msg += " " + bad + " critère(s) non respecté(s) : pas d'entrée, pas de FOMO.";
+    var d = $("rt_dir").value;
+    if(formType === "trade" && d){
+      var dir = fields.direction.value;
+      if((d === "demand" && dir === "vente") || (d === "supply" && dir === "achat")){
+        msg += " Attention : une zone " + (d === "demand" ? "Demand" : "Supply") + " correspond normalement à " + (d === "demand" ? "un achat" : "une vente") + ". Vérifie le sens du trade.";
+        bad++;
+      }
+    }
+    h.textContent = msg;
+    h.className = bad ? "hint field-warn" : "hint";
+  }
+  Object.keys(RETR_IDS).forEach(function(k){
+    var el = $(RETR_IDS[k]);
+    el.addEventListener("change", updateRetrHint);
+  });
+  fields.direction.addEventListener("change", updateRetrHint);
+  [fields.entry, fields.sl, fields.tp, $("rt_rr")].forEach(function(el){ el.addEventListener("input", function(){ if(sdSel() && formType === "trade") renderRisk(); }); });
   function updateStrategyUI(){
     var v = fields.strategy.value;
     var isNew = v === "__new__";
     var isSD = v === SD_NAME;
     var isCustom = !!v && !isNew && !isSD;
     var trapMode = formType === "trap";
-    $("setupSD").style.display = (isSD && !trapMode) ? "" : "none";
+    var mode = isSD ? $("f_sdMode").value : "";
+    $("sdModeWrap").style.display = (isSD && !trapMode) ? "" : "none";
+    $("sdModeHint").style.display = (isSD && !trapMode && !mode) ? "" : "none";
+    syncModeOpts();
+    $("setupSD").style.display = (isSD && !trapMode && mode === "tendance") ? "" : "none";
+    $("setupRetr").style.display = (isSD && !trapMode && mode === "retracement") ? "" : "none";
+    updateRetrHint();
     $("setupCustom").style.display = (isCustom && !trapMode) ? "" : "none";
     syncPairUI();
     updateRulesUI();
@@ -2674,6 +2843,9 @@
     refreshStrategyOptions("");
     Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).value = ""; });
     $("f_riskState").value = "";
+    $("f_sdMode").value = "";
+    Object.keys(RETR_IDS).forEach(function(k){ $(RETR_IDS[k]).value = ""; });
+    $("rt_rr").value = "";
 
     if(tradeId){
       var t = state.trades.find(function(x){ return x.id === tradeId; });
@@ -2684,6 +2856,10 @@
         var su = t.setup || {};
         Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).value = su[k] || ""; });
         if(su.m5 && su.m5 !== "oui" && su.m5 !== "non") $("s_m5").value = "oui"; // ancien format OB/FVG
+        $("f_sdMode").value = sdModeOf(t);
+        var rt0 = t.retr || {};
+        Object.keys(RETR_IDS).forEach(function(k){ $(RETR_IDS[k]).value = rt0[k] || ""; });
+        $("rt_rr").value = (t.retrRR !== undefined && t.retrRR !== null) ? t.retrRR : "";
         fields.stratDetails.value = t.stratDetails || "";
         fields.trapNotes.value = t.trapNotes || "";
         fields.risk.value = t.risk !== undefined ? t.risk : "";
@@ -2714,6 +2890,7 @@
 
   $("saveTradeBtn").addEventListener("click", function(){
     if(!getPair()){ (sdSel() ? $("f_pairSel") : fields.pair).focus(); return; }
+    if(sdSel() && formType !== "trap" && !$("f_sdMode").value){ alert("Choisis la sous-stratégie Supply & Demand : Mouvement de tendance ou Retracement."); $("sdModeWrap").scrollIntoView({ block:"center" }); return; }
     var isBe35 = formType === "trade" && fields.status.value === "be35";
     var btn = this;
     var dayKey = activeDayKey;
@@ -2725,7 +2902,15 @@
       var obsMode = formType !== "trade", trapMode = formType === "trap";
       var stratVal = fields.strategy.value === "__new__" ? "" : fields.strategy.value.trim();
       var setupData = null;
-      if(stratVal === SD_NAME && !trapMode){
+      var sdModeVal = (stratVal === SD_NAME && !trapMode) ? $("f_sdMode").value : "";
+      var retrData = null;
+      if(sdModeVal === "retracement"){
+        retrData = {};
+        Object.keys(RETR_IDS).forEach(function(k){ retrData[k] = $(RETR_IDS[k]).value.trim(); });
+      }
+      var rrNum = rrValue();
+      var retrBeOnly = sdModeVal === "retracement" && !(rrNum !== null && rrNum >= RR_MIN);
+      if(stratVal === SD_NAME && !trapMode && sdModeVal === "tendance"){
         setupData = {};
         Object.keys(SETUP_IDS).forEach(function(k){ setupData[k] = $(SETUP_IDS[k]).value.trim(); });
         var keepKeys = ruleSpec(normPair($("f_pairSel").value)).map(function(r){ return r[0]; });
@@ -2741,9 +2926,12 @@
         direction: trapMode ? "" : fields.direction.value,
         strategy: stratVal,
         setup: setupData,
+        sdMode: sdModeVal,
+        retr: retrData,
+        retrRR: sdModeVal === "retracement" ? $("rt_rr").value : "",
         stratDetails: isCustomStrat ? fields.stratDetails.value.trim() : "",
         risk: obsMode ? "" : fields.risk.value,
-        riskState: (obsMode || stratVal !== SD_NAME) ? "" : $("f_riskState").value,
+        riskState: (obsMode || stratVal !== SD_NAME || retrBeOnly) ? "" : $("f_riskState").value,
         status: obsMode ? "observation" : fields.status.value,
         lot: obsMode ? "" : fields.lot.value, entry: obsMode ? "" : fields.entry.value, sl: obsMode ? "" : fields.sl.value, tp: obsMode ? "" : fields.tp.value,
         exit: obsMode ? "" : fields.exit.value, pnl: obsMode ? "" : fields.pnl.value,
@@ -3452,7 +3640,7 @@
       }
       if(played.length){
         groupTable("Par actif", groupStats(function(t){ return t.pair; }));
-        groupTable("Par stratégie", groupStats(function(t){ return t.strategy; }));
+        groupTable("Par stratégie", groupStats(function(t){ return stratLabel(t); }));
       }
 
       // =====================================================
@@ -3503,6 +3691,10 @@
           cells.push(["Statut", STATUS_LABEL[t.status] || t.status || ""]);
           if(hasVal(t.risk)) cells.push(["Risque", t.risk + " %"]);
           if(hasVal(t.riskState)) cells.push(["Contexte du risque", RSL[t.riskState] || t.riskState]);
+          if(sdModeOf(t) === "retracement" && hasVal(t.retrRR)){
+            cells.push(["RR du trade", String(t.retrRR).replace(".", ",")]);
+            cells.push(["Gestion du risque", (parseFloat(t.retrRR) >= RR_MIN) ? "Trailing (RR >= 1,5)" : "BE entree seul (RR < 1,5)"]);
+          }
           if(hasVal(t.lot)) cells.push(["Lot", t.lot]);
           if(hasVal(t.entry)) cells.push(["Entrée", t.entry]);
           if(hasVal(t.sl)) cells.push(["Stop loss", t.sl]);
@@ -3518,7 +3710,7 @@
           doc.setFont("helvetica","normal"); doc.setFontSize(6.8); setTxt(C.dim);
           doc.text("STRATÉGIE", iX, y);
           doc.setFont("helvetica","bold"); doc.setFontSize(9.5); setTxt(C.ink);
-          doc.text(pdfText(t.strategy), iX, y + 4.6);
+          doc.text(pdfText(stratLabel(t)), iX, y + 4.6);
           y += 10.5;
         }
         var gcw = CW / 4;
@@ -3565,6 +3757,22 @@
             if(hasVal(su.other)) zl.push("Autres détails : " + su.other);
             var zlines = rlines.slice(); zl.forEach(function(x){ zlines = zlines.concat(wrap(x, iW, 9)); });
             if(zlines.length) blocks.push({ label:"Setup - Supply & Demand en killzone", lines: zlines });
+          }
+          if(t.retr){
+            var rt = t.retr, rzl = [], rq = [];
+            if(rt.dir || rt.elem) rzl.push("Zone : " + [rt.dir ? (rt.dir === "demand" ? "Demand" : "Supply") : "", rt.elem || ""].join(" ").trim() + (rt.kz ? "  ·  KZ " + KZL[rt.kz] + (rt.time ? " " + rt.time : "") : ""));
+            if(rt.trap) rq.push("Trap repere : " + YNL[rt.trap]);
+            if(rt.choch) rq.push("CHoCH sur le trap : " + YNL[rt.choch]);
+            if(rt.amd) rq.push("Structure AMD : " + YNL[rt.amd]);
+            if(rt.zone) rq.push("Zone liberee en KZ : " + YNL[rt.zone]);
+            if(rt.ote) rq.push("OTE : " + YNL[rt.ote]);
+            if(rt.m5) rq.push("Zone M5 : " + YNL[rt.m5]);
+            if(rt.react) rq.push("Reaction sur la zone : " + YNL[rt.react]);
+            if(rt.fibo) rq.push("Objectif 50 % fibo : " + YNL[rt.fibo]);
+            if(rq.length) rzl.push(rq.join("  ·  "));
+            if(hasVal(rt.other)) rzl.push("Autres details : " + rt.other);
+            var rzlines = []; rzl.forEach(function(x){ rzlines = rzlines.concat(wrap(x, iW, 9)); });
+            if(rzlines.length) blocks.push({ label:"Setup - Retracement", lines: rzlines });
           }
           if(hasVal(t.trapNotes)) blocks.push({ label:"Notes importantes (setup trap)", lines: wrap(t.trapNotes, iW, 9) });
           if(hasVal(t.stratDetails)) blocks.push({ label:"Détails de la stratégie", lines: wrap(t.stratDetails, iW, 9) });
