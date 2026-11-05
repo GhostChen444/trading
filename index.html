@@ -1043,10 +1043,11 @@
 
           <div class="section-label">objectif · target</div>
           <div class="form-grid">
-            <div class="field"><label for="s_trapExit">Entrée en éventuelle sortie de trap ?</label><select id="s_trapExit"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field"><label for="s_target">Objectif : première contrepartie à récupérer (dernier bas / dernier haut) ?</label><select id="s_target"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="s_trapExit">Type d'entrée</label><select id="s_trapExit"><option value="">— choisir —</option><option value="base">Mouvement de base</option><option value="trap">Éventuelle sortie de trap</option></select></div>
+            <div class="field"><label for="s_target">Target respecté (selon le rappel ci-dessous) ?</label><select id="s_target"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
           </div>
-          <div class="reminder-red" id="trapExitReminder" style="display:none;"><b>Rappel target (éventuelle sortie de trap) :</b> pour une exécution chirurgicale, le target est la <b>première contrepartie à récupérer</b>, au niveau du <b>dernier bas ou dernier haut</b>.</div>
+          <div class="reminder-red" id="trapExitReminder" style="display:none;"><b>Rappel target (éventuelle sortie de trap) :</b> le target est la <b>première contrepartie à récupérer</b>, au niveau du <b>dernier bas ou dernier haut</b>.</div>
+          <div class="reminder-red" id="baseReminder" style="display:none;"><b>Rappel target (mouvement de base) :</b> le target est au niveau de la <b>plus haute ou plus basse liquidité à récupérer</b>.</div>
 
           <div class="section-label">autres détails setup</div>
           <div class="form-grid full">
@@ -2278,7 +2279,7 @@
         item("Zone OTE H1", YNV[su.ote]), item("CHoCH H1 (cassure du BOS)", YNV[su.chH1]), item("CHoCH M5", YNV[su.chM5]), item("Confirmation M5", YNV[su.confirm])
       ]);
       h += '<div class="view-sub">Objectif</div>' + grid([
-        item("Éventuelle sortie de trap", YNV[su.trapExit]), item("Objectif : 1re contrepartie (dernier bas / haut)", YNV[su.target])
+        item("Type d'entrée", su.trapExit === "base" ? "Mouvement de base" : ((su.trapExit === "trap" || su.trapExit === "oui") ? "Éventuelle sortie de trap" : "")), item("Target respecté", YNV[su.target])
       ]);
       var rg = grid([
         item("Zone hors Asie", YNV[su.rHorsAsie]), item("Réintégration en Asie", YNV[su.rReintAsie]), item("Vérification du CISD H1", YNV[su.rCisd]),
@@ -2742,7 +2743,7 @@
     hideNewStrat(); fields.strategy.value = lastStrat; updateStrategyUI();
   });
   Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).addEventListener("change", updateSetupHint); });
-  function updateTrapExitReminder(){ $("trapExitReminder").style.display = $("s_trapExit").value === "oui" ? "" : "none"; }
+  function updateTrapExitReminder(){ var v = $("s_trapExit").value; $("trapExitReminder").style.display = (v === "trap" || v === "oui") ? "" : "none"; $("baseReminder").style.display = v === "base" ? "" : "none"; }
   $("s_trapExit").addEventListener("change", updateTrapExitReminder);
   fields.direction.addEventListener("change", updateSetupHint);
   var formType = "trade";
@@ -3772,8 +3773,8 @@
             if(su.confirm) l3.push("Confirmation M5 : " + YNL[su.confirm]);
             if(l3.length) zl.push(l3.join("  ·  "));
             var l4 = [];
-            if(su.trapExit) l4.push("Eventuelle sortie de trap : " + YNL[su.trapExit]);
-            if(su.target) l4.push("Objectif 1re contrepartie : " + YNL[su.target]);
+            if(su.trapExit) l4.push("Type d'entree : " + (su.trapExit === "base" ? "Mouvement de base" : "Eventuelle sortie de trap"));
+            if(su.target) l4.push("Target respecte : " + YNL[su.target]);
             if(l4.length) zl.push(l4.join("  ·  "));
             if(su.entryKz) zl.push("KZ d'entrée : " + KZL[su.entryKz] + (su.entryTime ? " " + su.entryTime : ""));
             if(hasVal(su.other)) zl.push("Autres détails : " + su.other);
