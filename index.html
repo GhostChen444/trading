@@ -1046,8 +1046,8 @@
             <div class="field"><label for="s_trapExit">Type d'entrée</label><select id="s_trapExit"><option value="">— choisir —</option><option value="base">Mouvement de base</option><option value="trap">Éventuelle sortie de trap</option></select></div>
             <div class="field"><label for="s_target">Target respecté (selon le rappel ci-dessous) ?</label><select id="s_target"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
           </div>
-          <div class="reminder-red" id="trapExitReminder" style="display:none;"><b>Rappel target (éventuelle sortie de trap) :</b> le target est la <b>première contrepartie à récupérer</b>, au niveau du <b>dernier bas ou dernier haut</b>.</div>
-          <div class="reminder-red" id="baseReminder" style="display:none;"><b>Rappel target (mouvement de base) :</b> le target est au niveau de la <b>plus haute ou plus basse liquidité à récupérer</b>.</div>
+          <div class="reminder-red" id="trapExitReminder" style="display:none;"><b>Rappel target (éventuelle sortie de trap) :</b> le target est la <b>première contrepartie externe à récupérer, qui n'a pas encore été récupérée</b>, au niveau du <b>dernier bas ou dernier haut</b>.</div>
+          <div class="reminder-red" id="baseReminder" style="display:none;"><b>Rappel target (mouvement de base) :</b> le target est au niveau de la <b>plus haute ou plus basse liquidité externe à récupérer, qui n'a pas encore été récupérée</b>.</div>
 
           <div class="section-label">autres détails setup</div>
           <div class="form-grid full">
@@ -1066,10 +1066,10 @@
             1. Sur l'éventuel mouvement de base, repérer les <b>traps</b> formés par le prix : ils seront liquidés.<br>
             2. Attendre un <b>CHoCH</b> du prix sur l'un des traps (cassure avec corps).<br>
             3. Attendre que le prix libère un <b>FVG ou un OB</b>, dans mes killzones, avec une structure AMD repérée.<br>
-            4. Aller chercher la <b>première contrepartie</b> à récupérer, au niveau du dernier bas ou dernier haut.
+            4. Aller chercher la <b>première contrepartie externe</b> à récupérer, <b>qui n'a pas encore été récupérée</b>, au niveau du dernier bas ou dernier haut.
           </div>
           <div class="reminder">Zone d'entrée : <b>OB ou FVG, jamais les deux</b>. Exécution identique au mouvement de tendance : zones repérées en M5 et réaction du prix sur la zone.</div>
-          <div class="reminder-red"><b>Rappel target :</b> pour une exécution chirurgicale, le target des entrées en retracement est la <b>première contrepartie à récupérer</b>, au niveau du <b>dernier bas ou dernier haut</b>.</div>
+          <div class="reminder-red"><b>Rappel target :</b> pour une exécution chirurgicale, le target des entrées en retracement est la <b>première contrepartie externe à récupérer, qui n'a pas encore été récupérée</b>, au niveau du <b>dernier bas ou dernier haut</b>.</div>
           <div class="section-label">checklist retracement</div>
           <div class="form-grid">
             <div class="field"><label for="rt_trap">1. Trap(s) repéré(s) sur l'éventuel mouvement de base ?</label><select id="rt_trap"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
@@ -1080,7 +1080,7 @@
             <div class="field"><label for="rt_elem">6. Élément d'entrée (OB ou FVG, jamais les deux)</label><select id="rt_elem"><option value="">— choisir —</option><option value="OB">OB</option><option value="FVG">FVG</option></select></div>
             <div class="field"><label for="rt_m5">7. Zone repérée en M5 ?</label><select id="rt_m5"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="rt_react">8. Le prix a bien réagi sur la zone ?</label><select id="rt_react"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field"><label for="rt_target">9. Objectif : première contrepartie à récupérer (dernier bas / dernier haut) ?</label><select id="rt_target"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="rt_target">9. Objectif : première contrepartie « externe » à récupérer « qui n'a pas encore été récupérée » (dernier bas / dernier haut) ?</label><select id="rt_target"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
           </div>
           <div class="section-label">zone &amp; killzone</div>
           <div class="form-grid">
@@ -2295,7 +2295,7 @@
       h += '<div class="view-sub">Checklist</div>' + grid([
         item("1. Trap(s) repéré(s)", YNV[rv.trap]), item("2. CHoCH sur le trap", YNV[rv.choch]), item("3. Structure AMD", YNV[rv.amd]),
         item("4. Zone libérée en killzone", YNV[rv.zone]), item("5. Zone en OTE", YNV[rv.ote]), item("6. Élément d'entrée", rv.elem),
-        item("7. Zone repérée en M5", YNV[rv.m5]), item("8. Réaction sur la zone", YNV[rv.react]), item("9. Objectif : 1re contrepartie (dernier bas / haut)", YNV[rv.target])
+        item("7. Zone repérée en M5", YNV[rv.m5]), item("8. Réaction sur la zone", YNV[rv.react]), item("9. Objectif : 1re contrepartie externe non récupérée (dernier bas / haut)", YNV[rv.target])
       ]);
       h += grid([
         item("Zone repérée", rv.dir === "demand" ? "Demand" : (rv.dir === "supply" ? "Supply" : "")),
@@ -3791,7 +3791,7 @@
             if(rt.ote) rq.push("OTE : " + YNL[rt.ote]);
             if(rt.m5) rq.push("Zone M5 : " + YNL[rt.m5]);
             if(rt.react) rq.push("Reaction sur la zone : " + YNL[rt.react]);
-            if(rt.target) rq.push("Objectif 1re contrepartie : " + YNL[rt.target]);
+            if(rt.target) rq.push("Objectif 1re contrepartie externe non recuperee : " + YNL[rt.target]);
             if(rq.length) rzl.push(rq.join("  ·  "));
             if(hasVal(rt.other)) rzl.push("Autres details : " + rt.other);
             var rzlines = []; rzl.forEach(function(x){ rzlines = rzlines.concat(wrap(x, iW, 9)); });
