@@ -1041,6 +1041,13 @@
             <div class="field"><label for="s_confirm">Confirmation d'entrée en M5</label><select id="s_confirm"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
           </div>
 
+          <div class="section-label">objectif · target</div>
+          <div class="form-grid">
+            <div class="field"><label for="s_trapExit">Entrée en éventuelle sortie de trap ?</label><select id="s_trapExit"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="s_target">Objectif : première contrepartie à récupérer (dernier bas / dernier haut) ?</label><select id="s_target"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+          </div>
+          <div class="reminder-red" id="trapExitReminder" style="display:none;"><b>Rappel target (éventuelle sortie de trap) :</b> pour une exécution chirurgicale, le target est la <b>première contrepartie à récupérer</b>, au niveau du <b>dernier bas ou dernier haut</b>.</div>
+
           <div class="section-label">autres détails setup</div>
           <div class="form-grid full">
             <div class="field"><textarea id="s_other" placeholder="tout ce qui n'est pas couvert par les critères ci-dessus..."></textarea></div>
@@ -1058,9 +1065,10 @@
             1. Sur l'éventuel mouvement de base, repérer les <b>traps</b> formés par le prix : ils seront liquidés.<br>
             2. Attendre un <b>CHoCH</b> du prix sur l'un des traps (cassure avec corps).<br>
             3. Attendre que le prix libère un <b>FVG ou un OB</b>, dans mes killzones, avec une structure AMD repérée.<br>
-            4. Aller chercher le <b>50 % du fibo</b> de l'éventuel mouvement à aller chercher.
+            4. Aller chercher la <b>première contrepartie</b> à récupérer, au niveau du dernier bas ou dernier haut.
           </div>
           <div class="reminder">Zone d'entrée : <b>OB ou FVG, jamais les deux</b>. Exécution identique au mouvement de tendance : zones repérées en M5 et réaction du prix sur la zone.</div>
+          <div class="reminder-red"><b>Rappel target :</b> pour une exécution chirurgicale, le target des entrées en retracement est la <b>première contrepartie à récupérer</b>, au niveau du <b>dernier bas ou dernier haut</b>.</div>
           <div class="section-label">checklist retracement</div>
           <div class="form-grid">
             <div class="field"><label for="rt_trap">1. Trap(s) repéré(s) sur l'éventuel mouvement de base ?</label><select id="rt_trap"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
@@ -1071,7 +1079,7 @@
             <div class="field"><label for="rt_elem">6. Élément d'entrée (OB ou FVG, jamais les deux)</label><select id="rt_elem"><option value="">— choisir —</option><option value="OB">OB</option><option value="FVG">FVG</option></select></div>
             <div class="field"><label for="rt_m5">7. Zone repérée en M5 ?</label><select id="rt_m5"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
             <div class="field"><label for="rt_react">8. Le prix a bien réagi sur la zone ?</label><select id="rt_react"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
-            <div class="field"><label for="rt_fibo">9. Objectif : 50 % du fibo de l'éventuel mouvement ?</label><select id="rt_fibo"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
+            <div class="field"><label for="rt_target">9. Objectif : première contrepartie à récupérer (dernier bas / dernier haut) ?</label><select id="rt_target"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
           </div>
           <div class="section-label">zone &amp; killzone</div>
           <div class="form-grid">
@@ -2269,6 +2277,9 @@
       h += '<div class="view-sub">Confirmations</div>' + grid([
         item("Zone OTE H1", YNV[su.ote]), item("CHoCH H1 (cassure du BOS)", YNV[su.chH1]), item("CHoCH M5", YNV[su.chM5]), item("Confirmation M5", YNV[su.confirm])
       ]);
+      h += '<div class="view-sub">Objectif</div>' + grid([
+        item("Éventuelle sortie de trap", YNV[su.trapExit]), item("Objectif : 1re contrepartie (dernier bas / haut)", YNV[su.target])
+      ]);
       var rg = grid([
         item("Zone hors Asie", YNV[su.rHorsAsie]), item("Réintégration en Asie", YNV[su.rReintAsie]), item("Vérification du CISD H1", YNV[su.rCisd]),
         item("Zone déjà mitigée", YNV[su.rMitig]), item("Zone protégée par liquidités H1", YNV[su.rLiq]),
@@ -2283,7 +2294,7 @@
       h += '<div class="view-sub">Checklist</div>' + grid([
         item("1. Trap(s) repéré(s)", YNV[rv.trap]), item("2. CHoCH sur le trap", YNV[rv.choch]), item("3. Structure AMD", YNV[rv.amd]),
         item("4. Zone libérée en killzone", YNV[rv.zone]), item("5. Zone en OTE", YNV[rv.ote]), item("6. Élément d'entrée", rv.elem),
-        item("7. Zone repérée en M5", YNV[rv.m5]), item("8. Réaction sur la zone", YNV[rv.react]), item("9. Objectif 50 % du fibo", YNV[rv.fibo])
+        item("7. Zone repérée en M5", YNV[rv.m5]), item("8. Réaction sur la zone", YNV[rv.react]), item("9. Objectif : 1re contrepartie (dernier bas / haut)", YNV[rv.target])
       ]);
       h += grid([
         item("Zone repérée", rv.dir === "demand" ? "Demand" : (rv.dir === "supply" ? "Supply" : "")),
@@ -2393,14 +2404,14 @@
   var SD_NAME = "Supply & Demand en killzone";
   var SETUP_IDS = { dir:"s_dir", type:"s_type", zoneKz:"s_zoneKz", zoneTime:"s_zoneTime", h1:"s_h1", m5:"s_m5",
                     chM5:"s_chM5", chH1:"s_chH1", entryKz:"s_entryKz", entryTime:"s_entryTime", confirm:"s_confirm",
-                    ote:"s_ote", other:"s_other", rHorsAsie:"r_horsAsie", rReintAsie:"r_reintAsie", rCisd:"r_cisd", rMitig:"r_mitig", rLiq:"r_liq", rKzUs:"r_kzUs", rEntry:"r_entry" };
+                    ote:"s_ote", trapExit:"s_trapExit", target:"s_target", other:"s_other", rHorsAsie:"r_horsAsie", rReintAsie:"r_reintAsie", rCisd:"r_cisd", rMitig:"r_mitig", rLiq:"r_liq", rKzUs:"r_kzUs", rEntry:"r_entry" };
   var SD_PAIRS = ["XAUUSD","GBPUSD","EURUSD","NASDAQ"];
   // sous-stratégies de S&D : mouvement de tendance (mouvements de base) et retracement
   var SD_MODES = { tendance:"Mouvement de tendance", retracement:"Retracement" };
   var SD_MODE_SUB = { tendance:"Mouvements de base", retracement:"Petits RR · SMC / ICT · AMD" };
   var RR_MIN = 1.5;
-  var RETR_IDS = { trap:"rt_trap", choch:"rt_choch", amd:"rt_amd", zone:"rt_zone", ote:"rt_ote", elem:"rt_elem", m5:"rt_m5", react:"rt_react", fibo:"rt_fibo", dir:"rt_dir", kz:"rt_kz", time:"rt_time", other:"rt_other" };
-  var RETR_YN = ["trap","choch","amd","zone","ote","m5","react","fibo"];
+  var RETR_IDS = { trap:"rt_trap", choch:"rt_choch", amd:"rt_amd", zone:"rt_zone", ote:"rt_ote", elem:"rt_elem", m5:"rt_m5", react:"rt_react", target:"rt_target", dir:"rt_dir", kz:"rt_kz", time:"rt_time", other:"rt_other" };
+  var RETR_YN = ["trap","choch","amd","zone","ote","m5","react","target"];
   // les anciens trades S&D (sans sous-stratégie) sont des trades de tendance
   function sdModeOf(t){
     if(!t || t.strategy !== SD_NAME || t.trap === true) return "";
@@ -2731,6 +2742,8 @@
     hideNewStrat(); fields.strategy.value = lastStrat; updateStrategyUI();
   });
   Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).addEventListener("change", updateSetupHint); });
+  function updateTrapExitReminder(){ $("trapExitReminder").style.display = $("s_trapExit").value === "oui" ? "" : "none"; }
+  $("s_trapExit").addEventListener("change", updateTrapExitReminder);
   fields.direction.addEventListener("change", updateSetupHint);
   var formType = "trade";
 
@@ -2845,6 +2858,7 @@
     pairSD = false;
     refreshStrategyOptions("");
     Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).value = ""; });
+    updateTrapExitReminder();
     $("f_riskState").value = "";
     $("f_sdMode").value = "";
     Object.keys(RETR_IDS).forEach(function(k){ $(RETR_IDS[k]).value = ""; });
@@ -2859,6 +2873,7 @@
         var su = t.setup || {};
         Object.keys(SETUP_IDS).forEach(function(k){ $(SETUP_IDS[k]).value = su[k] || ""; });
         if(su.m5 && su.m5 !== "oui" && su.m5 !== "non") $("s_m5").value = "oui"; // ancien format OB/FVG
+        updateTrapExitReminder();
         $("f_sdMode").value = sdModeOf(t);
         var rt0 = t.retr || {};
         Object.keys(RETR_IDS).forEach(function(k){ $(RETR_IDS[k]).value = rt0[k] || ""; });
@@ -3756,6 +3771,10 @@
             if(su.chM5) l3.push("CHoCH M5 : " + YNL[su.chM5]);
             if(su.confirm) l3.push("Confirmation M5 : " + YNL[su.confirm]);
             if(l3.length) zl.push(l3.join("  ·  "));
+            var l4 = [];
+            if(su.trapExit) l4.push("Eventuelle sortie de trap : " + YNL[su.trapExit]);
+            if(su.target) l4.push("Objectif 1re contrepartie : " + YNL[su.target]);
+            if(l4.length) zl.push(l4.join("  ·  "));
             if(su.entryKz) zl.push("KZ d'entrée : " + KZL[su.entryKz] + (su.entryTime ? " " + su.entryTime : ""));
             if(hasVal(su.other)) zl.push("Autres détails : " + su.other);
             var zlines = rlines.slice(); zl.forEach(function(x){ zlines = zlines.concat(wrap(x, iW, 9)); });
@@ -3771,7 +3790,7 @@
             if(rt.ote) rq.push("OTE : " + YNL[rt.ote]);
             if(rt.m5) rq.push("Zone M5 : " + YNL[rt.m5]);
             if(rt.react) rq.push("Reaction sur la zone : " + YNL[rt.react]);
-            if(rt.fibo) rq.push("Objectif 50 % fibo : " + YNL[rt.fibo]);
+            if(rt.target) rq.push("Objectif 1re contrepartie : " + YNL[rt.target]);
             if(rq.length) rzl.push(rq.join("  ·  "));
             if(hasVal(rt.other)) rzl.push("Autres details : " + rt.other);
             var rzlines = []; rzl.forEach(function(x){ rzlines = rzlines.concat(wrap(x, iW, 9)); });
