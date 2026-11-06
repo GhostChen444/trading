@@ -509,9 +509,6 @@
   .fc-bubble.warn::before{color:var(--gold); content:"garde-fou";}
   .fc-bubble.warn::after{background:rgba(200,155,74,0.09); border-left-color:rgba(200,155,74,0.55);}
   .fc-bubble b{color:var(--gold); font-weight:600;}
-  .fc-fig{margin:16px 0 8px; max-width:680px; border:1px solid var(--border); background:var(--bg-2); border-radius:var(--r); padding:10px 8px 4px;}
-  .fc-fig svg{display:block; width:100%; height:auto;}
-  .fc-fig figcaption{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--text-faint); padding:4px 8px 8px;}
   .fc-ritual{margin:14px 0 0; max-width:680px; background:var(--panel); border:1px solid var(--border); border-radius:var(--r); padding:6px 0;}
   .fc-ritual li{list-style:none; display:flex; gap:12px; align-items:flex-start; padding:11px 16px; font-size:13.5px; line-height:1.5; color:var(--text); cursor:pointer; user-select:none; border-bottom:1px solid var(--border-soft);}
   .fc-ritual li:last-child{border-bottom:0;}
@@ -945,23 +942,6 @@
           <li>Côté exécution : <b class="g">suivre celle du retracement</b>.</li>
         </ul>
 
-        <figure class="fc-fig">
-          <svg viewBox="0 0 420 220" role="img" aria-label="Schéma : mouvement de base, retracement, zone OTE et target 50 % du fibo">
-            <rect x="198" y="139" width="196" height="28" style="fill:rgba(200,155,74,0.16);stroke:#8C6B34;stroke-dasharray:3 3;"/>
-            <text x="204" y="157" style="fill:#C89B4A;font:10px 'IBM Plex Mono',monospace;letter-spacing:.1em;">ZONE OTE</text>
-            <line x1="40" y1="120" x2="394" y2="120" style="stroke:#74A88B;stroke-dasharray:5 4;stroke-width:1.2;"/>
-            <text x="300" y="113" style="fill:#74A88B;font:10px 'IBM Plex Mono',monospace;letter-spacing:.08em;">TARGET · 50 % FIBO</text>
-            <polyline points="40,200 240,40 330,150 392,126" fill="none" style="stroke:#E9E5DD;stroke-width:2;stroke-linejoin:round;"/>
-            <circle cx="240" cy="40" r="3.5" style="fill:#C89B4A;"/>
-            <circle cx="40" cy="200" r="3.5" style="fill:#C89B4A;"/>
-            <circle cx="330" cy="150" r="5" style="fill:#0B0D0E;stroke:#C89B4A;stroke-width:2;"/>
-            <text x="92" y="108" transform="rotate(-38 92 108)" style="fill:#9CA3A8;font:10px 'IBM Plex Mono',monospace;letter-spacing:.1em;">MOUVEMENT DE BASE</text>
-            <text x="262" y="62" style="fill:#7096B5;font:10px 'IBM Plex Mono',monospace;letter-spacing:.08em;">CHOCHRe</text>
-            <line x1="270" y1="66" x2="270" y2="84" style="stroke:#7096B5;stroke-width:1;"/>
-            <text x="296" y="186" style="fill:#C89B4A;font:10px 'IBM Plex Mono',monospace;letter-spacing:.08em;">ENTRÉE · KILLZONE</text>
-          </svg>
-          <figcaption>Schéma de principe (haussier) : retracement jusqu’à la zone OTE, entrée en killzone, target au 50 % du fibo du mouvement de base.</figcaption>
-        </figure>
 
         <div class="fc-ideal">
           <div class="fc-ih">le setup idéal</div>
