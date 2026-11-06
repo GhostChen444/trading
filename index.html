@@ -491,6 +491,13 @@
   .fc-tier > div:first-child{border-left:3px solid var(--gold);}
   .fc-tier > div:nth-child(2){border-left:3px solid var(--blue);}
   .fc-tier > div:nth-child(3){border-left:3px solid var(--green);}
+  .fc-seq{list-style:none; counter-reset:fcs; margin:14px 0 6px; padding:0; display:grid; gap:0; max-width:680px;}
+  .fc-seq li{counter-increment:fcs; position:relative; display:flex; align-items:center; gap:14px; padding:12px 16px; background:var(--panel); border:1px solid var(--border); font-size:14px; color:var(--text);}
+  .fc-seq li + li{margin-top:-1px;}
+  .fc-seq li::before{content:counter(fcs); flex:0 0 auto; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:1.5px solid var(--gold); border-radius:50%; font-family:var(--mono); font-size:12px; color:var(--gold);}
+  .fc-seq li:not(:last-child)::after{content:""; position:absolute; left:28px; bottom:-8px; width:2px; height:15px; background:var(--gold-soft); z-index:1;}
+  .fc-seq li:last-child{border-color:var(--gold-soft); background:linear-gradient(135deg, rgba(200,155,74,0.12), rgba(200,155,74,0.02));}
+  .fc-seq li b{font-weight:500;}
   .fc-list{list-style:none; margin:10px 0; padding:0; display:flex; flex-direction:column; gap:7px; max-width:680px;}
   .fc-list li{position:relative; padding-left:22px; font-size:13.5px; line-height:1.55; color:var(--text);}
   .fc-list li::before{content:""; position:absolute; left:3px; top:.55em; width:7px; height:7px; transform:rotate(45deg); border:1.5px solid var(--gold);}
@@ -885,7 +892,7 @@
             <p>Changement de caractère de retracement. <b>NB : un CHOCHRe doit toujours être complet.</b></p>
           </div>
           <div class="fc-card cont">
-            <div class="fc-tag">CHOCH<b style="color:var(--green)">con</b><small>confirmation</small></div>
+            <div class="fc-tag">CHOCH<b style="color:var(--green)">Con</b><small>confirmation</small></div>
             <p>Le retracement se poursuit et <b>liquide en zone OTE</b> : le prix pourrait alors repartir suivre la tendance de base.</p>
           </div>
         </div>
@@ -911,9 +918,23 @@
         <div class="fc-bubble">Quand je suis perdu sur un petit mouvement, je zoome en arrière : <b>où est ma tendance de base, où sont mes points clés ?</b> La réponse est presque toujours là.</div>
       </div>
 
-      <!-- 03 IMPULSIONS -->
+      <!-- 03 MOUVEMENTS DE BASE -->
       <div class="fc-step">
         <div class="fc-node"><span>03</span></div>
+        <h3>Les mouvements de base</h3>
+        <div class="fc-sub">les quatre temps, dans l’ordre</div>
+        <ol class="fc-seq">
+          <li><b>Retour en OTE</b></li>
+          <li><b>Prise de liquidité</b></li>
+          <li><b>Réaction dans la zone</b></li>
+          <li><b>Aller chercher un CISDCon ou BOS</b></li>
+        </ol>
+        <div class="fc-bubble">Je suis les quatre temps dans l’ordre. Si un temps manque, je n’enchaîne pas sur le suivant : j’attends.</div>
+      </div>
+
+      <!-- 04 IMPULSIONS -->
+      <div class="fc-step">
+        <div class="fc-node"><span>04</span></div>
         <h3>Sous-tendance 1 · les impulsions</h3>
         <div class="fc-sub">mouvements de continuation</div>
         <p>Les confirmations :</p>
@@ -932,13 +953,13 @@
 
       <!-- 04 RETRACEMENTS -->
       <div class="fc-step">
-        <div class="fc-node"><span>04</span></div>
+        <div class="fc-node"><span>05</span></div>
         <h3>Sous-tendance 2 · les retracements</h3>
         <div class="fc-sub">ma seule zone d’intervention : la zone OTE du mouvement de base</div>
         <p>Faire attention à tout ce qui se passe <b class="g">avant la zone OTE</b> du mouvement de base : c’est notre seule zone d’intervention. Veiller aussi à ce que le prix ait fait un <b class="g">CISDCon ou un CISDRe</b>.</p>
         <ul class="fc-list">
           <li>En confirmation, on a des <b class="g">CHOCHRe</b> : tous les changements de caractère se faisant <b>en dehors de la zone OTE</b>.</li>
-          <li>Si on a une continuation du retracement et une <b class="g">liquidation en zone OTE</b>, on parle de <b class="g">CHOCHcon</b> : le prix pourrait repartir suivre la tendance de base.</li>
+          <li>Si on a une continuation du retracement et une <b class="g">liquidation en zone OTE</b>, on parle de <b class="g">CHOCHCon</b> : le prix pourrait repartir suivre la tendance de base.</li>
           <li>Côté exécution : <b class="g">suivre celle du retracement</b>.</li>
         </ul>
 
@@ -951,9 +972,23 @@
         <div class="fc-bubble warn">Sur un retracement, mon risque est <b>divisé par 2</b>. Si le narratif est flou ou ne colle pas avec le mouvement actuel du prix, je divise aussi mon risque par 2.</div>
       </div>
 
-      <!-- 05 RITUEL -->
+      <!-- 06 MOUVEMENTS DE BASE (rappel après les retracements) -->
       <div class="fc-step">
-        <div class="fc-node"><span>05</span></div>
+        <div class="fc-node"><span>06</span></div>
+        <h3>Les mouvements de base</h3>
+        <div class="fc-sub">les quatre temps, dans l’ordre</div>
+        <ol class="fc-seq">
+          <li><b>Retour en OTE</b></li>
+          <li><b>Prise de liquidité</b></li>
+          <li><b>Réaction dans la zone</b></li>
+          <li><b>Aller chercher un CISDCon ou BOS</b></li>
+        </ol>
+        <div class="fc-bubble">Même séquence que pour les impulsions et les retracements : je suis les quatre temps dans l’ordre. Si un temps manque, je n’enchaîne pas sur le suivant : j’attends.</div>
+      </div>
+
+      <!-- 07 RITUEL -->
+      <div class="fc-step">
+        <div class="fc-node"><span>07</span></div>
         <h3>Le rituel du jour</h3>
         <div class="fc-sub">cinq questions avant de toucher une exécution (clique pour cocher)</div>
         <ul class="fc-ritual" id="fcRitual">
