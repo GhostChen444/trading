@@ -454,6 +454,79 @@
   .maintabs button{background:transparent; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font-size:14px; padding:10px 18px; margin-bottom:-1px;}
   .maintabs button:hover{color:var(--text);}
   .maintabs button.active{color:var(--gold); border-bottom-color:var(--gold);}
+
+  /* ---------- onglet « Fil conducteur » ---------- */
+  #filView{padding:28px 22px 34px; position:relative; overflow:hidden;}
+  #filView::before{content:""; position:absolute; top:-120px; right:-120px; width:340px; height:340px; border-radius:50%; background:radial-gradient(circle, rgba(200,155,74,0.10), transparent 68%); pointer-events:none;}
+  .fc-hero{position:relative; margin:0 0 30px; padding-left:54px;}
+  .fc-hero .fc-kicker{font-family:var(--mono); font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--gold);}
+  .fc-hero h2{font-family:var(--serif); font-weight:400; font-size:34px; line-height:1.1; margin:8px 0 10px; color:var(--text); letter-spacing:-.01em;}
+  .fc-hero h2 em{color:var(--gold); font-style:italic;}
+  .fc-hero p{margin:0; max-width:620px; color:var(--text-dim); font-size:14px; line-height:1.6;}
+  .fc-thread{position:relative; padding-left:54px;}
+  .fc-thread::before{content:""; position:absolute; left:17px; top:-18px; bottom:0; width:2px; background:linear-gradient(to bottom, rgba(200,155,74,0) 0, var(--gold) 6%, var(--gold-soft) 55%, rgba(140,107,52,0.15) 100%); box-shadow:0 0 12px rgba(200,155,74,0.35);}
+  .fc-hero::before{content:""; position:absolute; left:11px; top:6px; width:14px; height:14px; transform:rotate(45deg); background:var(--gold); box-shadow:0 0 0 5px rgba(200,155,74,0.16), 0 0 18px rgba(200,155,74,0.55);}
+  .fc-step{position:relative; margin:0 0 40px;}
+  .fc-node{position:absolute; left:-47px; top:0; width:28px; height:28px; transform:rotate(45deg); background:var(--bg-2); border:1.5px solid var(--gold); display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 4px var(--bg), 0 0 14px rgba(200,155,74,0.28);}
+  .fc-node span{transform:rotate(-45deg); font-family:var(--mono); font-size:11px; color:var(--gold);}
+  .fc-step h3{font-family:var(--serif); font-weight:400; font-size:23px; margin:0 0 4px; color:var(--text); line-height:1.2;}
+  .fc-step .fc-sub{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin-bottom:14px;}
+  .fc-step p{font-size:14px; line-height:1.65; color:var(--text); margin:0 0 10px; max-width:680px;}
+  .fc-step b.g{color:var(--gold); font-weight:600;}
+  .fc-step b.r{color:var(--red); font-weight:700;}
+  .fc-step b.v{color:var(--green); font-weight:600;}
+  .fc-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin:14px 0 6px;}
+  .fc-card{position:relative; background:var(--panel); border:1px solid var(--border); border-radius:var(--r); padding:14px 15px 14px 16px; overflow:hidden;}
+  .fc-card::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--gold);}
+  .fc-card.cont::before{background:var(--green);} .fc-card.rev::before{background:var(--red);} .fc-card.ret::before{background:var(--blue);}
+  .fc-card .fc-tag{font-family:var(--mono); font-size:15px; letter-spacing:.04em; color:var(--text);}
+  .fc-card .fc-tag small{display:block; font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--text-faint); margin-top:2px;}
+  .fc-card p{font-size:13px; line-height:1.55; color:var(--text-dim); margin:9px 0 0;}
+  .fc-card p b{color:var(--text);}
+  .fc-tier{display:grid; gap:0; margin:16px 0 8px; max-width:680px;}
+  .fc-tier > div{position:relative; padding:11px 14px 11px 18px; border:1px solid var(--border); background:var(--panel); font-size:13px; line-height:1.5; color:var(--text-dim);}
+  .fc-tier > div + div{margin-top:-1px; margin-left:22px;}
+  .fc-tier > div + div + div{margin-left:44px;}
+  .fc-tier b{color:var(--text); font-weight:600; display:block; font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; margin-bottom:2px;}
+  .fc-tier > div:first-child{border-left:3px solid var(--gold);}
+  .fc-tier > div:nth-child(2){border-left:3px solid var(--blue);}
+  .fc-tier > div:nth-child(3){border-left:3px solid var(--green);}
+  .fc-list{list-style:none; margin:10px 0; padding:0; display:flex; flex-direction:column; gap:7px; max-width:680px;}
+  .fc-list li{position:relative; padding-left:22px; font-size:13.5px; line-height:1.55; color:var(--text);}
+  .fc-list li::before{content:""; position:absolute; left:3px; top:.55em; width:7px; height:7px; transform:rotate(45deg); border:1.5px solid var(--gold);}
+  .fc-list.no li::before{border-color:var(--red); background:var(--red);}
+  .fc-stop{display:flex; gap:10px; align-items:flex-start; background:var(--red-soft); border:1px solid rgba(193,105,92,0.45); border-radius:var(--r); padding:10px 13px; margin:12px 0; max-width:680px; font-size:13.5px; line-height:1.55; color:var(--red);}
+  .fc-stop .fc-ico{flex:0 0 auto; font-family:var(--mono); font-size:11px; letter-spacing:.1em; padding:2px 7px; border:1px solid var(--red); border-radius:2px; margin-top:1px;}
+  .fc-ideal{position:relative; margin:16px 0 6px; max-width:680px; padding:16px 18px 16px 20px; border:1px solid var(--gold-soft); background:linear-gradient(135deg, rgba(200,155,74,0.13), rgba(200,155,74,0.03)); border-radius:var(--r);}
+  .fc-ideal::after{content:"◈"; position:absolute; right:14px; top:10px; font-size:20px; color:var(--gold); opacity:.8;}
+  .fc-ideal .fc-ih{font-family:var(--mono); font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); margin-bottom:6px;}
+  .fc-ideal p{margin:0; color:var(--text); font-size:14px; line-height:1.65;}
+  /* bulles de conseil */
+  .fc-bubble{position:relative; margin:18px 0 6px 6px; max-width:560px; padding:12px 16px 13px 16px; font-size:13px; line-height:1.55; color:var(--text); background:rgba(112,150,181,0.10); border:1px dashed rgba(112,150,181,0.55); border-radius:14px 14px 14px 2px;}
+  .fc-bubble::before{content:"conseil"; position:absolute; top:-9px; left:12px; padding:0 7px; font-family:var(--mono); font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--blue); background:var(--panel);}
+  .fc-bubble::after{content:""; position:absolute; left:-1px; bottom:-9px; width:14px; height:9px; background:rgba(112,150,181,0.10); clip-path:polygon(0 0, 100% 0, 0 100%); border-left:1px dashed rgba(112,150,181,0.55);}
+  .fc-bubble.warn{background:rgba(200,155,74,0.09); border-color:rgba(200,155,74,0.55);}
+  .fc-bubble.warn::before{color:var(--gold); content:"garde-fou";}
+  .fc-bubble.warn::after{background:rgba(200,155,74,0.09); border-left-color:rgba(200,155,74,0.55);}
+  .fc-bubble b{color:var(--gold); font-weight:600;}
+  .fc-fig{margin:16px 0 8px; max-width:680px; border:1px solid var(--border); background:var(--bg-2); border-radius:var(--r); padding:10px 8px 4px;}
+  .fc-fig svg{display:block; width:100%; height:auto;}
+  .fc-fig figcaption{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; color:var(--text-faint); padding:4px 8px 8px;}
+  .fc-ritual{margin:14px 0 0; max-width:680px; background:var(--panel); border:1px solid var(--border); border-radius:var(--r); padding:6px 0;}
+  .fc-ritual li{list-style:none; display:flex; gap:12px; align-items:flex-start; padding:11px 16px; font-size:13.5px; line-height:1.5; color:var(--text); cursor:pointer; user-select:none; border-bottom:1px solid var(--border-soft);}
+  .fc-ritual li:last-child{border-bottom:0;}
+  .fc-ritual li i{flex:0 0 auto; width:18px; height:18px; margin-top:1px; transform:rotate(45deg) scale(.82); border:1.5px solid var(--gold-soft); transition:all .15s;}
+  .fc-ritual li.done{color:var(--text-faint);}
+  .fc-ritual li.done span{text-decoration:line-through;}
+  .fc-ritual li.done i{background:var(--gold); border-color:var(--gold); box-shadow:0 0 10px rgba(200,155,74,0.5);}
+  .fc-end{margin-top:6px; font-family:var(--serif); font-style:italic; font-size:16px; color:var(--gold); padding-left:0;}
+  @media (max-width:640px){
+    #filView{padding:22px 12px 28px;}
+    .fc-hero,.fc-thread{padding-left:42px;} .fc-thread::before{left:12px;} .fc-hero::before{left:6px;}
+    .fc-node{left:-38px; width:24px; height:24px;}
+    .fc-hero h2{font-size:27px;} .fc-step h3{font-size:20px;}
+    .fc-tier > div + div{margin-left:12px;} .fc-tier > div + div + div{margin-left:24px;}
+  }
   .maintabs .mt-count{font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-left:6px;}
   .maintabs button.active .mt-count{color:var(--gold-soft);}
   .tv-reminder{border-bottom:1px solid var(--border-soft); padding:0;}
@@ -783,7 +856,139 @@
   <nav class="maintabs" id="mainTabs">
     <button type="button" class="active" data-mtab="cal">Calendrier</button>
     <button type="button" data-mtab="traps">Setups trap<span class="mt-count" id="trapTabCount"></span></button>
+    <button type="button" data-mtab="fil">Fil conducteur</button>
   </nav>
+
+
+  <section class="card" id="filView" style="display:none;">
+    <div class="fc-hero">
+      <div class="fc-kicker">fil conducteur</div>
+      <h2>Rester sur le <em>fil</em>,<br>jour après jour.</h2>
+      <p>Cet onglet sert à recentrer ma vision et à donner du sens à ce que fait le marché. Avant de regarder le moindre graphique de détail : la structure de base d’abord, le reste en découle.</p>
+    </div>
+
+    <div class="fc-thread">
+
+      <!-- 01 LEXIQUE -->
+      <div class="fc-step">
+        <div class="fc-node"><span>01</span></div>
+        <h3>Parler le même langage</h3>
+        <div class="fc-sub">CISD · CHOCH — deux familles chacun</div>
+        <div class="fc-grid">
+          <div class="fc-card cont">
+            <div class="fc-tag">CISD<b style="color:var(--green)">Con</b><small>continuation</small></div>
+            <p>C’est <b>aussi un BOS</b> : il confirme la continuation de la tendance globale.</p>
+          </div>
+          <div class="fc-card rev">
+            <div class="fc-tag">CISD<b style="color:var(--red)">Re</b><small>retournement</small></div>
+            <p>Il <b>annonce le retournement</b> de la tendance.</p>
+          </div>
+          <div class="fc-card ret">
+            <div class="fc-tag">CHOCH<b style="color:var(--blue)">Re</b><small>retracement</small></div>
+            <p>Changement de caractère de retracement. <b>NB : un CHOCHRe doit toujours être complet.</b></p>
+          </div>
+          <div class="fc-card cont">
+            <div class="fc-tag">CHOCH<b style="color:var(--green)">con</b><small>confirmation</small></div>
+            <p>Le retracement se poursuit et <b>liquide en zone OTE</b> : le prix pourrait alors repartir suivre la tendance de base.</p>
+          </div>
+        </div>
+        <div class="fc-bubble">Un nom, un rôle : <b>Con</b> = je continue avec la tendance, <b>Re</b> = ça change quelque chose (retournement ou retracement). Avant de nommer un mouvement, demande-toi lequel des deux c’est.</div>
+        <div class="fc-bubble warn">CHOCHRe incomplet = pas de CHOCHRe. S’il manque une pièce, je ne le valide pas et je n’agis pas.</div>
+      </div>
+
+      <!-- 02 STRUCTURE -->
+      <div class="fc-step">
+        <div class="fc-node"><span>02</span></div>
+        <h3>Ne pas se laisser obnubiler par tous les mouvements</h3>
+        <div class="fc-sub">bien observer la tendance de base et les points clés</div>
+        <div class="fc-tier">
+          <div><b>Analyse globale</b>La structure de base. Mon point de référence, auquel je reviens toujours.</div>
+          <div><b>Flux journaliers</b>Ils donnent les biais des sous-tendances.</div>
+          <div><b>Impulsions &amp; corrections</b>Ce sont des sous-tendances, pas la structure.</div>
+        </div>
+        <ul class="fc-list">
+          <li>Une fois l’analyse globale faite, <b class="g">toujours se référer à elle</b> pour repérer un changement de structure ou une continuation.</li>
+          <li>Garder les <b class="g">zones de supply &amp; demand clés</b> en tête.</li>
+          <li>Ensuite seulement, lire les sous-tendances : impulsions et retracements.</li>
+        </ul>
+        <div class="fc-bubble">Quand je suis perdu sur un petit mouvement, je zoome en arrière : <b>où est ma tendance de base, où sont mes points clés ?</b> La réponse est presque toujours là.</div>
+      </div>
+
+      <!-- 03 IMPULSIONS -->
+      <div class="fc-step">
+        <div class="fc-node"><span>03</span></div>
+        <h3>Sous-tendance 1 · les impulsions</h3>
+        <div class="fc-sub">mouvements de continuation</div>
+        <p>Les confirmations :</p>
+        <ul class="fc-list">
+          <li>Un <b class="g">BOS confirmé auparavant</b>, ou un <b class="g">CISD</b>.</li>
+          <li>Un prix <b class="g">revenu en zone OTE</b> avant de repartir.</li>
+          <li>Des <b class="g">zones de S&amp;D libérées en killzones</b>.</li>
+        </ul>
+        <p>Attention : ces petits mouvements représentent la <b class="g">liquidité</b>.</p>
+        <p>L’exécution reste la même qu’en mouvement de base, mais :</p>
+        <div class="fc-stop"><span class="fc-ico">STOP</span><span><b>Ne rien faire</b> si le prix n’a pas encore fait de CISDCon.</span></div>
+        <div class="fc-stop"><span class="fc-ico">STOP</span><span><b>Ne pas rentrer sur des traps</b> après ce CISDCon.</span></div>
+        <p>En cas de <b class="r">CISDRe</b> : attendre le prix en <b class="g">OTE, en killzone</b>, pour repartir avec le prix qui change de direction.</p>
+        <div class="fc-bubble warn">Un CISDCon confirme la continuation, mais il ne m’autorise pas à entrer partout. Je ne cours pas après une impulsion : j’attends ma zone, ma killzone et mes confirmations d’exécution.</div>
+      </div>
+
+      <!-- 04 RETRACEMENTS -->
+      <div class="fc-step">
+        <div class="fc-node"><span>04</span></div>
+        <h3>Sous-tendance 2 · les retracements</h3>
+        <div class="fc-sub">ma seule zone d’intervention : la zone OTE du mouvement de base</div>
+        <p>Faire attention à tout ce qui se passe <b class="g">avant la zone OTE</b> du mouvement de base : c’est notre seule zone d’intervention. Veiller aussi à ce que le prix ait fait un <b class="g">CISDCon ou un CISDRe</b>.</p>
+        <ul class="fc-list">
+          <li>En confirmation, on a des <b class="g">CHOCHRe</b> : tous les changements de caractère se faisant <b>en dehors de la zone OTE</b>.</li>
+          <li>Si on a une continuation du retracement et une <b class="g">liquidation en zone OTE</b>, on parle de <b class="g">CHOCHcon</b> : le prix pourrait repartir suivre la tendance de base.</li>
+          <li>Côté exécution : <b class="g">suivre celle du retracement</b>.</li>
+        </ul>
+
+        <figure class="fc-fig">
+          <svg viewBox="0 0 420 220" role="img" aria-label="Schéma : mouvement de base, retracement, zone OTE et target 50 % du fibo">
+            <rect x="198" y="139" width="196" height="28" style="fill:rgba(200,155,74,0.16);stroke:#8C6B34;stroke-dasharray:3 3;"/>
+            <text x="204" y="157" style="fill:#C89B4A;font:10px 'IBM Plex Mono',monospace;letter-spacing:.1em;">ZONE OTE</text>
+            <line x1="40" y1="120" x2="394" y2="120" style="stroke:#74A88B;stroke-dasharray:5 4;stroke-width:1.2;"/>
+            <text x="300" y="113" style="fill:#74A88B;font:10px 'IBM Plex Mono',monospace;letter-spacing:.08em;">TARGET · 50 % FIBO</text>
+            <polyline points="40,200 240,40 330,150 392,126" fill="none" style="stroke:#E9E5DD;stroke-width:2;stroke-linejoin:round;"/>
+            <circle cx="240" cy="40" r="3.5" style="fill:#C89B4A;"/>
+            <circle cx="40" cy="200" r="3.5" style="fill:#C89B4A;"/>
+            <circle cx="330" cy="150" r="5" style="fill:#0B0D0E;stroke:#C89B4A;stroke-width:2;"/>
+            <text x="92" y="108" transform="rotate(-38 92 108)" style="fill:#9CA3A8;font:10px 'IBM Plex Mono',monospace;letter-spacing:.1em;">MOUVEMENT DE BASE</text>
+            <text x="262" y="62" style="fill:#7096B5;font:10px 'IBM Plex Mono',monospace;letter-spacing:.08em;">CHOCHRe</text>
+            <line x1="270" y1="66" x2="270" y2="84" style="stroke:#7096B5;stroke-width:1;"/>
+            <text x="296" y="186" style="fill:#C89B4A;font:10px 'IBM Plex Mono',monospace;letter-spacing:.08em;">ENTRÉE · KILLZONE</text>
+          </svg>
+          <figcaption>Schéma de principe (haussier) : retracement jusqu’à la zone OTE, entrée en killzone, target au 50 % du fibo du mouvement de base.</figcaption>
+        </figure>
+
+        <div class="fc-ideal">
+          <div class="fc-ih">le setup idéal</div>
+          <p>Un <b class="g">CHOCHRe sur un trap</b>, puis la <b class="g">délivrance de la zone de S&amp;D en killzone, en OTE</b>. Là, j’entre dans mes plages horaires, tout en attendant mes confirmations d’exécution, et je vais chercher les <b class="g">50 % du fibo du mouvement de base</b> (la zone de base).</p>
+        </div>
+        <div class="fc-bubble">Pour un retracement, les trois ingrédients à réunir : <b>CHOCHRe</b> hors de la zone OTE, <b>zone de S&amp;D délivrée en OTE</b>, <b>killzone</b>. Il en manque un ? Je regarde, je ne tire pas.</div>
+        <div class="fc-bubble warn">Sur un retracement, mon risque est <b>divisé par 2</b>. Si le narratif est flou ou ne colle pas avec le mouvement actuel du prix, je divise aussi mon risque par 2.</div>
+      </div>
+
+      <!-- 05 RITUEL -->
+      <div class="fc-step">
+        <div class="fc-node"><span>05</span></div>
+        <h3>Le rituel du jour</h3>
+        <div class="fc-sub">cinq questions avant de toucher une exécution (clique pour cocher)</div>
+        <ul class="fc-ritual" id="fcRitual">
+          <li><i></i><span>Quelle est ma <b>tendance de base</b> et où sont mes <b>points clés</b> ?</span></li>
+          <li><i></i><span>Quel est le <b>biais</b> donné par le flux du jour ?</span></li>
+          <li><i></i><span>Suis-je en <b>impulsion</b> ou en <b>retracement</b> ?</span></li>
+          <li><i></i><span>Y a-t-il eu un <b>CISDCon</b> ou un <b>CISDRe</b> ?</span></li>
+          <li><i></i><span>Suis-je dans ma <b>killzone</b>, avec mes confirmations d’exécution ?</span></li>
+        </ul>
+        <div class="fc-bubble">Si je ne peux pas répondre à une de ces questions, c’est que je ne suis pas prêt. Dans ce cas, la meilleure position est de ne rien faire.</div>
+        <div class="fc-end">La structure de base d’abord. Le reste suit.</div>
+      </div>
+
+    </div>
+  </section>
 
   <section class="card" id="trapsView" style="display:none;">
     <details class="tv-reminder" open>
@@ -3012,12 +3217,13 @@
     return wd[d.getDay()] + " " + parseInt(p[2]) + " " + MONTHS_FR[parseInt(p[1])-1].toLowerCase() + " " + p[0];
   }
   function setMainTab(tab){
-    mainTab = tab === "traps" ? "traps" : "cal";
+    mainTab = tab === "traps" ? "traps" : (tab === "fil" ? "fil" : "cal");
     document.querySelectorAll("#mainTabs button").forEach(function(b){
       b.classList.toggle("active", b.getAttribute("data-mtab") === mainTab);
     });
     $("mainCal").style.display = mainTab === "cal" ? "" : "none";
     $("trapsView").style.display = mainTab === "traps" ? "" : "none";
+    $("filView").style.display = mainTab === "fil" ? "" : "none";
     if(mainTab === "traps") renderTrapsTab();
   }
   function updateTrapTabCount(){
@@ -3137,6 +3343,7 @@
       box.appendChild(item);
     });
   }
+  document.querySelectorAll("#fcRitual li").forEach(function(li){ li.addEventListener("click", function(){ li.classList.toggle("done"); }); });
   document.querySelectorAll("#mainTabs button").forEach(function(b){
     b.addEventListener("click", function(){ setMainTab(this.getAttribute("data-mtab")); });
   });
