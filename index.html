@@ -785,11 +785,11 @@
     #futurHero{padding:10px 8px;} .screen{align-items:flex-start;}
   }
 
-  /* ===== Bannière de rappel Londres / New York (expire seule le 8 nov. 2026 à 00h UTC, soit 1 semaine) ===== */
+  /* ===== Bannière de rappel Londres / New York (permanente) ===== */
   #ldnBanner{position:fixed; left:0; right:0; top:0; z-index:45; display:none; overflow:hidden; height:calc(32px + env(safe-area-inset-top,0px)); padding-top:env(safe-area-inset-top,0px);
     background:rgba(200,155,74,.16); border-bottom:1px solid var(--gold-soft); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); pointer-events:none;}
   body[data-view="app"] #ldnBanner{display:block;}
-  #ldnBanner .track{display:inline-flex; align-items:center; white-space:nowrap; gap:56px; padding-left:56px; height:32px; animation:ldnScroll 38s linear infinite;
+  #ldnBanner .track{display:inline-flex; align-items:center; white-space:nowrap; gap:56px; padding-left:56px; height:32px; animation:ldnScroll 56s linear infinite;
     font-family:var(--sans); font-size:12.5px; font-weight:500; color:var(--text);}
   #ldnBanner b{color:var(--gold);}
   @keyframes ldnScroll{to{transform:translateX(-50%);}}
@@ -799,7 +799,7 @@
 </head>
 <body data-view="loading">
 <div id="futurBg" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="grid"></div><div class="scan"></div></div>
-<div id="ldnBanner" role="status" aria-label="Rappel horaires Londres et New York"><div class="track"><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>New York ouvre désormais à 14h UTC</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>New York ouvre désormais à 14h UTC</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>New York ouvre désormais à 14h UTC</b></span><span>⏰ <b>Londres ouvre désormais à 8h UTC</b></span><span>🗽 <b>New York ouvre désormais à 14h UTC</b></span></div></div>
+<div id="ldnBanner" role="status" aria-label="Rappel horaires Londres et New York"><div class="track"><span>⏰ <b>Londres ouvre à 8h UTC</b></span><span>🗽 <b>New York ouvre à 14h UTC</b></span><span>⚠️ <b>Reste à l’affût des changements d’horaire : ils arrivent souvent</b></span><span>⏰ <b>Londres ouvre à 8h UTC</b></span><span>🗽 <b>New York ouvre à 14h UTC</b></span><span>⚠️ <b>Reste à l’affût des changements d’horaire : ils arrivent souvent</b></span><span>⏰ <b>Londres ouvre à 8h UTC</b></span><span>🗽 <b>New York ouvre à 14h UTC</b></span><span>⚠️ <b>Reste à l’affût des changements d’horaire : ils arrivent souvent</b></span><span>⏰ <b>Londres ouvre à 8h UTC</b></span><span>🗽 <b>New York ouvre à 14h UTC</b></span><span>⚠️ <b>Reste à l’affût des changements d’horaire : ils arrivent souvent</b></span></div></div>
 <div id="futurTicker" aria-hidden="true"><div class="track"><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Work again and again and again</span><b>◆</b><span>Smart work</span><b>◆</b><span>Discipline &gt; motivation</span><b>◆</b><span>Patience pays</span><b>◆</b><span>Process over profit</span><b>◆</b><span>One trade at a time</span><b>◆</b><span>Protect your capital</span><b>◆</b><span>Stay consistent</span><b>◆</b><span>Execute the plan</span><b>◆</b><span>Small edge, big discipline</span><b>◆</b><span>Discipline</span><b>◆</b><span>Patience</span><b>◆</b><span>Exécution</span><b>◆</b><span>Trust the process</span><b>◆</b><span>Work again and again and again</span><b>◆</b><span>Smart work</span><b>◆</b><span>Discipline &gt; motivation</span><b>◆</b><span>Patience pays</span><b>◆</b><span>Process over profit</span><b>◆</b><span>One trade at a time</span><b>◆</b><span>Protect your capital</span><b>◆</b><span>Stay consistent</span><b>◆</b><span>Execute the plan</span><b>◆</b><span>Small edge, big discipline</span><b>◆</b></div></div>
 
 
@@ -3049,7 +3049,10 @@
     $("wrapRReint").style.display = asia ? "" : "none";
     $("wrapRKzUs").style.display = nas ? "" : "none";
     $("wrapREntry").style.display = nas ? "" : "none";
-    $("asiaReminder").style.display = (known && pr !== "XAUUSD") ? "" : "none";
+    $("asiaReminder").style.display = known ? "" : "none";
+    $("asiaReminder").innerHTML = pr === "XAUUSD"
+      ? "Rappel : <b>l'exécution est interdite en Asie sur l'or (XAUUSD)</b>."
+      : "Rappel : ne jamais exécuter durant l'Asian session.";
     var EXEC_TXT = "à 18h UTC, les jours sans annonce importante.";
     var HOURS_TXT = {
       NASDAQ: "Rappel NASDAQ · plage horaire killzone : de 14h UTC à 18h UTC, les jours sans annonce importante.",
@@ -4761,24 +4764,8 @@
 })();
 </script>
 <script>
-/* Bannière Londres / New York : expire seule après une semaine (le 8 novembre 2026 à 00h00 UTC) */
-(function(){
-  var EXPIRE = Date.UTC(2026, 10, 8, 0, 0, 0);
-  var timer;
-  function check(){
-    var el = document.getElementById("ldnBanner");
-    if(!el){ clearInterval(timer); return; }
-    if(Date.now() >= EXPIRE){
-      el.parentNode.removeChild(el);
-      document.body.classList.remove("has-ldn-banner");
-      clearInterval(timer);
-    } else {
-      document.body.classList.add("has-ldn-banner");
-    }
-  }
-  check();
-  timer = setInterval(check, 60000);
-})();
+/* Bannière Londres / New York : permanente */
+(function(){ document.body.classList.add("has-ldn-banner"); })();
 </script>
 </body>
 </html>
