@@ -610,6 +610,25 @@
   .ag-review .hint{margin:0 0 10px;}
   .ag-review textarea{width:100%; min-height:120px; background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:10px 12px; line-height:1.55; font-family:inherit; font-size:14px; resize:vertical; outline:none;}
   .ag-review textarea:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,155,74,0.12);}
+  .ag-subtabs{display:flex; gap:4px; padding:0 20px; border-bottom:1px solid var(--border-soft);}
+  .ag-subtabs button{background:transparent; border:0; border-bottom:2px solid transparent; color:var(--text-dim); padding:14px 14px 12px; font-size:13.5px; margin-bottom:-1px;}
+  .ag-subtabs button:hover{color:var(--text);}
+  .ag-subtabs button.active{color:var(--gold); border-bottom-color:var(--gold);}
+  .ag-subtabs .mt-count{font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-left:6px;}
+  .ag-subtabs button.active .mt-count{color:var(--gold-soft);}
+  .ag-follow-form{padding:18px 20px; border-bottom:1px solid var(--border-soft);}
+  .ag-follow-form .form-grid{margin-bottom:10px;}
+  .ag-follow-actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .ag-fitem{display:flex; gap:12px; align-items:flex-start;}
+  .ag-fitem .ag-fbody{flex:1; min-width:0;}
+  .ag-check{flex:0 0 auto; width:22px; height:22px; margin-top:2px; border:1.5px solid var(--gold-soft); border-radius:2px; background:transparent; color:var(--bg); font-size:13px; line-height:1; padding:0; display:flex; align-items:center; justify-content:center;}
+  .ag-check:hover{border-color:var(--gold);}
+  .ag-fitem.done .ag-check{background:var(--gold); border-color:var(--gold);}
+  .ag-fitem.done .tv-pair{text-decoration:line-through; color:var(--text-faint);}
+  .ag-fitem.done .tv-notes{color:var(--text-faint);}
+  .ag-ctx-part{margin:6px 0 4px;}
+  .ag-ctx-part > b{display:block; font-family:var(--mono); font-size:11px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin-bottom:2px;}
+  .ag-ctx{border-left:2px solid var(--border); padding-left:12px;}
   .ag-src-row{display:flex; gap:8px; margin-bottom:8px; align-items:flex-start;}
   .ag-src-row .ag-src-fields{flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;}
   .ag-src-row input{background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:8px 10px; width:100%; outline:none;}
@@ -1036,6 +1055,11 @@
   </section>
 
   <section class="card" id="agendaView" style="display:none;">
+    <div class="ag-subtabs" id="agSubTabs">
+      <button type="button" class="active" data-ag="week">Semaine</button>
+      <button type="button" data-ag="follow">À suivre<span class="mt-count" id="agFollowCount"></span></button>
+    </div>
+    <div id="agWeekPane">
     <div class="tv-bar">
       <button class="navbtn" type="button" id="agPrev" aria-label="Semaine précédente">‹</button>
       <div class="ag-weeklabel" id="agWeekLabel"></div>
@@ -1049,6 +1073,31 @@
       <h4>Revue de fin de semaine</h4>
       <div class="hint">Ce qui s'est passé, ce qui a marché, ce que je retiens pour la semaine suivante. Enregistré automatiquement pour la semaine affichée.</div>
       <textarea id="agReview" placeholder="Bilan de la semaine…"></textarea>
+    </div>
+    </div>
+    <div id="agFollowPane" style="display:none;">
+      <div class="ag-follow-form">
+        <div class="form-grid">
+          <div class="field span2">
+            <label for="agf_name">Nom de l'événement à suivre</label>
+            <input type="text" id="agf_name" placeholder="ex : décision de la BCE, élections US, NFP vendredi…" autocomplete="off">
+          </div>
+          <div class="field span2">
+            <label for="agf_details">Détail</label>
+            <textarea id="agf_details" placeholder="ce qui est attendu, pourquoi je le suis, ce que je surveille…"></textarea>
+          </div>
+          <div class="field">
+            <label for="agf_date">Date <span class="hint" style="display:inline;">(facultatif)</span></label>
+            <input type="date" id="agf_date">
+          </div>
+        </div>
+        <div class="ag-follow-actions">
+          <button class="btn primary" type="button" id="agfSave">Ajouter à suivre</button>
+          <button class="btn" type="button" id="agfCancel" style="display:none;">Annuler la modification</button>
+        </div>
+        <div class="form-error" id="agfError"></div>
+      </div>
+      <div class="tv-list" id="agFollowList"></div>
     </div>
   </section>
 
@@ -2012,7 +2061,7 @@
   // Modèle de données
   // =====================================================================
   function newId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null }, agenda:[], agendaReviews:{} }; }
+  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null }, agenda:[], agendaReviews:{}, agendaFollow:[] }; }
   function defaultAccountSettings(){ return { broker:"", currency:"USD", initial:10000, leverage:"", risk:1 }; }
 
   function isValidRoot(obj){
@@ -2045,6 +2094,7 @@
     if(out.meta.lastSaved === undefined) out.meta.lastSaved = null;
     if(!Array.isArray(out.strategies)) out.strategies = [];
     if(!Array.isArray(out.agenda)) out.agenda = [];
+    if(!Array.isArray(out.agendaFollow)) out.agendaFollow = [];
     if(!out.agendaReviews || typeof out.agendaReviews !== "object" || Array.isArray(out.agendaReviews)) out.agendaReviews = {};
     out.accounts.forEach(function(a){
       if(!a.id) a.id = newId("a_");
@@ -3507,12 +3557,44 @@
     if(start.getFullYear() === end.getFullYear()) return start.getDate() + " " + m1 + " – " + end.getDate() + " " + m2 + " " + end.getFullYear();
     return start.getDate() + " " + m1 + " " + start.getFullYear() + " – " + end.getDate() + " " + m2 + " " + end.getFullYear();
   }
+  function agFollowList(){ if(!root) return []; if(!Array.isArray(root.agendaFollow)) root.agendaFollow = []; return root.agendaFollow; }
+
+  // Contextes géopolitique / macro saisis dans les trades (tous comptes) : lus directement
+  // depuis les trades, donc anciens et nouveaux trades alimentent l'agenda à leur date.
+  // Les trades d'un même jour au contexte identique sont regroupés en une seule carte.
+  function agTradeContexts(sk, ek){
+    var map = {}, out = [];
+    ((root && root.accounts) || []).forEach(function(acc){
+      (acc.trades || []).forEach(function(t){
+        var geo = (t.geo || "").trim(), mac = (t.macro || "").trim();
+        if(!t.date || t.date < sk || t.date > ek || (!geo && !mac)) return;
+        var k = acc.id + "|" + t.date + "|" + geo + "|" + mac;
+        var c = map[k];
+        if(!c){
+          c = map[k] = { virtual:true, date:t.date, geo:geo, macro:mac, accId:acc.id, accName:acc.name || "", pairs:[], createdAt:"~" };
+          out.push(c);
+        }
+        var pr = (t.pair || "").trim();
+        if(pr && c.pairs.indexOf(pr) < 0) c.pairs.push(pr);
+      });
+    });
+    return out;
+  }
+  function agWeekItems(sk, ek){
+    var list = agList().filter(function(e){ return e.date >= sk && e.date <= ek; }).concat(agTradeContexts(sk, ek));
+    list.sort(function(a, b){
+      var c = (a.date || "").localeCompare(b.date || "");
+      return c || (a.createdAt || "").localeCompare(b.createdAt || "");
+    });
+    return list;
+  }
   function updateAgendaTabCount(){
     var el = $("agendaTabCount"); if(!el) return;
     var cur = agMonday(new Date()), end = new Date(cur); end.setDate(end.getDate() + 6);
-    var a = agKey(cur), b = agKey(end);
-    var n = agList().filter(function(e){ return e.date >= a && e.date <= b; }).length;
+    var n = agWeekItems(agKey(cur), agKey(end)).length;
     el.textContent = n ? n : "";
+    var fc = $("agFollowCount");
+    if(fc){ var open = agFollowList().filter(function(f){ return !f.done; }).length; fc.textContent = open ? open : ""; }
   }
 
   // lien http(s) uniquement ; ajoute https:// si le schéma est absent ; renvoie "" si invalide
@@ -3542,19 +3624,29 @@
   });
   $("agReview").addEventListener("blur", agFlushReview);
 
+  var agSub = "week";
+  function agSetSub(sub){
+    agFlushReview();
+    agSub = sub === "follow" ? "follow" : "week";
+    renderAgenda();
+  }
+  document.querySelectorAll("#agSubTabs button").forEach(function(b){
+    b.addEventListener("click", function(){ agSetSub(this.getAttribute("data-ag")); });
+  });
+
   function renderAgenda(){
     if(!root) return;
+    document.querySelectorAll("#agSubTabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-ag") === agSub); });
+    $("agWeekPane").style.display = agSub === "week" ? "" : "none";
+    $("agFollowPane").style.display = agSub === "follow" ? "" : "none";
+    if(agSub === "follow"){ renderFollow(); updateAgendaTabCount(); return; }
     var start = agWeek, end = new Date(start); end.setDate(end.getDate() + 6);
     var sk = agKey(start), ek = agKey(end);
     agShownKey = sk;
     var lbl = $("agWeekLabel");
     lbl.innerHTML = '<small>Semaine ' + agIsoWeek(start) + (sk === agKey(agMonday(new Date())) ? " · en cours" : "") + '</small>' + escapeHtml(agWeekLabelText(start));
 
-    var list = agList().filter(function(e){ return e.date >= sk && e.date <= ek; });
-    list.sort(function(a, b){
-      var c = (a.date || "").localeCompare(b.date || "");
-      return c || (a.createdAt || "").localeCompare(b.createdAt || "");
-    });
+    var list = agWeekItems(sk, ek);
     var nFort = list.filter(function(e){ return e.impact === "fort"; }).length;
     $("agTotal").textContent = list.length ? (list.length + " note" + (list.length > 1 ? "s" : "") + (nFort ? " · " + nFort + " à fort impact" : "")) : "";
 
@@ -3572,7 +3664,7 @@
           box.appendChild(h);
           lastDay = e.date;
         }
-        box.appendChild(agEntryEl(e));
+        box.appendChild(e.virtual ? agContextEl(e) : agEntryEl(e));
       });
     }
 
@@ -3580,6 +3672,109 @@
     if(document.activeElement !== ta) ta.value = agReviews()[sk] || "";
     updateAgendaTabCount();
   }
+
+  function agContextEl(c){
+    var item = document.createElement("div");
+    item.className = "tv-item ag-entry ag-ctx";
+    var multi = ((root && root.accounts) || []).length > 1;
+    var canOpen = !!(state && state.id === c.accId);
+    item.innerHTML =
+      '<div class="tv-top">' +
+        '<span class="tv-pair">Contexte du trade' + (c.pairs.length ? ' · ' + escapeHtml(c.pairs.join(", ")) : '') + '</span>' +
+        '<span class="tag status-observation">Depuis un trade</span>' +
+        (multi && c.accName ? '<span class="tag">' + escapeHtml(c.accName) + '</span>' : '') +
+        (canOpen ? '<div class="tv-actions"><button type="button" class="iconbtn" data-act="day">Voir le jour</button></div>' : '') +
+      '</div>' +
+      (c.geo ? '<div class="ag-ctx-part"><b>Contexte géopolitique</b><div class="tv-notes">' + escapeHtml(c.geo) + '</div></div>' : '') +
+      (c.macro ? '<div class="ag-ctx-part"><b>Contexte macro</b><div class="tv-notes">' + escapeHtml(c.macro) + '</div></div>' : '');
+    var btn = item.querySelector('[data-act="day"]');
+    if(btn) btn.addEventListener("click", function(){
+      var p = (c.date || "").split("-");
+      if(p.length === 3){ viewYear = parseInt(p[0]); viewMonth = parseInt(p[1]) - 1; }
+      setMainTab("cal");
+      renderCalendar();
+      openDayModal(c.date);
+    });
+    return item;
+  }
+
+  // ---- « À suivre » : événements à surveiller (nom, détail, date facultative) ----
+  var agfEditId = null;
+  function agfReset(){
+    agfEditId = null;
+    $("agf_name").value = ""; $("agf_details").value = ""; $("agf_date").value = "";
+    $("agfSave").textContent = "Ajouter à suivre";
+    $("agfCancel").style.display = "none";
+    $("agfError").textContent = "";
+  }
+  function renderFollow(){
+    var box = $("agFollowList");
+    var items = agFollowList().slice();
+    var cur = agMonday(new Date()), endW = new Date(cur); endW.setDate(endW.getDate() + 6);
+    var wa = agKey(cur), wb = agKey(endW);
+    items.sort(function(a, b){
+      if(!!a.done !== !!b.done) return a.done ? 1 : -1;
+      var da = a.date || "9999", db = b.date || "9999";
+      var c = da.localeCompare(db);
+      return c || (a.createdAt || "").localeCompare(b.createdAt || "");
+    });
+    box.innerHTML = "";
+    if(!items.length){
+      box.innerHTML = '<div class="empty-state">Rien à suivre pour l\'instant. Ajoute un événement ci-dessus : nom, détail et, si tu la connais, la date.</div>';
+      return;
+    }
+    items.forEach(function(f){
+      var item = document.createElement("div");
+      item.className = "tv-item ag-entry ag-fitem" + (f.done ? " done" : "");
+      var thisWeek = f.date && f.date >= wa && f.date <= wb && !f.done;
+      item.innerHTML =
+        '<button type="button" class="ag-check" data-act="done" aria-label="' + (f.done ? "Marquer comme à suivre" : "Marquer comme suivi") + '">' + (f.done ? "✓" : "") + '</button>' +
+        '<div class="ag-fbody">' +
+          '<div class="tv-top">' +
+            '<span class="tv-pair">' + escapeHtml(f.name || "(sans titre)") + '</span>' +
+            (f.date ? '<span class="tv-date">' + escapeHtml(fmtTrapDate(f.date)) + '</span>' : '') +
+            (thisWeek ? '<span class="tag status-observation">Cette semaine</span>' : '') +
+            '<div class="tv-actions">' +
+              '<button type="button" class="iconbtn" data-act="edit">Modifier</button>' +
+              '<button type="button" class="iconbtn danger" data-act="del">Supprimer</button>' +
+            '</div>' +
+          '</div>' +
+          ((f.details || "").trim() ? '<div class="tv-notes">' + escapeHtml(f.details.trim()) + '</div>' : '') +
+        '</div>';
+      item.querySelector('[data-act="done"]').addEventListener("click", function(){
+        f.done = !f.done; persist(); renderFollow(); updateAgendaTabCount();
+      });
+      item.querySelector('[data-act="edit"]').addEventListener("click", function(){
+        agfEditId = f.id;
+        $("agf_name").value = f.name || ""; $("agf_details").value = f.details || ""; $("agf_date").value = f.date || "";
+        $("agfSave").textContent = "Enregistrer";
+        $("agfCancel").style.display = "";
+        $("agfError").textContent = "";
+        $("agf_name").focus();
+        $("agf_name").scrollIntoView({ block:"center" });
+      });
+      item.querySelector('[data-act="del"]').addEventListener("click", function(){
+        if(!confirm("Supprimer cet événement à suivre ?")) return;
+        root.agendaFollow = agFollowList().filter(function(x){ return x.id !== f.id; });
+        if(agfEditId === f.id) agfReset();
+        persist(); renderFollow(); updateAgendaTabCount();
+      });
+      box.appendChild(item);
+    });
+  }
+  $("agfSave").addEventListener("click", function(){
+    var name = $("agf_name").value.trim();
+    if(!name){ $("agfError").textContent = "Donne un nom à l'événement."; $("agf_name").focus(); return; }
+    var payload = { name:name, details:$("agf_details").value.trim(), date:$("agf_date").value || "", updatedAt:new Date().toISOString() };
+    var ex = agfEditId ? agFollowList().find(function(x){ return x.id === agfEditId; }) : null;
+    if(ex){ Object.assign(ex, payload); }
+    else { payload.id = newId("af_"); payload.createdAt = payload.updatedAt; payload.done = false; agFollowList().push(payload); }
+    persist();
+    agfReset();
+    renderFollow();
+    updateAgendaTabCount();
+  });
+  $("agfCancel").addEventListener("click", agfReset);
 
   function agEntryEl(e){
     var item = document.createElement("div");
