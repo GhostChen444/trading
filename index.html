@@ -893,7 +893,7 @@
           </div>
           <div class="fc-card cont">
             <div class="fc-tag">CHOCH<b style="color:var(--green)">Con</b><small>confirmation</small></div>
-            <p>Le retracement se poursuit et <b>liquide en zone OTE</b> : le prix pourrait alors repartir suivre la tendance de base.</p>
+            <p>Le retracement se poursuit et <b>liquide en zone OTE</b> : le prix pourrait alors repartir suivre la tendance de base. <b>Il n’est effectif qu’après que tous les traps ont été libérés.</b></p>
           </div>
         </div>
         <div class="fc-bubble warn"><b>Rappel CISDRe :</b> tant que le CISD libère des traps sans faire de <b>nouveau swing high ou low éligible</b>, la tendance n’est pas encore effective : attention à ce que le marché refasse un <b class="r">CISDRe</b>. Si la tendance est confirmée par un <b>SL ou SH éligible</b>, le prochain CISDRe est à surveiller sur le <b>dernier SH ou SL à l’origine du CISDCon</b>, c’est-à-dire sur le SH ou SL de confirmation.</div>
@@ -937,18 +937,17 @@
       <div class="fc-step">
         <div class="fc-node"><span>04</span></div>
         <h3>Sous-tendance 1 · les impulsions</h3>
-        <div class="fc-sub">mouvements de continuation</div>
-        <p>Les confirmations :</p>
+        <div class="fc-sub">mouvements de continuation · les règles changent</div>
+        <p>Les impulsions ne suivent pas les mêmes règles que le mouvement de base. Il est <b class="g">très compliqué de rentrer en position après un CISDCon</b> pour aller chercher un nouveau mouvement de tendance : le prix se retourne généralement.</p>
+        <p>Il vaut mieux rentrer sur les impulsions qui se font <b class="g">après la prise d’une zone ratée</b>. Je vérifie que :</p>
         <ul class="fc-list">
-          <li>Un <b class="g">BOS confirmé auparavant</b>, ou un <b class="g">CISD</b>.</li>
-          <li>Un prix <b class="g">revenu en zone OTE</b> avant de repartir.</li>
-          <li>Des <b class="g">zones de S&amp;D libérées en killzones</b>.</li>
+          <li>le prix <b class="g">était en OTE</b> ;</li>
+          <li>le prix a <b class="g">touché une zone de S&amp;D sans la casser</b>.</li>
         </ul>
+        <p>Ensuite j’<b class="g">attends de nouvelles zones</b>, puis je rentre : on entre en <b class="g">discount</b> pour aller chercher la <b class="g">premium</b>, mais on <b class="g">target toujours les 50 %</b>, pas plus (avant la zone premium).</p>
         <p>Attention : ces petits mouvements représentent la <b class="g">liquidité</b>.</p>
-        <p>L’exécution reste la même qu’en mouvement de base, mais :</p>
-        <div class="fc-stop"><span class="fc-ico">STOP</span><span><b>Ne rien faire</b> si le prix n’a pas encore fait de CISDCon.</span></div>
-        <div class="fc-stop"><span class="fc-ico">STOP</span><span><b>Ne pas rentrer sur des traps</b> après ce CISDCon.</span></div>
-        <p>En cas de <b class="r">CISDRe</b> : attendre le prix en <b class="g">OTE, en killzone</b>, pour repartir avec le prix qui change de direction.</p>
+        <div class="fc-stop"><span class="fc-ico">STOP</span><span><b>Impossible de prendre des impulsions en CISDRe</b>, sauf en <b>OTE sur le mouvement de base</b>.</span></div>
+        <div class="fc-bubble warn">Sur les impulsions, <b>éviter de trader les traps d’impulsions</b> : ne pas rentrer à nouveau sur des zones de S&amp;D qui ont été libérées sans tous les bons critères.</div>
         <div class="fc-bubble warn">Un CISDCon confirme la continuation, mais il ne m’autorise pas à entrer partout. Je ne cours pas après une impulsion : j’attends ma zone, ma killzone et mes confirmations d’exécution.</div>
       </div>
 
@@ -959,8 +958,10 @@
         <div class="fc-sub">ma seule zone d’intervention : la zone OTE du mouvement de base</div>
         <p>Faire attention à tout ce qui se passe <b class="g">avant la zone OTE</b> du mouvement de base : c’est notre seule zone d’intervention. Veiller aussi à ce que le prix ait fait un <b class="g">CISDCon ou un CISDRe</b>.</p>
         <ul class="fc-list">
+          <li>Le <b class="g">CISDCon (BOS)</b> fait partie de nos confirmations, en plus du <b class="g">CHOCHRe</b> (en mouvement de tendance).</li>
+          <li>En <b class="r">CISDRe</b>, la confirmation est le <b class="g">CISDRe</b> et le <b class="g">CHOCHRe sur le trap</b>.</li>
           <li>En confirmation, on a des <b class="g">CHOCHRe</b> : tous les changements de caractère se faisant <b>en dehors de la zone OTE</b>.</li>
-          <li>Si on a une continuation du retracement et une <b class="g">liquidation en zone OTE</b>, on parle de <b class="g">CHOCHCon</b> : le prix pourrait repartir suivre la tendance de base.</li>
+          <li>Si on a une continuation du retracement et une <b class="g">liquidation en zone OTE</b>, on parle de <b class="g">CHOCHCon</b> : le prix pourrait repartir suivre la tendance de base. Le CHOCHCon n’est <b class="g">effectif qu’après que tous les traps ont été libérés</b>.</li>
           <li>Côté exécution : <b class="g">suivre celle du retracement</b>.</li>
         </ul>
 
@@ -969,6 +970,7 @@
           <div class="fc-ih">le setup idéal</div>
           <p>Un <b class="g">CHOCHRe sur un trap</b>, puis la <b class="g">délivrance de la zone de S&amp;D en killzone, en OTE</b>. Là, j’entre dans mes plages horaires, tout en attendant mes confirmations d’exécution, et je vais chercher les <b class="g">50 % du fibo du mouvement de base</b> (la zone de base).</p>
         </div>
+        <div class="fc-bubble">Il est possible de trader les retracements <b>après mon CHOCHRe</b> et <b>mon mouvement de base</b>, après la correction en <b>zone de S&amp;D</b> et en <b>OTE</b>.</div>
         <div class="fc-bubble">Pour un retracement, les trois ingrédients à réunir : <b>CHOCHRe</b> hors de la zone OTE, <b>zone de S&amp;D délivrée en OTE</b>, <b>killzone</b>. Il en manque un ? Je regarde, je ne tire pas.</div>
         <div class="fc-bubble warn">Sur un retracement, mon risque est <b>divisé par 2</b>. Si le narratif est flou, ou ne colle pas avec le mouvement actuel du prix (c’est-à-dire qu’il n’est pas en connivence avec les <b>récents flux journaliers</b>), je divise aussi mon risque par 2.</div>
       </div>
