@@ -590,6 +590,30 @@
   .lb-nav{background:transparent; border:1px solid var(--border); color:var(--text-dim); width:38px; height:54px; border-radius:var(--r); font-size:22px; flex-shrink:0;}
   .lb-nav:hover{border-color:var(--gold-soft); color:var(--gold);}
   @media (max-width:560px){ .lb-nav{width:30px;} .shot-thumb{width:84px; height:64px;} }
+  /* ---------- onglet « Grandes lignes » (agenda de la semaine) ---------- */
+  .ag-weeklabel{font-family:var(--serif); font-size:17px; color:var(--text); min-width:0;}
+  .ag-weeklabel small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin-bottom:2px;}
+  .ag-day{font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); padding:18px 0 6px; border-bottom:1px solid var(--border-soft);}
+  .ag-day:first-child{padding-top:8px;}
+  .ag-entry .tv-pair{overflow-wrap:anywhere;}
+  .tag.ag-imp-faible{background:var(--gray-soft); color:var(--gray); border-color:transparent;}
+  .tag.ag-imp-moyen{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
+  .tag.ag-imp-fort{background:var(--red-soft); color:var(--red); border-color:transparent;}
+  .ag-important{border-left:2px solid var(--gold); background:rgba(200,155,74,0.08); padding:9px 14px; margin:8px 0 10px; border-radius:0 var(--r) var(--r) 0; font-size:13.5px; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere;}
+  .ag-important b{color:var(--gold); font-weight:500; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;}
+  .ag-sources{display:flex; flex-direction:column; gap:4px; margin:0 0 10px; font-size:13px;}
+  .ag-sources a{color:var(--blue); text-decoration:none; overflow-wrap:anywhere;}
+  .ag-sources a:hover{text-decoration:underline;}
+  .ag-sources a::before{content:"↗ "; color:var(--text-faint);}
+  .ag-review{border-top:1px solid var(--border-soft); padding:18px 20px 22px;}
+  .ag-review h4{font-family:var(--mono); font-size:11.5px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin:0 0 4px;}
+  .ag-review .hint{margin:0 0 10px;}
+  .ag-review textarea{width:100%; min-height:120px; background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:10px 12px; line-height:1.55; font-family:inherit; font-size:14px; resize:vertical; outline:none;}
+  .ag-review textarea:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,155,74,0.12);}
+  .ag-src-row{display:flex; gap:8px; margin-bottom:8px; align-items:flex-start;}
+  .ag-src-row .ag-src-fields{flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;}
+  .ag-src-row input{background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:8px 10px; width:100%; outline:none;}
+  .ag-src-row input:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,155,74,0.12);}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 <style id="futurTheme">
@@ -859,6 +883,7 @@
 
   <nav class="maintabs" id="mainTabs">
     <button type="button" class="active" data-mtab="cal">Calendrier</button>
+    <button type="button" data-mtab="agenda">Grandes lignes<span class="mt-count" id="agendaTabCount"></span></button>
     <button type="button" data-mtab="traps">Setups trap<span class="mt-count" id="trapTabCount"></span></button>
     <button type="button" data-mtab="fil">Fil conducteur</button>
   </nav>
@@ -931,6 +956,7 @@
           <li><b>Aller chercher un CISDCon ou BOS</b></li>
         </ol>
         <div class="fc-bubble">Je suis les quatre temps dans l’ordre. Si un temps manque, je n’enchaîne pas sur le suivant : j’attends.</div>
+        <div class="fc-stop"><span class="fc-ico">STOP</span><span>Si un <b>CISDRe</b> arrive sur le mouvement de base, c’est un <b>changement de tendance</b> : il <b>invalide la zone</b>. <b>Je ne fais plus rien.</b></span></div>
       </div>
 
       <!-- 04 IMPULSIONS -->
@@ -947,6 +973,7 @@
         <p>Ensuite j’<b class="g">attends de nouvelles zones</b>, puis je rentre : on entre en <b class="g">discount</b> pour aller chercher la <b class="g">premium</b>, mais on <b class="g">target toujours les 50 %</b>, pas plus (avant la zone premium).</p>
         <p>Attention : ces petits mouvements représentent la <b class="g">liquidité</b>.</p>
         <div class="fc-stop"><span class="fc-ico">STOP</span><span><b>Impossible de prendre des impulsions en CISDRe</b>, sauf en <b>OTE sur le mouvement de base</b>.</span></div>
+        <div class="fc-bubble">Sur une impulsion, j’<b>attends que le prix soit en OTE</b> pour <b>repartir avec le prix</b>.</div>
         <div class="fc-bubble warn">Sur les impulsions, <b>éviter de trader les traps d’impulsions</b> : ne pas rentrer à nouveau sur des zones de S&amp;D qui ont été libérées sans tous les bons critères.</div>
         <div class="fc-bubble warn">Un CISDCon confirme la continuation, mais il ne m’autorise pas à entrer partout. Je ne cours pas après une impulsion : j’attends ma zone, ma killzone et mes confirmations d’exécution.</div>
       </div>
@@ -970,6 +997,7 @@
           <div class="fc-card rev">
             <div class="fc-tag">CISD<b style="color:var(--red)">Re</b> → trap → CHOCH<b style="color:var(--blue)">Re</b><small>confirmation après un CISDRe</small></div>
             <p>Après un <b>CISDRe</b>, le <b>trap est liquidé</b> et, <b>juste après</b>, un <b>CHOCHRe</b> se forme : c’est lui qui <b>annonce le retracement</b>.</p>
+            <p>Une fois le CISDRe <b>effectif</b>, le prix <b>change de tendance</b> : <b>toute liquidation de trap par un CHOCHRe</b> est donc une <b>confirmation d’entrée pour un retracement</b>.</p>
           </div>
           <div class="fc-card cont">
             <div class="fc-tag">CISD<b style="color:var(--green)">Con</b> → trap → CHOCH<b style="color:var(--blue)">Re</b><small>confirmation après un CISDCon</small></div>
@@ -1004,6 +1032,23 @@
         <div class="fc-end">La structure de base d’abord. Le reste suit.</div>
       </div>
 
+    </div>
+  </section>
+
+  <section class="card" id="agendaView" style="display:none;">
+    <div class="tv-bar">
+      <button class="navbtn" type="button" id="agPrev" aria-label="Semaine précédente">‹</button>
+      <div class="ag-weeklabel" id="agWeekLabel"></div>
+      <button class="navbtn" type="button" id="agNext" aria-label="Semaine suivante">›</button>
+      <button class="todaybtn" type="button" id="agToday">Cette semaine</button>
+      <span class="tv-total" id="agTotal"></span>
+      <button class="btn primary" type="button" id="agAdd">+ Ajouter</button>
+    </div>
+    <div class="tv-list" id="agList"></div>
+    <div class="ag-review">
+      <h4>Revue de fin de semaine</h4>
+      <div class="hint">Ce qui s'est passé, ce qui a marché, ce que je retiens pour la semaine suivante. Enregistré automatiquement pour la semaine affichée.</div>
+      <textarea id="agReview" placeholder="Bilan de la semaine…"></textarea>
     </div>
   </section>
 
@@ -1506,6 +1551,57 @@
     </div>
   </div>
 
+  <!-- Grandes lignes : ajout / modification d'une note -->
+  <div class="modal" id="modalAgenda" style="display:none;">
+    <div class="modal-header">
+      <div>
+        <h3 id="agFormTitle">Nouvelle note</h3>
+        <div class="sub">grandes lignes à suivre · événement, détails, impact, sources</div>
+      </div>
+      <button class="closebtn" type="button" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span2">
+          <label for="ag_name">Nom de l'événement</label>
+          <input type="text" id="ag_name" placeholder="ex : NFP, discours de la Fed, CPI US…" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="ag_date">Date</label>
+          <input type="date" id="ag_date">
+        </div>
+        <div class="field">
+          <label for="ag_impact">Impact</label>
+          <select id="ag_impact"><option value="">— choisir —</option><option value="faible">Faible</option><option value="moyen">Moyen</option><option value="fort">Fort</option></select>
+        </div>
+        <div class="field span2">
+          <label for="ag_details">Détails</label>
+          <textarea id="ag_details" placeholder="chiffres, contexte, prévisions, ce qui est attendu…"></textarea>
+        </div>
+        <div class="field span2">
+          <label for="ag_important">Aspect important</label>
+          <textarea id="ag_important" placeholder="ce qu'il faut absolument retenir ou surveiller…"></textarea>
+        </div>
+      </div>
+
+      <div class="section-label">sources (liens)</div>
+      <div id="agSrcList"></div>
+      <button type="button" class="addbtn" id="agAddSrcBtn">+ Ajouter un lien</button>
+
+      <div class="section-label">captures (facultatif)</div>
+      <div id="agShotList"></div>
+      <button type="button" class="addbtn" id="agAddShotBtn">+ Ajouter une capture</button>
+      <input type="file" id="agShotFile" class="file-input" accept="image/*" multiple>
+      <div class="hint">Les images sont compressées automatiquement et enregistrées dans ton espace.</div>
+      <div class="form-error" id="agFormError"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn danger-outline" id="agDeleteBtn" type="button" style="display:none;">Supprimer</button>
+      <div style="flex:1;"></div>
+      <button class="btn" type="button" onclick="closeOverlay()">Annuler</button>
+      <button class="btn primary" type="button" id="agSaveBtn">Enregistrer</button>
+    </div>
+  </div>
 </div>
 
 <!-- LIGHTBOX captures -->
@@ -1916,7 +2012,7 @@
   // Modèle de données
   // =====================================================================
   function newId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null } }; }
+  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null }, agenda:[], agendaReviews:{} }; }
   function defaultAccountSettings(){ return { broker:"", currency:"USD", initial:10000, leverage:"", risk:1 }; }
 
   function isValidRoot(obj){
@@ -1948,6 +2044,8 @@
     if(!out.meta) out.meta = {};
     if(out.meta.lastSaved === undefined) out.meta.lastSaved = null;
     if(!Array.isArray(out.strategies)) out.strategies = [];
+    if(!Array.isArray(out.agenda)) out.agenda = [];
+    if(!out.agendaReviews || typeof out.agendaReviews !== "object" || Array.isArray(out.agendaReviews)) out.agendaReviews = {};
     out.accounts.forEach(function(a){
       if(!a.id) a.id = newId("a_");
       if(!a.name) a.name = "Compte";
@@ -2231,6 +2329,7 @@
     renderCalendar();
     renderStatsGlobal();
     if(typeof updateTrapTabCount === "function"){ if(mainTab === "traps" && !fromTraps) renderTrapsTab(); else updateTrapTabCount(); }
+    if(mainTab === "agenda" && typeof renderAgenda === "function") renderAgenda();
   }
 
   function renderBrand(){
@@ -2421,9 +2520,10 @@
   var modalAccount = $("modalAccount");
   var modalNotif = $("modalNotif");
   var modalView = $("modalView");
+  var modalAgenda = $("modalAgenda");
 
   function showOnly(modalEl){
-    [modalDay, modalForm, modalAccount, modalNotif, modalView].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
+    [modalDay, modalForm, modalAccount, modalNotif, modalView, modalAgenda].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
     overlay.classList.add("show");
   }
   function closeOverlay(){
@@ -3236,18 +3336,22 @@
     return wd[d.getDay()] + " " + parseInt(p[2]) + " " + MONTHS_FR[parseInt(p[1])-1].toLowerCase() + " " + p[0];
   }
   function setMainTab(tab){
-    mainTab = tab === "traps" ? "traps" : (tab === "fil" ? "fil" : "cal");
+    if(mainTab === "agenda" && tab !== "agenda" && typeof agFlushReview === "function") agFlushReview();
+    mainTab = tab === "traps" ? "traps" : (tab === "fil" ? "fil" : (tab === "agenda" ? "agenda" : "cal"));
     document.querySelectorAll("#mainTabs button").forEach(function(b){
       b.classList.toggle("active", b.getAttribute("data-mtab") === mainTab);
     });
     $("mainCal").style.display = mainTab === "cal" ? "" : "none";
     $("trapsView").style.display = mainTab === "traps" ? "" : "none";
     $("filView").style.display = mainTab === "fil" ? "" : "none";
+    $("agendaView").style.display = mainTab === "agenda" ? "" : "none";
     if(mainTab === "traps") renderTrapsTab();
+    if(mainTab === "agenda") renderAgenda();
   }
   function updateTrapTabCount(){
     var n = trapEntries().length;
     $("trapTabCount").textContent = n ? n : "";
+    if(typeof updateAgendaTabCount === "function") updateAgendaTabCount();
   }
   function renderTrapsTab(){
     updateTrapTabCount();
@@ -3369,6 +3473,328 @@
   $("tvStrat").addEventListener("change", function(){ tvStrat = this.value; renderTrapsTab(); });
   $("tvPair").addEventListener("change", function(){ tvPair = this.value; renderTrapsTab(); });
   $("tvSort").addEventListener("change", function(){ tvSort = this.value; renderTrapsTab(); });
+
+  // =====================================================================
+  // Onglet « Grandes lignes » : agenda de la semaine (notes, liens, captures)
+  // Données globales (tous comptes) dans root.agenda ; revues dans root.agendaReviews.
+  // =====================================================================
+  var IMPACT_LABELS = { faible:"Impact faible", moyen:"Impact moyen", fort:"Impact fort" };
+  var agEditId = null, agFormShots = [], agFormRemoved = [];
+  var agShownKey = "", agReviewTimer = null;
+
+  function agList(){ if(!root) return []; if(!Array.isArray(root.agenda)) root.agenda = []; return root.agenda; }
+  function agReviews(){ if(!root) return {}; if(!root.agendaReviews || typeof root.agendaReviews !== "object") root.agendaReviews = {}; return root.agendaReviews; }
+  function agKey(d){ return dateKey(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function agParseKey(k){ var p = (k || "").split("-"); return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2])); }
+  function agMonday(d){
+    var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return x;
+  }
+  function agIsoWeek(d){
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var dn = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - dn);
+    var y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+    return Math.ceil(((t - y0) / 86400000 + 1) / 7);
+  }
+  var agWeek = agMonday(new Date());
+
+  function agWeekLabelText(start){
+    var end = new Date(start); end.setDate(end.getDate() + 6);
+    var m1 = MONTHS_FR[start.getMonth()].toLowerCase(), m2 = MONTHS_FR[end.getMonth()].toLowerCase();
+    if(start.getMonth() === end.getMonth()) return start.getDate() + " – " + end.getDate() + " " + m2 + " " + end.getFullYear();
+    if(start.getFullYear() === end.getFullYear()) return start.getDate() + " " + m1 + " – " + end.getDate() + " " + m2 + " " + end.getFullYear();
+    return start.getDate() + " " + m1 + " " + start.getFullYear() + " – " + end.getDate() + " " + m2 + " " + end.getFullYear();
+  }
+  function updateAgendaTabCount(){
+    var el = $("agendaTabCount"); if(!el) return;
+    var cur = agMonday(new Date()), end = new Date(cur); end.setDate(end.getDate() + 6);
+    var a = agKey(cur), b = agKey(end);
+    var n = agList().filter(function(e){ return e.date >= a && e.date <= b; }).length;
+    el.textContent = n ? n : "";
+  }
+
+  // lien http(s) uniquement ; ajoute https:// si le schéma est absent ; renvoie "" si invalide
+  function agCleanUrl(raw){
+    raw = (raw || "").trim();
+    if(!raw) return "";
+    if(!/^[a-z][a-z0-9+.\-]*:/i.test(raw)) raw = "https://" + raw;
+    try {
+      var u = new URL(raw);
+      return (u.protocol === "http:" || u.protocol === "https:") ? u.href : "";
+    } catch(e){ return ""; }
+  }
+
+  function agSaveReview(){
+    if(!root || !agShownKey) return;
+    var v = $("agReview").value;
+    var rv = agReviews();
+    if(v.trim()) rv[agShownKey] = v; else delete rv[agShownKey];
+    persist();
+  }
+  function agFlushReview(){
+    if(agReviewTimer){ clearTimeout(agReviewTimer); agReviewTimer = null; agSaveReview(); }
+  }
+  $("agReview").addEventListener("input", function(){
+    clearTimeout(agReviewTimer);
+    agReviewTimer = setTimeout(function(){ agReviewTimer = null; agSaveReview(); }, 700);
+  });
+  $("agReview").addEventListener("blur", agFlushReview);
+
+  function renderAgenda(){
+    if(!root) return;
+    var start = agWeek, end = new Date(start); end.setDate(end.getDate() + 6);
+    var sk = agKey(start), ek = agKey(end);
+    agShownKey = sk;
+    var lbl = $("agWeekLabel");
+    lbl.innerHTML = '<small>Semaine ' + agIsoWeek(start) + (sk === agKey(agMonday(new Date())) ? " · en cours" : "") + '</small>' + escapeHtml(agWeekLabelText(start));
+
+    var list = agList().filter(function(e){ return e.date >= sk && e.date <= ek; });
+    list.sort(function(a, b){
+      var c = (a.date || "").localeCompare(b.date || "");
+      return c || (a.createdAt || "").localeCompare(b.createdAt || "");
+    });
+    var nFort = list.filter(function(e){ return e.impact === "fort"; }).length;
+    $("agTotal").textContent = list.length ? (list.length + " note" + (list.length > 1 ? "s" : "") + (nFort ? " · " + nFort + " à fort impact" : "")) : "";
+
+    var box = $("agList");
+    box.innerHTML = "";
+    if(!list.length){
+      box.innerHTML = '<div class="empty-state">Rien de noté pour cette semaine. Clique sur « + Ajouter » pour noter un événement, une idée, un lien ou une capture à suivre.</div>';
+    } else {
+      var lastDay = null;
+      list.forEach(function(e){
+        if(e.date !== lastDay){
+          var h = document.createElement("div");
+          h.className = "ag-day";
+          h.textContent = fmtTrapDate(e.date);
+          box.appendChild(h);
+          lastDay = e.date;
+        }
+        box.appendChild(agEntryEl(e));
+      });
+    }
+
+    var ta = $("agReview");
+    if(document.activeElement !== ta) ta.value = agReviews()[sk] || "";
+    updateAgendaTabCount();
+  }
+
+  function agEntryEl(e){
+    var item = document.createElement("div");
+    item.className = "tv-item ag-entry";
+    var details = (e.details || "").trim(), imp = (e.important || "").trim();
+    var impTag = IMPACT_LABELS[e.impact] ? '<span class="tag ag-imp-' + e.impact + '">' + IMPACT_LABELS[e.impact] + '</span>' : "";
+    item.innerHTML =
+      '<div class="tv-top">' +
+        '<span class="tv-pair">' + escapeHtml(e.name || "(sans titre)") + '</span>' + impTag +
+        '<div class="tv-actions"><button type="button" class="iconbtn" data-act="edit">Modifier</button></div>' +
+      '</div>' +
+      (details ? '<div class="tv-notes">' + escapeHtml(details) + '</div>' : "") +
+      (imp ? '<div class="ag-important"><b>À retenir · </b>' + escapeHtml(imp) + '</div>' : "") +
+      '<div class="ag-sources"></div>' +
+      '<div class="tv-shots"></div>';
+    item.querySelector('[data-act="edit"]').addEventListener("click", function(){ openAgendaForm(e.id); });
+
+    var srcBox = item.querySelector(".ag-sources"), n = 0;
+    (e.sources || []).forEach(function(src){
+      var href = agCleanUrl(src && src.url);
+      if(!href) return;
+      var a = document.createElement("a");
+      a.href = href; a.target = "_blank"; a.rel = "noopener noreferrer";
+      var host = "";
+      try { host = new URL(href).hostname.replace(/^www\./, ""); } catch(x){}
+      a.textContent = ((src.label || "").trim()) || host || href;
+      srcBox.appendChild(a); n++;
+    });
+    if(!n) srcBox.remove();
+
+    var shots = e.shots || [], sh = item.querySelector(".tv-shots");
+    if(!shots.length){ sh.remove(); }
+    shots.forEach(function(s, i){
+      var cell = document.createElement("div");
+      cell.className = "tv-shot";
+      cell.innerHTML = '<div class="thumb">Chargement…</div>' + (s.desc ? '<div class="cap">' + escapeHtml(s.desc) + '</div>' : "");
+      cell.addEventListener("click", function(){ openLightbox(shots, i); });
+      sh.appendChild(cell);
+      loadShotUrl(s).then(function(url){
+        var img = document.createElement("img");
+        img.src = url; img.alt = s.desc || "Capture"; img.loading = "lazy";
+        var th = cell.querySelector(".thumb"); th.textContent = ""; th.appendChild(img);
+      }).catch(function(){ cell.querySelector(".thumb").textContent = "Image indisponible"; });
+    });
+    return item;
+  }
+
+  // ---- formulaire ----
+  function agAddSrcRow(src){
+    var row = document.createElement("div");
+    row.className = "ag-src-row";
+    var f = document.createElement("div"); f.className = "ag-src-fields";
+    var url = document.createElement("input");
+    url.type = "text"; url.placeholder = "https://… (lien de l'article, du post, de la vidéo)"; url.setAttribute("data-k", "url");
+    url.value = (src && src.url) || "";
+    var lab = document.createElement("input");
+    lab.type = "text"; lab.placeholder = "Nom de la source (facultatif)"; lab.setAttribute("data-k", "label");
+    lab.value = (src && src.label) || "";
+    f.appendChild(url); f.appendChild(lab);
+    var rm = document.createElement("button");
+    rm.type = "button"; rm.className = "iconbtn danger"; rm.textContent = "Retirer";
+    rm.addEventListener("click", function(){ row.remove(); });
+    row.appendChild(f); row.appendChild(rm);
+    $("agSrcList").appendChild(row);
+  }
+  $("agAddSrcBtn").addEventListener("click", function(){
+    agAddSrcRow(null);
+    var rows = $("agSrcList").querySelectorAll(".ag-src-row");
+    var last = rows[rows.length - 1]; if(last) last.querySelector("input").focus();
+  });
+
+  function agRenderShotList(){
+    var list = $("agShotList");
+    list.innerHTML = "";
+    agFormShots.forEach(function(sh){
+      var item = document.createElement("div");
+      item.className = "shot-item";
+      var thumb = document.createElement("div");
+      thumb.className = "shot-thumb"; thumb.textContent = "Chargement…";
+      thumb.addEventListener("click", function(){ openLightbox(agFormShots, agFormShots.indexOf(sh)); });
+      var right = document.createElement("div");
+      right.className = "shot-fields";
+      var inp = document.createElement("textarea");
+      inp.rows = 3; inp.value = sh.desc || "";
+      inp.placeholder = "Description de la capture…";
+      inp.addEventListener("input", function(){ sh.desc = inp.value; });
+      var actions = document.createElement("div");
+      actions.className = "shot-actions";
+      var viewBtn = document.createElement("button");
+      viewBtn.type = "button"; viewBtn.className = "iconbtn"; viewBtn.textContent = "Agrandir";
+      viewBtn.addEventListener("click", function(){ openLightbox(agFormShots, agFormShots.indexOf(sh)); });
+      var rmBtn = document.createElement("button");
+      rmBtn.type = "button"; rmBtn.className = "iconbtn danger"; rmBtn.textContent = "Retirer";
+      rmBtn.addEventListener("click", function(){
+        var i = agFormShots.indexOf(sh);
+        if(i > -1) agFormShots.splice(i, 1);
+        if(!sh.isNew) agFormRemoved.push(sh.id);
+        agRenderShotList();
+      });
+      actions.appendChild(viewBtn); actions.appendChild(rmBtn);
+      right.appendChild(inp); right.appendChild(actions);
+      item.appendChild(thumb); item.appendChild(right);
+      list.appendChild(item);
+      loadShotUrl(sh).then(function(url){
+        var img = document.createElement("img");
+        img.src = url; img.alt = sh.desc || "Capture";
+        thumb.textContent = ""; thumb.appendChild(img);
+      }).catch(function(){ thumb.textContent = "Image indisponible"; });
+    });
+    $("agAddShotBtn").style.display = agFormShots.length >= MAX_SHOTS ? "none" : "block";
+  }
+  $("agAddShotBtn").addEventListener("click", function(){ $("agShotFile").click(); });
+  $("agShotFile").addEventListener("change", function(ev){
+    var files = Array.prototype.slice.call(ev.target.files || []);
+    ev.target.value = "";
+    files = files.slice(0, Math.max(0, MAX_SHOTS - agFormShots.length));
+    files.reduce(function(chain, f){
+      return chain.then(function(){
+        return compressImage(f).then(function(url){
+          agFormShots.push({ id:newId("s_"), desc:"", dataUrl:url, isNew:true });
+          agRenderShotList();
+        }).catch(function(){ alert("Impossible de lire « " + f.name + " » comme image."); });
+      });
+    }, Promise.resolve());
+  });
+
+  function openAgendaForm(id){
+    agFlushReview();
+    agEditId = id || null;
+    var e = id ? agList().find(function(x){ return x.id === id; }) : null;
+    if(id && !e){ agEditId = null; }
+    $("agFormTitle").textContent = e ? "Modifier la note" : "Nouvelle note";
+    $("ag_name").value = e ? (e.name || "") : "";
+    var todayKey = agKey(new Date()), ws = agKey(agWeek), we = new Date(agWeek); we.setDate(we.getDate() + 6);
+    $("ag_date").value = e ? (e.date || "") : ((todayKey >= ws && todayKey <= agKey(we)) ? todayKey : ws);
+    $("ag_impact").value = e ? (e.impact || "") : "";
+    $("ag_details").value = e ? (e.details || "") : "";
+    $("ag_important").value = e ? (e.important || "") : "";
+    $("agSrcList").innerHTML = "";
+    var srcs = e && e.sources && e.sources.length ? e.sources : [null];
+    srcs.forEach(agAddSrcRow);
+    agFormShots = e ? (e.shots || []).map(function(sh){ return { id:sh.id, desc:sh.desc || "", dataUrl:null, isNew:false }; }) : [];
+    agFormRemoved = [];
+    agRenderShotList();
+    $("agFormError").textContent = "";
+    $("agDeleteBtn").style.display = e ? "" : "none";
+    showOnly(modalAgenda);
+    if(!e) $("ag_name").focus();
+  }
+
+  $("agSaveBtn").addEventListener("click", function(){
+    var err = $("agFormError"); err.textContent = "";
+    var name = $("ag_name").value.trim();
+    var date = $("ag_date").value;
+    if(!name){ err.textContent = "Donne un nom à l'événement ou à la note."; $("ag_name").focus(); return; }
+    if(!date){ err.textContent = "Choisis une date."; $("ag_date").focus(); return; }
+    var sources = [], bad = "";
+    $("agSrcList").querySelectorAll(".ag-src-row").forEach(function(row){
+      var raw = row.querySelector('[data-k="url"]').value.trim();
+      var label = row.querySelector('[data-k="label"]').value.trim();
+      if(!raw) return;
+      var href = agCleanUrl(raw);
+      if(!href){ if(!bad) bad = raw; return; }
+      sources.push({ url:href, label:label });
+    });
+    if(bad){ err.textContent = "Lien invalide : « " + bad + " ». Utilise une adresse http(s) complète."; return; }
+
+    var btn = this;
+    var newOnes = agFormShots.filter(function(sh){ return sh.isNew; });
+    btn.disabled = true;
+    btn.textContent = newOnes.length ? "Envoi des captures…" : "Enregistrement…";
+
+    Promise.all(newOnes.map(uploadShot)).then(function(){
+      var now = new Date().toISOString();
+      var payload = {
+        name: name, date: date, impact: $("ag_impact").value,
+        details: $("ag_details").value.trim(), important: $("ag_important").value.trim(),
+        sources: sources,
+        shots: agFormShots.map(function(sh){ return { id:sh.id, desc:(sh.desc || "").trim() }; }),
+        updatedAt: now
+      };
+      var existing = agEditId ? agList().find(function(x){ return x.id === agEditId; }) : null;
+      if(existing){ Object.assign(existing, payload); }
+      else { payload.id = newId("ag_"); payload.createdAt = now; agList().push(payload); }
+      deleteShots(agFormRemoved);
+      agFormRemoved = [];
+      persist();
+      agWeek = agMonday(agParseKey(date));
+      closeOverlay();
+      renderAgenda();
+    }).catch(function(e){
+      console.error("Envoi des captures échoué :", e);
+      deleteShots(newOnes.map(function(sh){ return sh.id; }));
+      err.textContent = "Impossible d'enregistrer les captures. Vérifie ta connexion et que les règles Firestore autorisent journals/{uid}/shots.";
+    }).then(function(){
+      btn.disabled = false;
+      btn.textContent = "Enregistrer";
+    });
+  });
+
+  $("agDeleteBtn").addEventListener("click", function(){
+    if(!agEditId) return;
+    if(!confirm("Supprimer cette note ? Cette action est irréversible.")) return;
+    var e = agList().find(function(x){ return x.id === agEditId; });
+    if(e) deleteShots((e.shots || []).map(function(sh){ return sh.id; }));
+    root.agenda = agList().filter(function(x){ return x.id !== agEditId; });
+    persist();
+    closeOverlay();
+    renderAgenda();
+  });
+
+  $("agAdd").addEventListener("click", function(){ openAgendaForm(null); });
+  $("agPrev").addEventListener("click", function(){ agFlushReview(); agWeek = new Date(agWeek.getFullYear(), agWeek.getMonth(), agWeek.getDate() - 7); renderAgenda(); });
+  $("agNext").addEventListener("click", function(){ agFlushReview(); agWeek = new Date(agWeek.getFullYear(), agWeek.getMonth(), agWeek.getDate() + 7); renderAgenda(); });
+  $("agToday").addEventListener("click", function(){ agFlushReview(); agWeek = agMonday(new Date()); renderAgenda(); });
 
   // ---- visionneuse de captures ----
   var lbItems = [], lbIndex = 0;
