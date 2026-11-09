@@ -2867,6 +2867,8 @@
   // ---- gestion du risque : rappels selon l'état du compte ----
   function riskRules(model, isGold, retr){
     var R = function(tag, cls, txt, sub){ return { tag:tag, cls:cls, txt:txt, sub:sub || "" }; };
+    // retracement : le BE « 35 % du TP » est supprimé (remplacé par le BE 1:1) ; le BE aux 35 % posé à 55 % du TP reste
+    var NO_35 = function(r){ return r.txt.indexOf("Profit à <b>35 % du TP</b>") !== 0; };
     var RETR_11 = function(){ return R("BE 1:1","be","<b>Protection avant tout, peu importe le R</b> : dès que le prix atteint le <b>1:1</b> du mouvement depuis le <b>point d'entrée de base</b> (gain = risque pris) → <b>SL au point d'entrée (BE) immédiatement</b>.", oneToOneLevel()); };
     if(model === 1){
       var out = [
@@ -2876,7 +2878,7 @@
         R("News","news","Annonce éco ou déclaration, marché a réagi mais je reste en profit → <b>BE</b> si je n'y suis pas encore."),
         R("News","news","Réaction à une news impactante qui me repasse au rouge → <b>accepter la perte</b> ou mettre le SL sur le <b>dernier BOS en sens contraire</b> de ma position pour limiter les pertes."),
         ];
-      if(retr) out.splice(1, 0, RETR_11());
+      if(retr){ out.splice(1, 0, RETR_11()); out = out.filter(NO_35); }
       var rOther = R("20h50 UTC","asie","<b>EURUSD · GBPUSD · NASDAQ</b> — trade ouvert à l'approche de l'Asie et pas encore à <b>BE de base ou des 55 %</b> → <b>sortir à 20h50 UTC</b>, en profit comme en perte.");
       var rGold = R("20h50 UTC","asie","<b>Or (XAUUSD)</b> — le trade peut tourner en Asie tant que je suis à <b>BE de base ou des 55 %</b>. Profit latent à sécuriser → <b>me mettre à BE</b>. Sinon → <b>sortir à 20h50 UTC</b>, en profit comme en perte.");
       if(isGold === true) out.push(rGold);
@@ -2893,7 +2895,7 @@
       R("News","news","Grosse news surgie avec profit latent et pas encore à BE → <b>BE</b>."),
       R("News","news","Réaction à une news importante qui me passe au rouge → <b>ne rien faire</b>.")
     ];
-    if(retr) out2.splice(1, 0, RETR_11());
+    if(retr){ out2.splice(1, 0, RETR_11()); out2 = out2.filter(NO_35); }
     return out2;
   }
   function riskSuggestState(){
