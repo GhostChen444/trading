@@ -1442,12 +1442,13 @@
           <div class="section-label">gestion du risque — rappels selon l'état du compte</div>
           <div class="reminder-red"><b>Rappel risque :</b> si le setup est formé mais que le <b>narratif est flou</b>, ou si le <b>narratif n'est pas en adéquation avec le mouvement actuel du prix</b> (notamment sur un retracement), <b>diviser son risque par 2</b>.</div>
           <div id="retrRRWrap" style="display:none;">
-            <div class="reminder"><b>Retracement :</b> le RR du trade décide du modèle de gestion. RR ≥ 1,5 → trailing stop et modèles de gestion S&amp;D selon l'état du compte. RR &lt; 1,5 → le SL ne bouge qu'au point d'entrée (BE).</div>
-            <div class="form-grid">
-              <div class="field num"><label for="rt_rr">RR du trade <span class="req">*</span></label><input type="number" step="any" min="0" id="rt_rr" placeholder="ex : 1.5"></div>
+            <div class="reminder"><b>Retracement :</b> le RR n'est plus pris en compte. <b>La protection avant tout, peu importe le R</b> : dès que le prix atteint le <b>1:1</b> depuis le point d'entrée de base, SL au point d'entrée (BE) immédiatement. Le modèle de gestion du risque dépend de l'<b>état du compte</b>, comme sur les mouvements de base.</div>
+            <div class="reminder-red"><b>Rappel retracement :</b> la <b>tendance de base primera toujours</b>. Toujours <b>diviser son risque</b> et <b>se protéger</b> : c'est une <b>zone à forte probabilité de liquidation</b>.</div>
+            <div style="display:none;">
+              <input type="number" id="rt_rr">
+              <div id="rrCalc"></div>
+              <div id="rrVerdict"></div>
             </div>
-            <div class="hint" id="rrCalc"></div>
-            <div class="rr-verdict" id="rrVerdict"></div>
           </div>
           <div id="riskStateWrap">
           <div class="form-grid full">
@@ -2642,7 +2643,7 @@
                   item("État du compte", t.riskState && RISK_STATES[t.riskState] ? RISK_STATES[t.riskState].label : ""),
                   item("Modèle de risque", t.riskState && RISK_STATES[t.riskState] ? RISK_MODEL_NAME[RISK_STATES[t.riskState].model] : ""),
                   item("RR du trade (retracement)", (t.retrRR !== undefined && t.retrRR !== null && t.retrRR !== "") ? t.retrRR : ""),
-                  item("Gestion du risque", (sdModeOf(t) === "retracement" && t.retrRR !== undefined && t.retrRR !== "") ? (parseFloat(t.retrRR) >= RR_MIN ? "Trailing autorisé (RR ≥ 1,5)" : "BE point d'entrée uniquement (RR < 1,5)") : "") ]);
+                  item("Gestion du risque", (sdModeOf(t) === "retracement") ? "BE à 1:1 (protection avant tout) + modèle selon l'état du compte" : "") ]);
     }
     if(t.setup){
       var su = t.setup;
@@ -2866,6 +2867,7 @@
   // ---- gestion du risque : rappels selon l'état du compte ----
   function riskRules(model, isGold, retr){
     var R = function(tag, cls, txt, sub){ return { tag:tag, cls:cls, txt:txt, sub:sub || "" }; };
+    var RETR_11 = function(){ return R("BE 1:1","be","<b>Protection avant tout, peu importe le R</b> : dès que le prix atteint le <b>1:1</b> du mouvement depuis le <b>point d'entrée de base</b> (gain = risque pris) → <b>SL au point d'entrée (BE) immédiatement</b>.", oneToOneLevel()); };
     if(model === 1){
       var out = [
         retr ? R("Risque","risk","Retracement : risque <b>divisé par 2</b> → risquer <b>0,5 %</b> du compte.") : R("Risque","risk","Toujours risquer <b>1 %</b> du compte."),
@@ -2874,6 +2876,7 @@
         R("News","news","Annonce éco ou déclaration, marché a réagi mais je reste en profit → <b>BE</b> si je n'y suis pas encore."),
         R("News","news","Réaction à une news impactante qui me repasse au rouge → <b>accepter la perte</b> ou mettre le SL sur le <b>dernier BOS en sens contraire</b> de ma position pour limiter les pertes."),
         ];
+      if(retr) out.splice(1, 0, RETR_11());
       var rOther = R("20h50 UTC","asie","<b>EURUSD · GBPUSD · NASDAQ</b> — trade ouvert à l'approche de l'Asie et pas encore à <b>BE de base ou des 55 %</b> → <b>sortir à 20h50 UTC</b>, en profit comme en perte.");
       var rGold = R("20h50 UTC","asie","<b>Or (XAUUSD)</b> — le trade peut tourner en Asie tant que je suis à <b>BE de base ou des 55 %</b>. Profit latent à sécuriser → <b>me mettre à BE</b>. Sinon → <b>sortir à 20h50 UTC</b>, en profit comme en perte.");
       if(isGold === true) out.push(rGold);
@@ -2881,7 +2884,7 @@
       else out.push(rOther, rGold);
       return out;
     }
-    return [
+    var out2 = [
       retr ? R("Risque","risk","Retracement : risque <b>divisé par 2</b> → SL placé à <b>0,5 %</b> du compte.") : R("Risque","risk","SL placé à <b>1 %</b> du compte."),
       R("BE 35 %","be","Profit à <b>35 % du TP</b> → SL au <b>point d'entrée (BE)</b>."),
       R("55 %","be","Profit à <b>55 % du TP</b> → SL placé au <b>dernier plus haut / plus bas du dernier BOS</b> de ma position, puis <b>il ne bouge plus</b> : c'est <b>TP ou SL</b>."),
@@ -2890,6 +2893,8 @@
       R("News","news","Grosse news surgie avec profit latent et pas encore à BE → <b>BE</b>."),
       R("News","news","Réaction à une news importante qui me passe au rouge → <b>ne rien faire</b>.")
     ];
+    if(retr) out2.splice(1, 0, RETR_11());
+    return out2;
   }
   function riskSuggestState(){
     var list = state.trades.filter(function(t){
@@ -2912,6 +2917,12 @@
     var r = Math.abs(tp - e) / Math.abs(e - sl);
     return isFinite(r) ? r : null;
   }
+  function oneToOneLevel(){
+    var e = parseFloat(fields.entry.value), sl = parseFloat(fields.sl.value);
+    if(isNaN(e) || isNaN(sl) || e === sl) return "";
+    var d = Math.abs(e) >= 100 ? 2 : 5, f = Math.pow(10, d);
+    return "Niveau 1:1 d'après ton entrée / SL : <b>" + (Math.round((e + (e - sl)) * f) / f) + "</b>";
+  }
   function fmtRR(v){ return (Math.round(v * 100) / 100).toString().replace(".", ","); }
   function renderRisk(){
     var show = sdSel() && formType === "trade";
@@ -2920,26 +2931,6 @@
     var retr = sdMode() === "retracement", panel0 = $("riskPanel");
     $("retrRRWrap").style.display = retr ? "" : "none";
     var needState = true;
-    if(retr){
-      var calc = rrCalc(), cEl = $("rrCalc");
-      if(calc){
-        cEl.innerHTML = 'RR calculé d\'après entrée / SL / TP : <b>' + fmtRR(calc) + '</b> <button type="button" id="rrUseBtn">Utiliser</button>';
-        $("rrUseBtn").onclick = function(){ $("rt_rr").value = Math.round(calc * 100) / 100; renderRisk(); };
-      } else { cEl.textContent = "Tu peux aussi renseigner entrée, SL et TP plus bas pour obtenir un RR calculé."; }
-      var rr = rrValue(), vd = $("rrVerdict");
-      if(rr === null){
-        needState = false; vd.innerHTML = "";
-        panel0.innerHTML = '<div class="hint field-warn">Renseigne d\'abord le RR du trade : il détermine le modèle de gestion du risque à appliquer.</div>';
-      } else if(rr < RR_MIN){
-        needState = false; vd.innerHTML = "";
-        panel0.innerHTML = '<div class="risk-card"><div class="risk-head"><span class="risk-badge m0">RR &lt; 1,5 · BE uniquement</span><span class="rk-title">RR du trade : ' + fmtRR(rr) + '</span></div><ul class="risk-list">' +
-          '<li><span class="rk-tag be">BE</span><span>Le SL ne se déplace qu\'<b>au point d\'entrée (BE)</b>, et nulle part ailleurs.</span></li>' +
-          '<li><span class="rk-tag asie">Interdit</span><span><b>Pas de trailing stop</b> : aucun modèle de gestion S&amp;D (BE 35 %, 55 %…) n\'est appliqué sous 1,5 de RR.</span></li>' +
-          '</ul></div>';
-      } else {
-        vd.innerHTML = '<div class="reminder">RR de <b>' + fmtRR(rr) + '</b> (≥ 1,5) : trailing stop autorisé. Tous les modèles de gestion du risque de la stratégie S&amp;D s\'appliquent : choisis-le selon l\'état du compte.</div>';
-      }
-    }
     $("riskStateWrap").style.display = needState ? "" : "none";
     if(!needState) return;
     syncRiskOpts();
@@ -3305,7 +3296,7 @@
         Object.keys(RETR_IDS).forEach(function(k){ retrData[k] = $(RETR_IDS[k]).value.trim(); });
       }
       var rrNum = rrValue();
-      var retrBeOnly = sdModeVal === "retracement" && !(rrNum !== null && rrNum >= RR_MIN);
+      var retrBeOnly = false; // retracement : le RR ne compte plus, le modèle dépend de l'état du compte
       if(stratVal === SD_NAME && !trapMode && sdModeVal === "tendance"){
         setupData = {};
         Object.keys(SETUP_IDS).forEach(function(k){ setupData[k] = $(SETUP_IDS[k]).value.trim(); });
@@ -4560,9 +4551,8 @@
           cells.push(["Statut", STATUS_LABEL[t.status] || t.status || ""]);
           if(hasVal(t.risk)) cells.push(["Risque", t.risk + " %"]);
           if(hasVal(t.riskState)) cells.push(["Contexte du risque", RSL[t.riskState] || t.riskState]);
-          if(sdModeOf(t) === "retracement" && hasVal(t.retrRR)){
-            cells.push(["RR du trade", String(t.retrRR).replace(".", ",")]);
-            cells.push(["Gestion du risque", (parseFloat(t.retrRR) >= RR_MIN) ? "Trailing (RR >= 1,5)" : "BE entree seul (RR < 1,5)"]);
+          if(sdModeOf(t) === "retracement"){
+            cells.push(["Gestion du risque", "BE a 1:1 (protection avant tout) + modele selon l'etat du compte"]);
           }
           if(hasVal(t.lot)) cells.push(["Lot", t.lot]);
           if(hasVal(t.entry)) cells.push(["Entrée", t.entry]);
