@@ -904,6 +904,7 @@
     <button type="button" class="active" data-mtab="cal">Calendrier</button>
     <button type="button" data-mtab="agenda">Grandes lignes<span class="mt-count" id="agendaTabCount"></span></button>
     <button type="button" data-mtab="traps">Setups trap<span class="mt-count" id="trapTabCount"></span></button>
+    <button type="button" data-mtab="aggr">Setups agressifs<span class="mt-count" id="aggrTabCount"></span></button>
     <button type="button" data-mtab="fil">Fil conducteur</button>
   </nav>
 
@@ -976,6 +977,7 @@
         </ol>
         <div class="fc-bubble">Je suis les quatre temps dans l’ordre. Si un temps manque, je n’enchaîne pas sur le suivant : j’attends.</div>
         <div class="fc-stop"><span class="fc-ico">STOP</span><span>Si un <b>CISDRe</b> arrive sur le mouvement de base, c’est un <b>changement de tendance</b> : il <b>invalide la zone</b>. <b>Je ne fais plus rien.</b></span></div>
+        <div class="fc-bubble warn">Quand le prix vient <b>avec force</b> sur mes zones S&amp;D du mouvement de base <b>après qu’un narratif macro ou géopolitique a changé</b>, attention : il peut aller faire un <b>CISD</b>. C’est une <b>succession d’événements impactants</b>. Ça vaut pour tous les actifs.</div>
       </div>
 
       <!-- 04 IMPULSIONS -->
@@ -1033,6 +1035,7 @@
         <div class="fc-bubble">Il est possible de trader les retracements <b>après mon CHOCHRe</b> et <b>mon mouvement de base</b>, après la correction en <b>zone de S&amp;D</b> et en <b>OTE</b>.</div>
         <div class="fc-bubble">Pour un retracement, les trois ingrédients à réunir : <b>CHOCHRe</b> hors de la zone OTE, <b>zone de S&amp;D délivrée en OTE</b>, <b>killzone</b>. Il en manque un ? Je regarde, je ne tire pas.</div>
         <div class="fc-bubble warn">Sur un retracement, mon risque est <b>divisé par 2</b>. Si le narratif est flou, ou ne colle pas avec le mouvement actuel du prix (c’est-à-dire qu’il n’est pas en connivence avec les <b>récents flux journaliers</b>), je divise aussi mon risque par 2.</div>
+        <div class="fc-bubble warn">Sur un retracement, je peux rentrer, mais je me mets <b>toujours à BE à 1:1</b>.</div>
       </div>
 
       <!-- 05 RITUEL -->
@@ -1048,6 +1051,7 @@
           <li><i></i><span>Suis-je dans ma <b>killzone</b>, avec mes confirmations d’exécution ?</span></li>
         </ul>
         <div class="fc-bubble">Si je ne peux pas répondre à une de ces questions, c’est que je ne suis pas prêt. Dans ce cas, la meilleure position est de ne rien faire.</div>
+        <div class="fc-bubble warn"><b>Jamais</b> de trade les <b>jours fériés</b> : le marché est irrationnel. Et <b>jamais d’exécution en Asie sur le gold</b>.</div>
         <div class="fc-end">La structure de base d’abord. Le reste suit.</div>
       </div>
 
@@ -1142,6 +1146,19 @@
     </div>
     <div class="tv-chips" id="tvChips"></div>
     <div class="tv-list" id="tvList"></div>
+  </section>
+
+  <section class="card" id="aggrView" style="display:none;">
+    <div class="hint" style="padding:14px 20px 0;">Patterns de trade pris en aval de grands événements, avant ou en même temps que New York, sur le gold. Pour chaque pattern : l'intitulé, la date, les captures et le motif fondamental.</div>
+    <div class="tv-bar">
+      <select id="aggrSortSel" aria-label="Tri par date">
+        <option value="desc">Plus récents d'abord</option>
+        <option value="asc">Plus anciens d'abord</option>
+      </select>
+      <span class="tv-total" id="aggrTotal"></span>
+      <button class="btn primary" type="button" id="aggrAdd">+ Ajouter un pattern</button>
+    </div>
+    <div class="tv-list" id="aggrList"></div>
   </section>
 
   <main id="mainCal">
@@ -1301,6 +1318,8 @@
         <div id="setupSD" class="strat-block" style="display:none;">
           <div class="section-label">règles à respecter · v6</div>
                     <div class="reminder-red"><b>Rappel risque :</b> si le setup est formé mais que le <b>narratif est flou</b>, ou si le <b>narratif n'est pas en adéquation avec le mouvement actuel du prix</b> (notamment sur un retracement), <b>diviser son risque par 2</b>.</div>
+          <div class="reminder-red"><b>Rappel · tous actifs :</b> quand le prix vient <b>avec force</b> sur mes zones S&amp;D du mouvement de base <b>après qu'un narratif macro ou géopolitique a changé</b>, attention : il peut aller faire un <b>CISD</b>. C'est une <b>succession d'événements impactants</b>.</div>
+          <div class="reminder-red"><b>Rappel · tous actifs :</b> <b>ne jamais trader les jours fériés</b> : le marché est irrationnel.</div>
           <div class="reminder-red" id="asiaReminder" style="display:none;">Rappel : ne jamais exécuter durant l'Asian session.</div>
           <div class="reminder-red" id="mitigReminder">Rappel : une zone (OB / FVG) n'est mitigée que lorsque, en H1, des <b>corps de bougie clôturent dans la zone</b>. Si ce ne sont que des mèches, c'est de la liquidité : la zone n'est pas encore mitigée.<br>Les OB et FVG mitigés en allant faire un BOS ne sont plus valables : la mitigation compte même lors de la création d'un BOS, et pas seulement sur le retracement du CHoCH.</div>
           <div class="reminder-red" id="hoursReminder" style="display:none;"></div>
@@ -1379,6 +1398,10 @@
         <div id="setupRetr" class="strat-block" style="display:none;">
           <div class="section-label">retracement · règles à respecter</div>
           <div class="reminder-red"><b>Rappel risque :</b> sur un <b>retracement</b>, le risque est <b>divisé par 2</b> (0,5 % au lieu de 1 %).</div>
+          <div class="reminder-red"><b>Rappel · tous actifs :</b> quand le prix vient <b>avec force</b> sur mes zones S&amp;D du mouvement de base <b>après qu'un narratif macro ou géopolitique a changé</b>, attention : il peut aller faire un <b>CISD</b>. C'est une <b>succession d'événements impactants</b>.</div>
+          <div class="reminder-red"><b>Rappel retracement :</b> je peux rentrer, mais je me mets <b>toujours à BE à 1:1</b>.</div>
+          <div class="reminder-red"><b>Rappel · tous actifs :</b> <b>ne jamais trader les jours fériés</b> : le marché est irrationnel.</div>
+          <div class="reminder-red"><b>Rappel or (XAUUSD) :</b> <b>ne jamais exécuter en Asie</b> sur le gold.</div>
           <div class="reminder-red">Le FOMO est à bannir : les règles du retracement sont prédéfinies et à respecter. Si un critère manque, ne rien faire.</div>
           <div class="reminder-red">Rappel FOMO : éviter de re-rentrer après un BE si le prix se retrouve sur mes zones 24 h après, ou après une nouvelle impactante. Le marché est évolutif et les conditions aussi.</div>
           <div class="reminder"><b>Concept du retracement</b><br>
@@ -1650,6 +1673,44 @@
       <div style="flex:1;"></div>
       <button class="btn" type="button" onclick="closeOverlay()">Annuler</button>
       <button class="btn primary" type="button" id="agSaveBtn">Enregistrer</button>
+    </div>
+  </div>
+  <!-- Setups agressifs : ajout / modification d'un pattern -->
+  <div class="modal" id="modalAggr" style="display:none;">
+    <div class="modal-header">
+      <div>
+        <h3 id="aggrFormTitle">Nouveau pattern</h3>
+        <div class="sub">setup agressif · intitulé, date, captures, motif fondamental</div>
+      </div>
+      <button class="closebtn" type="button" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span2">
+          <label for="aggr_title">Intitulé du pattern</label>
+          <input type="text" id="aggr_title" placeholder="ex : sweep Asie + retour sur l'OB avant le NFP…" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="aggr_date">Date</label>
+          <input type="date" id="aggr_date">
+        </div>
+        <div class="field span2">
+          <label for="aggr_motif">Motif fondamental</label>
+          <textarea id="aggr_motif" placeholder="l'événement ou le narratif derrière ce mouvement (macro, géo…)"></textarea>
+        </div>
+      </div>
+      <div class="section-label">captures</div>
+      <div id="aggrShotList"></div>
+      <button type="button" class="addbtn" id="aggrAddShotBtn">+ Ajouter une capture</button>
+      <input type="file" id="aggrShotFile" class="file-input" accept="image/*" multiple>
+      <div class="hint">Les images sont compressées automatiquement et enregistrées dans ton espace.</div>
+      <div class="form-error" id="aggrFormError"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn danger-outline" id="aggrDeleteBtn" type="button" style="display:none;">Supprimer</button>
+      <div style="flex:1;"></div>
+      <button class="btn" type="button" onclick="closeOverlay()">Annuler</button>
+      <button class="btn primary" type="button" id="aggrSaveBtn">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -2062,7 +2123,7 @@
   // Modèle de données
   // =====================================================================
   function newId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null }, agenda:[], agendaReviews:{}, agendaFollow:[] }; }
+  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null }, agenda:[], agendaReviews:{}, agendaFollow:[], aggressive:[] }; }
   function defaultAccountSettings(){ return { broker:"", currency:"USD", initial:10000, leverage:"", risk:1 }; }
 
   function isValidRoot(obj){
@@ -2096,6 +2157,7 @@
     if(!Array.isArray(out.strategies)) out.strategies = [];
     if(!Array.isArray(out.agenda)) out.agenda = [];
     if(!Array.isArray(out.agendaFollow)) out.agendaFollow = [];
+    if(!Array.isArray(out.aggressive)) out.aggressive = [];
     if(!out.agendaReviews || typeof out.agendaReviews !== "object" || Array.isArray(out.agendaReviews)) out.agendaReviews = {};
     out.accounts.forEach(function(a){
       if(!a.id) a.id = newId("a_");
@@ -2572,9 +2634,10 @@
   var modalNotif = $("modalNotif");
   var modalView = $("modalView");
   var modalAgenda = $("modalAgenda");
+  var modalAggr = $("modalAggr");
 
   function showOnly(modalEl){
-    [modalDay, modalForm, modalAccount, modalNotif, modalView, modalAgenda].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
+    [modalDay, modalForm, modalAccount, modalNotif, modalView, modalAgenda, modalAggr].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
     overlay.classList.add("show");
   }
   function closeOverlay(){
@@ -3383,7 +3446,7 @@
   }
   function setMainTab(tab){
     if(mainTab === "agenda" && tab !== "agenda" && typeof agFlushReview === "function") agFlushReview();
-    mainTab = tab === "traps" ? "traps" : (tab === "fil" ? "fil" : (tab === "agenda" ? "agenda" : "cal"));
+    mainTab = ({ traps:1, fil:1, agenda:1, aggr:1 })[tab] ? tab : "cal";
     document.querySelectorAll("#mainTabs button").forEach(function(b){
       b.classList.toggle("active", b.getAttribute("data-mtab") === mainTab);
     });
@@ -3391,8 +3454,10 @@
     $("trapsView").style.display = mainTab === "traps" ? "" : "none";
     $("filView").style.display = mainTab === "fil" ? "" : "none";
     $("agendaView").style.display = mainTab === "agenda" ? "" : "none";
+    $("aggrView").style.display = mainTab === "aggr" ? "" : "none";
     if(mainTab === "traps") renderTrapsTab();
     if(mainTab === "agenda") renderAgenda();
+    if(mainTab === "aggr") renderAggr();
   }
   function updateTrapTabCount(){
     var n = trapEntries().length;
@@ -3585,6 +3650,7 @@
     return list;
   }
   function updateAgendaTabCount(){
+    if(typeof updateAggrTabCount === "function") updateAggrTabCount();
     var el = $("agendaTabCount"); if(!el) return;
     var cur = agMonday(new Date()), end = new Date(cur); end.setDate(end.getDate() + 6);
     var n = agWeekItems(agKey(cur), agKey(end)).length;
@@ -3986,6 +4052,186 @@
   $("agPrev").addEventListener("click", function(){ agFlushReview(); agWeek = new Date(agWeek.getFullYear(), agWeek.getMonth(), agWeek.getDate() - 7); renderAgenda(); });
   $("agNext").addEventListener("click", function(){ agFlushReview(); agWeek = new Date(agWeek.getFullYear(), agWeek.getMonth(), agWeek.getDate() + 7); renderAgenda(); });
   $("agToday").addEventListener("click", function(){ agFlushReview(); agWeek = agMonday(new Date()); renderAgenda(); });
+
+  // =====================================================================
+  // Onglet « Setups agressifs (patterns) » : patterns pris en aval de grands événements
+  // (gold, avant ou pendant New York). Données dans root.aggressive :
+  // { id, title, date, motif, shots:[{id,desc}], createdAt, updatedAt }
+  // =====================================================================
+  var aggrEditId = null, aggrFormShots = [], aggrFormRemoved = [], aggrSort = "desc";
+
+  function aggrList(){ if(!root) return []; if(!Array.isArray(root.aggressive)) root.aggressive = []; return root.aggressive; }
+  function updateAggrTabCount(){
+    var el = $("aggrTabCount"); if(!el) return;
+    var n = aggrList().length; el.textContent = n ? n : "";
+  }
+
+  function renderAggr(){
+    if(!root) return;
+    updateAggrTabCount();
+    var list = aggrList().slice();
+    list.sort(function(a, b){
+      var c = (a.date || "").localeCompare(b.date || "") || (a.createdAt || "").localeCompare(b.createdAt || "");
+      return aggrSort === "asc" ? c : -c;
+    });
+    $("aggrTotal").textContent = list.length ? list.length + " pattern" + (list.length > 1 ? "s" : "") : "";
+    var box = $("aggrList"); box.innerHTML = "";
+    if(!list.length){
+      box.innerHTML = '<div class="empty-state">Aucun pattern pour l\'instant. Clique sur « + Ajouter un pattern » : intitulé, date, captures et motif fondamental.</div>';
+      return;
+    }
+    list.forEach(function(e){ box.appendChild(aggrEl(e)); });
+  }
+
+  function aggrEl(e){
+    var item = document.createElement("div");
+    item.className = "tv-item ag-entry";
+    var motif = (e.motif || "").trim();
+    item.innerHTML =
+      '<div class="tv-top">' +
+        '<span class="tv-pair">' + escapeHtml(e.title || "(sans titre)") + '</span>' +
+        (e.date ? '<span class="tv-date">' + escapeHtml(fmtTrapDate(e.date)) + '</span>' : '') +
+        '<div class="tv-actions"><button type="button" class="iconbtn" data-act="edit">Modifier</button></div>' +
+      '</div>' +
+      (motif ? '<div class="ag-important"><b>Motif fondamental · </b>' + escapeHtml(motif) + '</div>' : '') +
+      '<div class="tv-shots"></div>';
+    item.querySelector('[data-act="edit"]').addEventListener("click", function(){ openAggrForm(e.id); });
+    var shots = e.shots || [], sh = item.querySelector(".tv-shots");
+    if(!shots.length){ sh.remove(); }
+    shots.forEach(function(s, i){
+      var cell = document.createElement("div");
+      cell.className = "tv-shot";
+      cell.innerHTML = '<div class="thumb">Chargement…</div>' + (s.desc ? '<div class="cap">' + escapeHtml(s.desc) + '</div>' : "");
+      cell.addEventListener("click", function(){ openLightbox(shots, i); });
+      sh.appendChild(cell);
+      loadShotUrl(s).then(function(url){
+        var img = document.createElement("img");
+        img.src = url; img.alt = s.desc || "Capture"; img.loading = "lazy";
+        var th = cell.querySelector(".thumb"); th.textContent = ""; th.appendChild(img);
+      }).catch(function(){ cell.querySelector(".thumb").textContent = "Image indisponible"; });
+    });
+    return item;
+  }
+
+  function aggrRenderShotList(){
+    var list = $("aggrShotList");
+    list.innerHTML = "";
+    aggrFormShots.forEach(function(sh){
+      var item = document.createElement("div");
+      item.className = "shot-item";
+      var thumb = document.createElement("div");
+      thumb.className = "shot-thumb"; thumb.textContent = "Chargement…";
+      thumb.addEventListener("click", function(){ openLightbox(aggrFormShots, aggrFormShots.indexOf(sh)); });
+      var right = document.createElement("div");
+      right.className = "shot-fields";
+      var inp = document.createElement("textarea");
+      inp.rows = 3; inp.value = sh.desc || "";
+      inp.placeholder = "Description de la capture…";
+      inp.addEventListener("input", function(){ sh.desc = inp.value; });
+      var actions = document.createElement("div");
+      actions.className = "shot-actions";
+      var viewBtn = document.createElement("button");
+      viewBtn.type = "button"; viewBtn.className = "iconbtn"; viewBtn.textContent = "Agrandir";
+      viewBtn.addEventListener("click", function(){ openLightbox(aggrFormShots, aggrFormShots.indexOf(sh)); });
+      var rmBtn = document.createElement("button");
+      rmBtn.type = "button"; rmBtn.className = "iconbtn danger"; rmBtn.textContent = "Retirer";
+      rmBtn.addEventListener("click", function(){
+        var i = aggrFormShots.indexOf(sh);
+        if(i > -1) aggrFormShots.splice(i, 1);
+        if(!sh.isNew) aggrFormRemoved.push(sh.id);
+        aggrRenderShotList();
+      });
+      actions.appendChild(viewBtn); actions.appendChild(rmBtn);
+      right.appendChild(inp); right.appendChild(actions);
+      item.appendChild(thumb); item.appendChild(right);
+      list.appendChild(item);
+      loadShotUrl(sh).then(function(url){
+        var img = document.createElement("img");
+        img.src = url; img.alt = sh.desc || "Capture";
+        thumb.textContent = ""; thumb.appendChild(img);
+      }).catch(function(){ thumb.textContent = "Image indisponible"; });
+    });
+    $("aggrAddShotBtn").style.display = aggrFormShots.length >= MAX_SHOTS ? "none" : "block";
+  }
+  $("aggrAddShotBtn").addEventListener("click", function(){ $("aggrShotFile").click(); });
+  $("aggrShotFile").addEventListener("change", function(ev){
+    var files = Array.prototype.slice.call(ev.target.files || []);
+    ev.target.value = "";
+    files = files.slice(0, Math.max(0, MAX_SHOTS - aggrFormShots.length));
+    files.reduce(function(chain, f){
+      return chain.then(function(){
+        return compressImage(f).then(function(url){
+          aggrFormShots.push({ id:newId("s_"), desc:"", dataUrl:url, isNew:true });
+          aggrRenderShotList();
+        }).catch(function(){ alert("Impossible de lire « " + f.name + " » comme image."); });
+      });
+    }, Promise.resolve());
+  });
+
+  function openAggrForm(id){
+    aggrEditId = id || null;
+    var e = id ? aggrList().find(function(x){ return x.id === id; }) : null;
+    if(id && !e){ aggrEditId = null; }
+    $("aggrFormTitle").textContent = e ? "Modifier le pattern" : "Nouveau pattern";
+    $("aggr_title").value = e ? (e.title || "") : "";
+    $("aggr_date").value = e ? (e.date || "") : agKey(new Date());
+    $("aggr_motif").value = e ? (e.motif || "") : "";
+    aggrFormShots = e ? (e.shots || []).map(function(sh){ return { id:sh.id, desc:sh.desc || "", dataUrl:null, isNew:false }; }) : [];
+    aggrFormRemoved = [];
+    aggrRenderShotList();
+    $("aggrFormError").textContent = "";
+    $("aggrDeleteBtn").style.display = e ? "" : "none";
+    showOnly(modalAggr);
+    if(!e) $("aggr_title").focus();
+  }
+
+  $("aggrSaveBtn").addEventListener("click", function(){
+    var err = $("aggrFormError"); err.textContent = "";
+    var title = $("aggr_title").value.trim(), date = $("aggr_date").value;
+    if(!title){ err.textContent = "Donne un intitulé au pattern."; $("aggr_title").focus(); return; }
+    if(!date){ err.textContent = "Choisis une date."; $("aggr_date").focus(); return; }
+    var btn = this;
+    var newOnes = aggrFormShots.filter(function(sh){ return sh.isNew; });
+    btn.disabled = true;
+    btn.textContent = newOnes.length ? "Envoi des captures…" : "Enregistrement…";
+    Promise.all(newOnes.map(uploadShot)).then(function(){
+      var now = new Date().toISOString();
+      var payload = {
+        title: title, date: date, motif: $("aggr_motif").value.trim(),
+        shots: aggrFormShots.map(function(sh){ return { id:sh.id, desc:(sh.desc || "").trim() }; }),
+        updatedAt: now
+      };
+      var existing = aggrEditId ? aggrList().find(function(x){ return x.id === aggrEditId; }) : null;
+      if(existing){ Object.assign(existing, payload); }
+      else { payload.id = newId("ap_"); payload.createdAt = now; aggrList().push(payload); }
+      deleteShots(aggrFormRemoved);
+      aggrFormRemoved = [];
+      persist();
+      closeOverlay();
+      renderAggr();
+    }).catch(function(e){
+      console.error("Envoi des captures échoué :", e);
+      deleteShots(newOnes.map(function(sh){ return sh.id; }));
+      err.textContent = "Impossible d'enregistrer les captures. Vérifie ta connexion et que les règles Firestore autorisent journals/{uid}/shots.";
+    }).then(function(){
+      btn.disabled = false;
+      btn.textContent = "Enregistrer";
+    });
+  });
+
+  $("aggrDeleteBtn").addEventListener("click", function(){
+    if(!aggrEditId) return;
+    if(!confirm("Supprimer ce pattern ? Cette action est irréversible.")) return;
+    var e = aggrList().find(function(x){ return x.id === aggrEditId; });
+    if(e) deleteShots((e.shots || []).map(function(sh){ return sh.id; }));
+    root.aggressive = aggrList().filter(function(x){ return x.id !== aggrEditId; });
+    persist();
+    closeOverlay();
+    renderAggr();
+  });
+
+  $("aggrAdd").addEventListener("click", function(){ openAggrForm(null); });
+  $("aggrSortSel").addEventListener("change", function(){ aggrSort = this.value; renderAggr(); });
 
   // ---- visionneuse de captures ----
   var lbItems = [], lbIndex = 0;
