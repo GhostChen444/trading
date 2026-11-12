@@ -313,6 +313,18 @@
 
   .reminder{font-size:12px; line-height:1.5; padding:9px 12px; margin:0 0 12px; border-left:3px solid var(--gold, #c9a45c); background:rgba(201,164,92,.08); border-radius:6px;}
   .reminder-red{font-size:12.5px; line-height:1.5; font-weight:600; padding:10px 12px; margin:0 0 12px; border-left:3px solid var(--red, #C1695C); background:rgba(193,105,92,.12); color:var(--red, #C1695C); border-radius:6px;}
+
+  /* ---------- rappels regroupés par rubrique ---------- */
+  .rem-wrap{margin:0 0 14px;}
+  .rem-grp{border:1px solid var(--border-soft); border-radius:var(--r); background:var(--panel-2); margin:0 0 8px;}
+  .rem-grp>summary{cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px; padding:9px 12px; font-family:var(--mono); font-size:12px; color:var(--gold); text-transform:lowercase; letter-spacing:.03em;}
+  .rem-grp>summary::-webkit-details-marker{display:none;}
+  .rem-grp>summary::after{content:"▸"; margin-left:auto; font-size:11px; color:var(--text-faint); transition:transform .15s;}
+  .rem-grp[open]>summary::after{transform:rotate(90deg);}
+  .rem-grp .rem-ico{font-size:13px;}
+  .rem-grp .rem-n{font-size:10.5px; color:var(--text-faint); border:1px solid var(--border); border-radius:20px; padding:0 7px; margin-left:2px;}
+  .rem-grp-body{padding:4px 12px 0;}
+  .rem-grp-body .reminder, .rem-grp-body .reminder-red{margin-bottom:10px;}
   .view-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px 16px; margin-bottom:16px;}
   .view-item .k{font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.04em; margin-bottom:2px;}
   .view-item .v{font-size:14px; color:var(--text); word-break:break-word;}
@@ -1317,12 +1329,72 @@
 
         <div id="setupSD" class="strat-block" style="display:none;">
           <div class="section-label">règles à respecter · v6</div>
-                    <div class="reminder-red"><b>Rappel risque :</b> si le setup est formé mais que le <b>narratif est flou</b>, ou si le <b>narratif n'est pas en adéquation avec le mouvement actuel du prix</b> (notamment sur un retracement), <b>diviser son risque par 2</b>.</div>
-          <div class="reminder-red"><b>Rappel · tous actifs :</b> quand le prix vient <b>avec force</b> sur mes zones S&amp;D du mouvement de base <b>après qu'un narratif macro ou géopolitique a changé</b>, attention : il peut aller faire un <b>CISD</b>. C'est une <b>succession d'événements impactants</b>.</div>
+          <div class="rem-wrap" id="remBase">
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">⏱</span>Plages horaires<span class="rem-n">3</span></summary>
+            <div class="rem-grp-body">
           <div class="reminder-red"><b>Rappel · tous actifs :</b> <b>ne jamais trader les jours fériés</b> : le marché est irrationnel.</div>
           <div class="reminder-red" id="asiaReminder" style="display:none;">Rappel : ne jamais exécuter durant l'Asian session.</div>
-          <div class="reminder-red" id="mitigReminder">Rappel : une zone (OB / FVG) n'est mitigée que lorsque, en H1, des <b>corps de bougie clôturent dans la zone</b>. Si ce ne sont que des mèches, c'est de la liquidité : la zone n'est pas encore mitigée.<br>Les OB et FVG mitigés en allant faire un BOS ne sont plus valables : la mitigation compte même lors de la création d'un BOS, et pas seulement sur le retracement du CHoCH.</div>
           <div class="reminder-red" id="hoursReminder" style="display:none;"></div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">🚫</span>FOMO<span class="rem-n">2</span></summary>
+            <div class="rem-grp-body">
+          <div class="reminder-red">Le FOMO est à bannir : après avoir raté une entrée dans tes plages d'exécution et à tes niveaux, ne plus rien faire.</div>
+          <div class="reminder-red">Rappel FOMO : éviter de re-rentrer après un BE si le prix se retrouve sur mes zones 24 h après, ou après une nouvelle impactante. Le marché est évolutif et les conditions aussi.</div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">🎯</span>Exécution<span class="rem-n">2</span></summary>
+            <div class="rem-grp-body">
+          <div class="reminder">Rappel : pour l'exécution en M5, assure-toi d'avoir repéré toutes les liquidités présentes dans ta zone de supply &amp; demand, absolument toutes celles qui se trouvent dans la zone.<br>
+            <b>Pour rentrer en position, confirmations à avoir :</b><br>
+            • Bougie de rejet par la zone, clôturant à au moins 50 % de la totalité de la bougie.<br>
+            • Bougie ou bougies englobantes après la première bougie ayant testé la zone.<br>
+            • Bougie ou bougies englobantes après la première bougie ayant testé la zone et la bougie l'ayant cassée.<br>
+            <b>NB :</b> pour toutes les configurations en M5 où une bougie bien distincte teste seulement ma zone, ou une autre bien distincte la casse, toujours attendre des bougies qui viendront les englober, pour chacun des cas. Toujours attendre l'englobante.<br>
+            <b>NB :</b> si ma confirmation arrive hors de ma zone de base, attendre le premier retracement dans celle-ci (M5), même par une mèche, sans attendre aucune clôture. Mais attention : uniquement si le flux externe d'informations (fonda) n'a pas changé entre-temps.<br>
+            <b>NB :</b> si, après m'avoir donné mes confirmations, le prix ne revient pas dans ma zone de base, attendre un <b>échange de contrepartie de liquidité qui a clôturé</b>, puis rentrer.
+          </div>
+          <div class="reminder" id="slReminder"><b>SL (Stop Loss)</b><br>
+            • OB : placer le SL au-dessus ou en dessous de la liquidité la plus haute ou la plus basse.<br>
+            • FVG : placer le SL toujours derrière la première bougie.
+          </div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">🧱</span>Formation de setup<span class="rem-n">4</span></summary>
+            <div class="rem-grp-body">
+          <div class="reminder">Rappel : assure-toi que ta zone soit entre le dernier haut ou bas entraînant le BOS et au-dessus des liquidités.</div>
+          <div class="reminder" id="obFvgReminder"><b>Règles OB et FVG</b><br>
+            • Un FVG sous un OB : l'OB est prioritaire.<br>
+            • FVG dont la bougie du milieu est plus longue que la première (celle qui émet l'impulsion) : SL au-dessus ou au-dessous de la bougie précédente.<br>
+            • FVG à trois bougies équilibrées : SL toujours au-dessus ou au-dessous de la bougie précédente. Même si la bougie du milieu est plus petite, le SL reste au même niveau, car on cherche toujours à entrer sur le niveau le plus bas ou le plus haut du FVG.
+          </div>
+          <div class="reminder-red" id="mitigReminder">Rappel : une zone (OB / FVG) n'est mitigée que lorsque, en H1, des <b>corps de bougie clôturent dans la zone</b>. Si ce ne sont que des mèches, c'est de la liquidité : la zone n'est pas encore mitigée.<br>Les OB et FVG mitigés en allant faire un BOS ne sont plus valables : la mitigation compte même lors de la création d'un BOS, et pas seulement sur le retracement du CHoCH.</div>
+          <div class="reminder-red"><b>Rappel :</b> <b>ne pas trader les traps.</b></div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">⚖️</span>Risque<span class="rem-n">1</span></summary>
+            <div class="rem-grp-body">
+                    <div class="reminder-red"><b>Rappel risque :</b> si le setup est formé mais que le <b>narratif est flou</b>, ou si le <b>narratif n'est pas en adéquation avec le mouvement actuel du prix</b> (notamment sur un retracement), <b>diviser son risque par 2</b>.</div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">🏁</span>Target<span class="rem-n">1</span></summary>
+            <div class="rem-grp-body">
+          <div class="reminder-red"><b>Rappel target :</b> le target est au niveau de la <b>plus haute ou plus basse liquidité externe à récupérer, qui n'a pas encore été récupérée</b>.</div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">📰</span>Narratif &amp; actualité<span class="rem-n">1</span></summary>
+            <div class="rem-grp-body">
+          <div class="reminder-red"><b>Rappel · tous actifs :</b> quand le prix vient <b>avec force</b> sur mes zones S&amp;D du mouvement de base <b>après qu'un narratif macro ou géopolitique a changé</b>, attention : il peut aller faire un <b>CISD</b>. C'est une <b>succession d'événements impactants</b>.</div>
+            </div>
+          </details>
+          </div>
           <div class="hint" id="rulesEmpty">Choisis l'actif (XAUUSD, GBPUSD, EURUSD ou NASDAQ) pour afficher les règles associées.</div>
           <div id="rulesBox" style="display:none;">
             <div class="hint" id="rulesNote" style="margin:0 0 10px;"></div>
@@ -1340,27 +1412,6 @@
           </div>
 
           <div class="section-label">setup — supply &amp; demand en killzone</div>
-          <div class="reminder">Rappel : assure-toi que ta zone soit entre le dernier haut ou bas entraînant le BOS et au-dessus des liquidités.</div>
-          <div class="reminder" id="obFvgReminder"><b>Règles OB et FVG</b><br>
-            • Un FVG sous un OB : l'OB est prioritaire.<br>
-            • FVG dont la bougie du milieu est plus longue que la première (celle qui émet l'impulsion) : SL au-dessus ou au-dessous de la bougie précédente.<br>
-            • FVG à trois bougies équilibrées : SL toujours au-dessus ou au-dessous de la bougie précédente. Même si la bougie du milieu est plus petite, le SL reste au même niveau, car on cherche toujours à entrer sur le niveau le plus bas ou le plus haut du FVG.
-          </div>
-          <div class="reminder">Rappel : pour l'exécution en M5, assure-toi d'avoir repéré toutes les liquidités présentes dans ta zone de supply &amp; demand, absolument toutes celles qui se trouvent dans la zone.<br>
-            <b>Pour rentrer en position, confirmations à avoir :</b><br>
-            • Bougie de rejet par la zone, clôturant à au moins 50 % de la totalité de la bougie.<br>
-            • Bougie ou bougies englobantes après la première bougie ayant testé la zone.<br>
-            • Bougie ou bougies englobantes après la première bougie ayant testé la zone et la bougie l'ayant cassée.<br>
-            <b>NB :</b> pour toutes les configurations en M5 où une bougie bien distincte teste seulement ma zone, ou une autre bien distincte la casse, toujours attendre des bougies qui viendront les englober, pour chacun des cas. Toujours attendre l'englobante.<br>
-            <b>NB :</b> si ma confirmation arrive hors de ma zone de base, attendre le premier retracement dans celle-ci (M5), même par une mèche, sans attendre aucune clôture. Mais attention : uniquement si le flux externe d'informations (fonda) n'a pas changé entre-temps.<br>
-            <b>NB :</b> si, après m'avoir donné mes confirmations, le prix ne revient pas dans ma zone de base, attendre un <b>échange de contrepartie de liquidité qui a clôturé</b>, puis rentrer.
-          </div>
-          <div class="reminder" id="slReminder"><b>SL (Stop Loss)</b><br>
-            • OB : placer le SL au-dessus ou en dessous de la liquidité la plus haute ou la plus basse.<br>
-            • FVG : placer le SL toujours derrière la première bougie.
-          </div>
-          <div class="reminder-red">Le FOMO est à bannir : après avoir raté une entrée dans tes plages d'exécution et à tes niveaux, ne plus rien faire.</div>
-          <div class="reminder-red">Rappel FOMO : éviter de re-rentrer après un BE si le prix se retrouve sur mes zones 24 h après, ou après une nouvelle impactante. Le marché est évolutif et les conditions aussi.</div>
           <div class="form-grid">
             <div class="field"><label for="s_dir">Zone repérée</label><select id="s_dir"><option value="">— choisir —</option><option value="demand">Demand</option><option value="supply">Supply</option></select></div>
             <div class="field"><label for="s_type">Type de zone (OB ou FVG, jamais les deux)</label><select id="s_type"><option value="">— choisir —</option><option value="OB">OB</option><option value="FVG">FVG</option></select></div>
@@ -1384,8 +1435,6 @@
           <div class="form-grid">
             <div class="field"><label for="s_target">Target respecté ?</label><select id="s_target"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
           </div>
-          <div class="reminder-red"><b>Rappel target :</b> le target est au niveau de la <b>plus haute ou plus basse liquidité externe à récupérer, qui n'a pas encore été récupérée</b>.</div>
-          <div class="reminder-red"><b>Rappel :</b> <b>ne pas trader les traps.</b></div>
 
           <div class="section-label">autres détails setup</div>
           <div class="form-grid full">
@@ -1397,13 +1446,34 @@
 
         <div id="setupRetr" class="strat-block" style="display:none;">
           <div class="section-label">retracement · règles à respecter</div>
-          <div class="reminder-red"><b>Rappel risque :</b> sur un <b>retracement</b>, le risque est <b>divisé par 2</b> (0,5 % au lieu de 1 %).</div>
-          <div class="reminder-red"><b>Rappel · tous actifs :</b> quand le prix vient <b>avec force</b> sur mes zones S&amp;D du mouvement de base <b>après qu'un narratif macro ou géopolitique a changé</b>, attention : il peut aller faire un <b>CISD</b>. C'est une <b>succession d'événements impactants</b>.</div>
-          <div class="reminder-red"><b>Rappel retracement :</b> je peux rentrer, mais je me mets <b>toujours à BE à 1:1</b>.</div>
+          <div class="rem-wrap" id="remRetr">
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">⏱</span>Plages horaires<span class="rem-n">4</span></summary>
+            <div class="rem-grp-body">
           <div class="reminder-red"><b>Rappel · tous actifs :</b> <b>ne jamais trader les jours fériés</b> : le marché est irrationnel.</div>
           <div class="reminder-red"><b>Rappel or (XAUUSD) :</b> <b>ne jamais exécuter en Asie</b> sur le gold.</div>
+          <div class="reminder-red" id="retrHoursReminder" style="display:none;"></div>
+          <div class="reminder">Rappel : la zone libérée doit l'être <b>dans mes killzones</b>, avec une structure AMD repérée. Hors killzone : pas d'entrée.</div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">🚫</span>FOMO<span class="rem-n">2</span></summary>
+            <div class="rem-grp-body">
           <div class="reminder-red">Le FOMO est à bannir : les règles du retracement sont prédéfinies et à respecter. Si un critère manque, ne rien faire.</div>
           <div class="reminder-red">Rappel FOMO : éviter de re-rentrer après un BE si le prix se retrouve sur mes zones 24 h après, ou après une nouvelle impactante. Le marché est évolutif et les conditions aussi.</div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">🎯</span>Exécution<span class="rem-n">3</span></summary>
+            <div class="rem-grp-body">
+          <div class="reminder">Zone d'entrée : <b>OB ou FVG, jamais les deux</b>. Exécution identique au mouvement de tendance : zones repérées en M5 et réaction du prix sur la zone.</div>
+          <div class="reminder"><b>Confirmation d'entrée :</b> si, après m'avoir donné mes confirmations, le prix ne revient pas dans ma zone de base, attendre un <b>échange de contrepartie de liquidité qui a clôturé</b>, puis rentrer.</div>
+          <div class="reminder-red"><b>Rappel retracement :</b> je peux rentrer, mais je me mets <b>toujours à BE à 1:1</b>.</div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">🧱</span>Formation de setup<span class="rem-n">1</span></summary>
+            <div class="rem-grp-body">
           <div class="reminder"><b>Concept du retracement</b><br>
             Aller chercher de <b>petits RR</b> en appliquant les mécanismes SMC / ICT imbriqués avec le schéma <b>AMD</b>.<br>
             1. Sur l'éventuel mouvement de base, repérer les <b>traps</b> formés par le prix : ils seront liquidés.<br>
@@ -1411,9 +1481,28 @@
             3. Attendre que le prix libère un <b>FVG ou un OB</b>, dans mes killzones, avec une structure AMD repérée.<br>
             4. Aller chercher le <b>50 % du fibo du mouvement de tendance de base</b>.
           </div>
-          <div class="reminder">Zone d'entrée : <b>OB ou FVG, jamais les deux</b>. Exécution identique au mouvement de tendance : zones repérées en M5 et réaction du prix sur la zone.</div>
-          <div class="reminder"><b>Confirmation d'entrée :</b> si, après m'avoir donné mes confirmations, le prix ne revient pas dans ma zone de base, attendre un <b>échange de contrepartie de liquidité qui a clôturé</b>, puis rentrer.</div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">⚖️</span>Risque<span class="rem-n">2</span></summary>
+            <div class="rem-grp-body">
+          <div class="reminder-red"><b>Rappel risque :</b> sur un <b>retracement</b>, le risque est <b>divisé par 2</b> (0,5 % au lieu de 1 %).</div>
+          <div class="reminder-red"><b>Rappel risque :</b> si le setup est formé mais que le <b>narratif est flou</b>, ou si le <b>narratif n'est pas en adéquation avec le mouvement actuel du prix</b> (notamment sur un retracement), <b>diviser son risque par 2</b>.</div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">🏁</span>Target<span class="rem-n">1</span></summary>
+            <div class="rem-grp-body">
           <div class="reminder-red"><b>Rappel target :</b> le target des entrées en retracement est le <b>50 % du fibo du mouvement de tendance de base</b>.</div>
+            </div>
+          </details>
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">📰</span>Narratif &amp; actualité<span class="rem-n">1</span></summary>
+            <div class="rem-grp-body">
+          <div class="reminder-red"><b>Rappel · tous actifs :</b> quand le prix vient <b>avec force</b> sur mes zones S&amp;D du mouvement de base <b>après qu'un narratif macro ou géopolitique a changé</b>, attention : il peut aller faire un <b>CISD</b>. C'est une <b>succession d'événements impactants</b>.</div>
+            </div>
+          </details>
+          </div>
           <div class="section-label">checklist retracement</div>
           <div class="form-grid">
             <div class="field"><label for="rt_trap">1. Trap(s) repéré(s) sur l'éventuel mouvement de base ?</label><select id="rt_trap"><option value="">— choisir —</option><option value="oui">Oui</option><option value="non">Non</option></select></div>
@@ -1463,7 +1552,6 @@
         <div id="execBlock">
         <div id="riskBlock" style="display:none;">
           <div class="section-label">gestion du risque — rappels selon l'état du compte</div>
-          <div class="reminder-red"><b>Rappel risque :</b> si le setup est formé mais que le <b>narratif est flou</b>, ou si le <b>narratif n'est pas en adéquation avec le mouvement actuel du prix</b> (notamment sur un retracement), <b>diviser son risque par 2</b>.</div>
           <div id="retrRRWrap" style="display:none;">
             <div class="reminder"><b>Retracement :</b> le RR n'est plus pris en compte. <b>La protection avant tout, peu importe le R</b> : dès que le prix atteint le <b>1:1</b> depuis le point d'entrée de base, SL au point d'entrée (BE) immédiatement. Le modèle de gestion du risque dépend de l'<b>état du compte</b>, comme sur les mouvements de base.</div>
             <div class="reminder-red"><b>Rappel retracement :</b> la <b>tendance de base primera toujours</b>. Toujours <b>diviser son risque</b> et <b>se protéger</b> : c'est une <b>zone à forte probabilité de liquidation</b>.</div>
@@ -3125,6 +3213,11 @@
     var RANGE_RULE_TXT = " Un OB est valable tant que la bougie qui récupère la liquidité se situe dans tes plages horaires. Un FVG dont toutes les bougies sont en dehors de ces plages n'est pas prenable : au moins une bougie doit se situer dans la plage.";
     $("hoursReminder").innerHTML = HOURS_TXT[pr] ? HOURS_TXT[pr] + RANGE_RULE_TXT + (EXEC_RANGE[pr] ? "<br>" + EXEC_RANGE[pr] : "") : "";
     $("hoursReminder").style.display = HOURS_TXT[pr] ? "" : "none";
+    var rhr = $("retrHoursReminder");
+    if(rhr){
+      rhr.innerHTML = HOURS_TXT[pr] ? HOURS_TXT[pr] + RANGE_RULE_TXT + (EXEC_RANGE[pr] ? "<br>" + EXEC_RANGE[pr] : "") : "";
+      rhr.style.display = HOURS_TXT[pr] ? "" : "none";
+    }
     $("rulesNote").textContent = asia
       ? pr + " performe moins en Asie : évite de lier la zone ou sa réintégration à l'Asie, et fais la vérification du CISD."
       : (nas ? "NASDAQ : killzone US entre 14h et 18h UTC, et entrée entre Londres et US."
