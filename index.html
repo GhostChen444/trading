@@ -1369,8 +1369,27 @@
         </div>
 
         <div id="setupSD" class="strat-block" style="display:none;">
+          <div class="field" style="margin-bottom:14px;">
+            <label>Type de mouvement de base</label>
+            <div class="risk-opts" id="baseTypeOpts"></div>
+            <input type="hidden" id="f_baseType" value="">
+            <div class="hint">Choisis un type pour afficher les règles qui lui correspondent.</div>
+          </div>
           <div class="section-label">règles à respecter · v6</div>
           <div class="rem-wrap" id="remBase">
+          <details class="rem-grp" open>
+            <summary><span class="rem-ico">🔀</span>Types de mouvement de base<span class="rem-n">2</span></summary>
+            <div class="rem-grp-body">
+          <div class="reminder" data-bt="base"><b>Mouvement de base</b> : je joue le <b>vrai mouvement de base</b> (voir « Zone d'exécution · mouvement de base »).</div>
+          <div class="reminder" data-bt="sous"><b>Concept du sous-mouvement de base</b> : exécuté en zone <b>premium</b> si tendance baissière, en <b>discount</b> si tendance haussière.<br>
+            1. <b>Retoucher les zones</b> qui envoient le mouvement de base.<br>
+            2. Attendre que le prix <b>délivre la zone de S&amp;D</b> du prochain vrai mouvement de base.<br>
+            3. <b>Confirmer l'écart</b> à ce niveau (la zone de S&amp;D doit être <b>vide</b>).<br>
+            4. Attendre une <b>prochaine zone de S&amp;D en killzone</b>, tout en suivant la structure.<br>
+            5. <b>Exécuter en M5</b>.<br>
+            6. Target : le <b>50 % du fibo</b>.</div>
+            </div>
+          </details>
           <details class="rem-grp" open>
             <summary><span class="rem-ico">⏱</span>Plages horaires<span class="rem-n">3</span></summary>
             <div class="rem-grp-body">
@@ -1398,9 +1417,13 @@
             <b>NB :</b> si ma confirmation arrive hors de ma zone de base, attendre le premier retracement dans celle-ci (M5), même par une mèche, sans attendre aucune clôture. Mais attention : uniquement si le flux externe d'informations (fonda) n'a pas changé entre-temps.<br>
             <b>NB :</b> si, après m'avoir donné mes confirmations, le prix ne revient pas dans ma zone de base, attendre un <b>échange de contrepartie de liquidité qui a clôturé</b>, puis rentrer.
           </div>
-          <div class="reminder"><b>Zone d'exécution · mouvement de base</b><br>
+          <div class="reminder" data-bt="base"><b>Zone d'exécution · mouvement de base</b><br>
             • Je joue le <b>vrai mouvement de base</b>.<br>
             • Si j'ai raté le mouvement de base, je peux trader les <b>impulsions</b>, mais toujours en <b>discount</b>, en allant chercher les <b>BOS</b>.
+          </div>
+          <div class="reminder" data-bt="sous"><b>Zone d'exécution · sous-mouvement de base</b><br>
+            • <b>Premium</b> si la tendance est baissière, <b>discount</b> si elle est haussière.<br>
+            • Exécution en <b>M5</b>, target : le <b>50 % du fibo</b>.
           </div>
           <div class="reminder" id="slReminder"><b>SL (Stop Loss)</b><br>
             • OB : placer le SL au-dessus ou en dessous de la liquidité la plus haute ou la plus basse.<br>
@@ -2912,7 +2935,8 @@
                   item("Modèle de risque", t.riskState && RISK_STATES[t.riskState] ? RISK_MODEL_NAME[RISK_STATES[t.riskState].model] : ""),
                   item("RR du trade (retracement)", (t.retrRR !== undefined && t.retrRR !== null && t.retrRR !== "") ? t.retrRR : ""),
                   item("Gestion du risque", (sdModeOf(t) === "retracement") ? retrMgmtText(t) : ""),
-                  (sdModeOf(t) === "retracement") ? item("Type de retracement", RETR_TYPE_LABEL[t.retrType] || "") : "" ]);
+                  (sdModeOf(t) === "retracement") ? item("Type de retracement", RETR_TYPE_LABEL[t.retrType] || "") : "",
+                  (sdModeOf(t) === "tendance") ? item("Type de mouvement", BASE_TYPES[t.baseType] || "") : "" ]);
     }
     if(t.setup){
       var su = t.setup;
@@ -3332,6 +3356,33 @@
     });
   }
   buildRetrTypeOpts();
+  var BASE_TYPES = { base:"Mouvement de base", sous:"Sous-mouvement de base" };
+  var BASE_TYPE_SUB = { base:"Le vrai mouvement de base", sous:"Premium si baissier · discount si haussier · M5 · target 50 % fibo" };
+  function baseType(){ return sdMode() === "tendance" ? $("f_baseType").value : ""; }
+  function buildBaseTypeOpts(){
+    var box = $("baseTypeOpts"); box.innerHTML = "";
+    Object.keys(BASE_TYPES).forEach(function(k){
+      var b = document.createElement("button");
+      b.type = "button"; b.setAttribute("data-btp", k);
+      b.innerHTML = escapeHtml(BASE_TYPES[k]) + "<small>" + escapeHtml(BASE_TYPE_SUB[k]) + "</small>";
+      b.addEventListener("click", function(){
+        $("f_baseType").value = ($("f_baseType").value === k) ? "" : k;
+        updateStrategyUI();
+      });
+      box.appendChild(b);
+    });
+  }
+  buildBaseTypeOpts();
+  function applyBaseType(){
+    var t = baseType(), cur = $("f_baseType").value;
+    document.querySelectorAll("#baseTypeOpts button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-btp") === cur); });
+    document.querySelectorAll("[data-bt]").forEach(function(el){ el.style.display = (!t || el.getAttribute("data-bt") === t) ? "" : "none"; });
+    document.querySelectorAll("#remBase .rem-grp").forEach(function(g){
+      if(!g.querySelector("[data-bt]")) return;
+      var n = Array.prototype.filter.call(g.querySelector(".rem-grp-body").children, function(c){ return !(c.getAttribute("data-bt") && c.style.display === "none"); }).length;
+      var badge = g.querySelector(".rem-n"); if(badge) badge.textContent = n;
+    });
+  }
   function applyRetrType(){
     var t = retrType(), cur = $("f_retrType").value;
     document.querySelectorAll("#retrTypeOpts button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-rtp") === cur); });
@@ -3391,6 +3442,7 @@
     renderRisk();
     renderLot();
     applyRetrType();
+    applyBaseType();
   }
   function updateRulesUI(){
     var pr = sdSel() ? $("f_pairSel").value : "";
@@ -3636,6 +3688,7 @@
     fields.tpHit.checked = false;
     $("f_clotureSub").value = "";
     $("f_retrType").value = "";
+    $("f_baseType").value = "";
     (function(){ var fo = $("f_finalOutcome"); fo.innerHTML = ""; fo.removeAttribute("data-m"); fo.removeAttribute("data-pending"); $("f_partialAmt").value = ""; $("f_finalAmt").value = ""; $("finalTotal").textContent = ""; })();
     lotModeView = "";
     $("deleteTradeBtn").style.display = "none";
@@ -3670,6 +3723,7 @@
         fields.status.value = t.status || "en_cours";
         $("f_clotureSub").value = t.clotureSub || "";
         $("f_retrType").value = t.retrType || "";
+        $("f_baseType").value = t.baseType || "";
         if(t.finalOutcome) $("f_finalOutcome").setAttribute("data-pending", t.finalOutcome);
         $("f_partialAmt").value = (t.partialAmt !== undefined && t.partialAmt !== null) ? t.partialAmt : "";
         $("f_finalAmt").value = (t.finalAmt !== undefined && t.finalAmt !== null) ? t.finalAmt : "";
@@ -3738,6 +3792,7 @@
         retr: retrData,
         retrRR: sdModeVal === "retracement" ? $("rt_rr").value : "",
         retrType: sdModeVal === "retracement" ? $("f_retrType").value : "",
+        baseType: sdModeVal === "tendance" ? $("f_baseType").value : "",
         stratDetails: isCustomStrat ? fields.stratDetails.value.trim() : "",
         risk: obsMode ? "" : fields.risk.value,
         riskState: (obsMode || stratVal !== SD_NAME || retrBeOnly) ? "" : $("f_riskState").value,
@@ -5158,6 +5213,7 @@
         if(hasVal(t.direction) && !isTrap(t)) cells.push(["Sens", t.direction === "vente" ? "Vente" : "Achat"]);
         if(!obsT){
           cells.push(["Statut", statusLabel(t) || t.status || ""]);
+          if(sdModeOf(t) === "tendance" && t.baseType) cells.push(["Type de mouvement", t.baseType === "sous" ? "Sous-mouvement de base" : "Mouvement de base"]);
           if(hasFinal(t)){
             if(hasVal(t.partialAmt)) cells.push(["Cloture partielle", fmtPdfMoney(num(t.partialAmt))]);
             cells.push(["Lot reste en cours", runLotLabel(t)]);
