@@ -180,6 +180,7 @@
   .dot.breakeven{background:var(--gray);}
   .dot.cloture_main{background:var(--gold);}
   .dot.be35{background:var(--gold);}
+  .dot.tp11{background:var(--green);}
   .dot.observation{background:transparent; border:1.5px solid var(--gold);}
   .day-pnl{font-family:var(--mono); font-size:10.5px;}
   .day-pnl.pos{color:var(--green);}
@@ -254,6 +255,19 @@
   .tag.status-breakeven{background:var(--gray-soft); color:var(--gray); border-color:transparent;}
   .tag.status-cloture_main{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
   .tag.status-be35{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
+  .tag.status-tp11{background:var(--green-soft); color:var(--green); border-color:transparent;}
+  .tag.sub-clot{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
+  /* rappel lot */
+  .lot-card{border:1px solid var(--border); border-radius:var(--r); background:var(--panel-2); padding:14px 16px;}
+  .lot-meta{font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin-bottom:12px;}
+  .lot-meta b{color:var(--gold); font-weight:500;}
+  .lot-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;}
+  @media (max-width:520px){ .lot-grid{grid-template-columns:1fr;} }
+  .lot-box{border:1px solid var(--border); border-radius:var(--r); background:var(--bg-2); padding:10px 12px;}
+  .lot-box .lb-t{font-size:11.5px; color:var(--text-dim); margin-bottom:4px;}
+  .lot-box .lb-pct{font-family:var(--mono); font-size:22px; color:var(--text);}
+  .lot-box.big .lb-pct{color:var(--gold);}
+  .lot-box .lb-s{font-family:var(--mono); font-size:11.5px; color:var(--text-dim); margin-top:3px; line-height:1.5;}
   .tag.tp-ok{background:var(--green-soft); color:var(--green); border-color:transparent;}
   .tag.tp-late{background:var(--red-soft); color:var(--red); border-color:transparent;}
   .chk-row{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); cursor:pointer;}
@@ -1046,8 +1060,8 @@
         </div>
         <div class="fc-bubble">Il est possible de trader les retracements <b>après mon CHOCHRe</b> et <b>mon mouvement de base</b>, après la correction en <b>zone de S&amp;D</b> et en <b>OTE</b>.</div>
         <div class="fc-bubble">Pour un retracement, les trois ingrédients à réunir : <b>CHOCHRe</b> hors de la zone OTE, <b>zone de S&amp;D délivrée en OTE</b>, <b>killzone</b>. Il en manque un ? Je regarde, je ne tire pas.</div>
-        <div class="fc-bubble warn">Sur un retracement, mon risque est <b>divisé par 2</b>. Si le narratif est flou, ou ne colle pas avec le mouvement actuel du prix (c’est-à-dire qu’il n’est pas en connivence avec les <b>récents flux journaliers</b>), je divise aussi mon risque par 2.</div>
-        <div class="fc-bubble warn">Sur un retracement, je peux rentrer, mais je me mets <b>toujours à BE à 1:1</b>.</div>
+        <div class="fc-bubble warn">Sur un retracement, je risque désormais <b>le même % qu'en tendance</b>, réparti en <b>2 lots</b> (60/40 sur un compte à 1 %, 70/30 sur un compte à 1,5 %). Si le narratif est flou, ou ne colle pas avec le mouvement actuel du prix (c’est-à-dire qu’il n’est pas en connivence avec les <b>récents flux journaliers</b>), je divise aussi mon risque par 2.</div>
+        <div class="fc-bubble warn">Sur un retracement, je peux rentrer : à <b>1:1 de mon plus gros risque</b>, je sors (TP) le gros lot et je mets le petit lot à <b>BE</b>.</div>
       </div>
 
       <!-- 05 RITUEL -->
@@ -1198,6 +1212,8 @@
         <div class="stat-row"><span class="k">Perdants</span><span class="v" id="statLosses">0</span></div>
         <div class="stat-row"><span class="k">En cours</span><span class="v" id="statOpen">0</span></div>
         <div class="stat-row"><span class="k">BE 35% · TP touché ≤ 36 h</span><span class="v" id="statBe35">0 · 0</span></div>
+        <div class="stat-row"><span class="k">TP 1:1 retracement</span><span class="v" id="statTp11">0</span></div>
+        <div class="stat-row"><span class="k">Clôtures · Asian · 35 %</span><span class="v" id="statClot">0 · 0</span></div>
         <div class="stat-row"><span class="k">Observations</span><span class="v" id="statObs">0</span></div>
       </section>
 
@@ -1308,11 +1324,20 @@
             <select id="f_status">
               <option value="en_cours">En cours</option>
               <option value="gagnant">Gagnant</option>
+              <option value="tp11">TP 1:1 retracement (gagnant)</option>
               <option value="perdant">Perdant</option>
               <option value="breakeven">BE point d'entrée</option>
               <option value="be35">BE 35%</option>
               <option value="cloture_gagnante">Clôture manuelle gagnante</option>
               <option value="cloture_perdante">Clôture manuelle perdante</option>
+            </select>
+          </div>
+          <div class="field" id="wrapClotureSub" style="display:none;">
+            <label for="f_clotureSub">Clôture manuelle gagnante · type</label>
+            <select id="f_clotureSub">
+              <option value="">— Autre / non précisé —</option>
+              <option value="asian">Protection Asian</option>
+              <option value="p35">35 %</option>
             </select>
           </div>
         </div>
@@ -1468,7 +1493,7 @@
             <div class="rem-grp-body">
           <div class="reminder">Zone d'entrée : <b>OB ou FVG, jamais les deux</b>. Exécution identique au mouvement de tendance : zones repérées en M5 et réaction du prix sur la zone.</div>
           <div class="reminder"><b>Confirmation d'entrée :</b> si, après m'avoir donné mes confirmations, le prix ne revient pas dans ma zone de base, attendre un <b>échange de contrepartie de liquidité qui a clôturé</b>, puis rentrer.</div>
-          <div class="reminder-red"><b>Rappel retracement :</b> je peux rentrer, mais je me mets <b>toujours à BE à 1:1</b>.</div>
+          <div class="reminder-red"><b>Rappel retracement :</b> je peux rentrer : à <b>1:1 de mon plus gros risque</b>, je sors (TP) le <b>gros lot</b> et je mets le <b>petit lot à BE</b>.</div>
             </div>
           </details>
           <details class="rem-grp" open>
@@ -1486,7 +1511,7 @@
           <details class="rem-grp" open>
             <summary><span class="rem-ico">⚖️</span>Risque<span class="rem-n">2</span></summary>
             <div class="rem-grp-body">
-          <div class="reminder-red"><b>Rappel risque :</b> sur un <b>retracement</b>, le risque est <b>divisé par 2</b> (0,5 % au lieu de 1 %).</div>
+          <div class="reminder-red"><b>Rappel risque :</b> sur un <b>retracement</b>, je risque le <b>même % qu'en tendance</b>, réparti sur <b>2 lots</b> (voir « rappel lot » plus bas).</div>
           <div class="reminder-red"><b>Rappel risque :</b> si le setup est formé mais que le <b>narratif est flou</b>, ou si le <b>narratif n'est pas en adéquation avec le mouvement actuel du prix</b> (notamment sur un retracement), <b>diviser son risque par 2</b>.</div>
             </div>
           </details>
@@ -1550,10 +1575,18 @@
         </div>
 
         <div id="execBlock">
+        <div id="lotBlock">
+          <div class="section-label">rappel lot — division du risque</div>
+          <div class="seg" id="lotTabs" style="margin-bottom:10px;">
+            <button type="button" data-lm="tendance">Mouvement de tendance</button>
+            <button type="button" data-lm="retracement">Retracement</button>
+          </div>
+          <div id="lotPanel"></div>
+        </div>
         <div id="riskBlock" style="display:none;">
           <div class="section-label">gestion du risque — rappels selon l'état du compte</div>
           <div id="retrRRWrap" style="display:none;">
-            <div class="reminder"><b>Retracement :</b> le RR n'est plus pris en compte. <b>La protection avant tout, peu importe le R</b> : dès que le prix atteint le <b>1:1</b> depuis le point d'entrée de base, SL au point d'entrée (BE) immédiatement. Le modèle de gestion du risque dépend de l'<b>état du compte</b>, comme sur les mouvements de base.</div>
+            <div class="reminder"><b>Retracement :</b> le RR n'est plus pris en compte. <b>La protection avant tout, peu importe le R</b> : dès que le prix atteint le <b>1:1 de mon plus gros risque</b> : <b>TP du gros lot</b> et <b>petit lot à BE</b> immédiatement. Le modèle de gestion du risque dépend de l'<b>état du compte</b>, comme sur les mouvements de base.</div>
             <div class="reminder-red"><b>Rappel retracement :</b> la <b>tendance de base primera toujours</b>. Toujours <b>diviser son risque</b> et <b>se protéger</b> : c'est une <b>zone à forte probabilité de liquidation</b>.</div>
             <div style="display:none;">
               <input type="number" id="rt_rr">
@@ -1829,7 +1862,13 @@
       if(el.scrollHeight > 0) el.style.height = Math.min(el.scrollHeight + 2, window.innerHeight * 0.6) + "px";
     }
   });
-  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", cloture_gagnante:"Clôture manuelle gagnante", cloture_perdante:"Clôture manuelle perdante", cloture_main:"Clôture manuelle", observation:"Observation"};
+  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", cloture_gagnante:"Clôture manuelle gagnante", cloture_perdante:"Clôture manuelle perdante", cloture_main:"Clôture manuelle", observation:"Observation", tp11:"TP 1:1 retracement"};
+  var CLOT_SUB = { asian:"Protection Asian", p35:"35 %" };
+  function statusLabel(t){
+    var st = (t && t.status) || "en_cours", l = STATUS_LABEL[st] || "";
+    if(st === "cloture_gagnante" && t.clotureSub && CLOT_SUB[t.clotureSub]) l += " · " + CLOT_SUB[t.clotureSub];
+    return l;
+  }
   var TP_WINDOW_H = 36; // au-delà de 36 h après le BE, le TP touché n'est plus comptabilisé
   var RISK_STATES = {
     init:   { label:"Compte à l'état initial / à BE", model:1 },
@@ -1871,7 +1910,7 @@
   // issue d'un trade : une clôture manuelle compte selon le signe de son résultat
   function outcomeOf(t){
     if(!t) return null;
-    if(t.status === "gagnant" || t.status === "cloture_gagnante") return "w";
+    if(t.status === "gagnant" || t.status === "cloture_gagnante" || t.status === "tp11") return "w";
     if(t.status === "perdant" || t.status === "cloture_perdante") return "l";
     if(t.status === "breakeven") return "be";
     if(t.status === "be35"){ var b = parseFloat(t.pnl); return (!isNaN(b) && b < 0) ? "l" : "w"; } // BE 35 % = résultat positif
@@ -1885,7 +1924,7 @@
     if(tpCounted(t)) return '<span class="tag tp-ok">TP touché' + (h === null ? '' : ' · +' + fmtDelay(h)) + '</span>';
     return '<span class="tag tp-late">TP hors délai (non compté)</span>';
   }
-  function pdfTag(t){ return isTrap(t) ? "Setup trap" : isObs(t) ? "Observation" : ((t.direction === "vente" ? "Vente" : "Achat") + ", " + (STATUS_LABEL[t.status] || "")); }
+  function pdfTag(t){ return isTrap(t) ? "Setup trap" : isObs(t) ? "Observation" : ((t.direction === "vente" ? "Vente" : "Achat") + ", " + statusLabel(t)); }
 
 
   // Modèle de données (version 2) :
@@ -2619,6 +2658,10 @@
     $("statOpen").textContent = open;
     $("statBe35").textContent = be35n + " · " + be35tp;
     $("statObs").textContent = obsCount;
+    $("statTp11").textContent = monthTrades.filter(function(t){ return t.status === "tp11"; }).length;
+    var cA = monthTrades.filter(function(t){ return t.status === "cloture_gagnante" && t.clotureSub === "asian"; }).length;
+    var c35 = monthTrades.filter(function(t){ return t.status === "cloture_gagnante" && t.clotureSub === "p35"; }).length;
+    $("statClot").textContent = cA + " · " + c35;
   }
 
   function renderStatsGlobal(){
@@ -2778,7 +2821,7 @@
       item("Actif", t.pair), item("Date", t.date),
       obs ? item("Type", isTrap(t) ? "Setup trap" : "Observation") : item("Sens", t.direction === "vente" ? "Vente" : "Achat"),
       (obs && !isTrap(t) && t.direction) ? item("Sens", t.direction === "vente" ? "Vente" : "Achat") : "",
-      obs ? "" : item("Statut", STATUS_LABEL[t.status || "en_cours"]),
+      obs ? "" : item("Statut", statusLabel(t)),
       item("Stratégie", stratLabel(t))
     ]);
     if(!obs && t.status === "be35"){
@@ -2794,7 +2837,7 @@
                   item("État du compte", t.riskState && RISK_STATES[t.riskState] ? RISK_STATES[t.riskState].label : ""),
                   item("Modèle de risque", t.riskState && RISK_STATES[t.riskState] ? RISK_MODEL_NAME[RISK_STATES[t.riskState].model] : ""),
                   item("RR du trade (retracement)", (t.retrRR !== undefined && t.retrRR !== null && t.retrRR !== "") ? t.retrRR : ""),
-                  item("Gestion du risque", (sdModeOf(t) === "retracement") ? "BE à 1:1 (protection avant tout) + modèle selon l'état du compte" : "") ]);
+                  item("Gestion du risque", (sdModeOf(t) === "retracement") ? "Lots divisés : à 1:1 du plus gros risque, TP du gros lot + BE du petit lot" : "") ]);
     }
     if(t.setup){
       var su = t.setup;
@@ -2868,7 +2911,7 @@
             (isObs(t)
               ? '<span class="tag status-observation">' + (isTrap(t) ? "Setup trap" : "Observation") + '</span>' + ((!isTrap(t) && t.direction) ? '<span class="tag dir-' + t.direction + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' : '')
               : '<span class="tag dir-' + (t.direction||"achat") + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' +
-                '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' + tpTagHtml(t)) +
+                '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' + ((t.status === "cloture_gagnante" && CLOT_SUB[t.clotureSub]) ? '<span class="tag sub-clot">' + CLOT_SUB[t.clotureSub] + '</span>' : '') + tpTagHtml(t)) +
             (t.improve && t.improve.trim() ? '<span class="tag tag-improve" title="Éléments à améliorer renseignés">↗ à améliorer</span>' : '') +
           '</div>' +
           '<div class="trade-meta">' +
@@ -3020,10 +3063,10 @@
     var R = function(tag, cls, txt, sub){ return { tag:tag, cls:cls, txt:txt, sub:sub || "" }; };
     // retracement : le BE « 35 % du TP » est supprimé (remplacé par le BE 1:1) ; le BE aux 35 % posé à 55 % du TP reste
     var NO_35 = function(r){ return r.txt.indexOf("Profit à <b>35 % du TP</b>") !== 0; };
-    var RETR_11 = function(){ return R("BE 1:1","be","<b>Protection avant tout, peu importe le R</b> : dès que le prix atteint le <b>1:1</b> du mouvement depuis le <b>point d'entrée de base</b> (gain = risque pris) → <b>SL au point d'entrée (BE) immédiatement</b>.", oneToOneLevel()); };
+    var RETR_11 = function(){ return R("1:1","be","<b>Protection avant tout, peu importe le R</b> : dès que je suis en profit à <b>1:1 de mon plus gros risque</b> → <b>je sors (TP) le gros lot</b> et je mets le <b>petit lot à BE</b> immédiatement.", oneToOneLevel()); };
     if(model === 1){
       var out = [
-        retr ? R("Risque","risk","Retracement : risque <b>divisé par 2</b> → risquer <b>0,5 %</b> du compte.") : R("Risque","risk","Toujours risquer <b>1 %</b> du compte."),
+        retr ? R("Risque","risk","Retracement : <b>même risque qu'en tendance</b>, réparti sur <b>2 lots</b> (voir rappel lot).") : R("Risque","risk","Toujours risquer le <b>% du compte</b> prévu, réparti sur <b>2 lots</b> (voir rappel lot)."),
         R("BE 35 %","be","Profit à <b>35 % du TP</b> → se mettre à <b>BE immédiatement</b>."),
         R("BE 35 %","be","Profit à <b>55 % du TP</b> → SL remonté à <b>BE aux 35 %</b>."),
         R("News","news","Annonce éco ou déclaration, marché a réagi mais je reste en profit → <b>BE</b> si je n'y suis pas encore."),
@@ -3038,7 +3081,7 @@
       return out;
     }
     var out2 = [
-      retr ? R("Risque","risk","Retracement : risque <b>divisé par 2</b> → SL placé à <b>0,5 %</b> du compte.") : R("Risque","risk","SL placé à <b>1 %</b> du compte."),
+      retr ? R("Risque","risk","Retracement : <b>même risque qu'en tendance</b>, réparti sur <b>2 lots</b> (voir rappel lot).") : R("Risque","risk","SL placé au <b>% du compte</b> prévu, réparti sur <b>2 lots</b> (voir rappel lot)."),
       R("BE 35 %","be","Profit à <b>35 % du TP</b> → SL au <b>point d'entrée (BE)</b>."),
       R("55 %","be","Profit à <b>55 % du TP</b> → SL placé au <b>dernier plus haut / plus bas du dernier BOS</b> de ma position, puis <b>il ne bouge plus</b> : c'est <b>TP ou SL</b>."),
       R("Asie","asie","<b>Je peux laisser tourner en Asie</b> sur tous les actifs, tant que je suis à <b>BE</b>."),
@@ -3051,18 +3094,67 @@
   }
   function riskSuggestState(){
     var list = state.trades.filter(function(t){
-      return !isObs(t) && t.id !== editingTradeId && ["gagnant","perdant","breakeven","be35"].indexOf(t.status) > -1;
+      return !isObs(t) && t.id !== editingTradeId && ["gagnant","tp11","perdant","breakeven","be35"].indexOf(t.status) > -1;
     }).sort(function(a,b){
       return ((a.date || "") + (a.createdAt || "")).localeCompare((b.date || "") + (b.createdAt || ""));
     });
     if(!list.length) return "init";
     var last = list[list.length-1], prev = list[list.length-2];
-    if(last.status === "gagnant") return "tp";
+    if(last.status === "gagnant" || last.status === "tp11") return "tp";
     if(last.status === "be35") return (prev && prev.status === "be35") ? "be35x2" : "be35";
     if(last.status === "perdant") return "dd";
     return "init";
   }
   function sdMode(){ return sdSel() ? $("f_sdMode").value : ""; }
+  // ---- rappel lot : division du risque en 2 lots ----
+  var lotModeView = "";
+  // compte à 1 % : tendance 70/30, retracement 60/40 · compte à 1,5 % : tendance 80/20, retracement 70/30
+  function lotSplit(mode, r){
+    var hi = r >= 1.25;
+    if(mode === "retracement") return hi ? [70,30] : [60,40];
+    return hi ? [80,20] : [70,30];
+  }
+  function fmtPct(v){ return (Math.round(v * 100) / 100).toString().replace(".", ","); }
+  function renderLot(){
+    var panel = $("lotPanel"); if(!panel || !state) return;
+    var auto = sdMode() === "retracement" ? "retracement" : "tendance";
+    var mode = lotModeView || auto;
+    document.querySelectorAll("#lotTabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-lm") === mode); });
+    var r = parseFloat(String(fields.risk.value).replace(",", "."));
+    if(isNaN(r) || r <= 0) r = num(state.account.risk);
+    if(!(r > 0)) r = 1;
+    var sp = lotSplit(mode, r), pBig = sp[0], pSmall = sp[1];
+    var rBig = r * pBig / 100, rSmall = r * pSmall / 100;
+    var bal = accStats(state).balance;
+    var aBig = bal > 0 ? bal * rBig / 100 : null, aSmall = bal > 0 ? bal * rSmall / 100 : null;
+    var tot = parseFloat(String(fields.lot.value).replace(",", "."));
+    var lBig = null, lSmall = null;
+    if(!isNaN(tot) && tot > 0){ lBig = Math.round(tot * pBig) / 100; lSmall = Math.round((tot - lBig) * 100) / 100; }
+    function box(cls, title, p, rr, amt, lot){
+      return '<div class="lot-box ' + cls + '"><div class="lb-t">' + title + '</div><div class="lb-pct">' + p + ' %</div><div class="lb-s">' +
+        fmtPct(rr) + ' % du compte' + (amt !== null ? ' · ≈ ' + escapeHtml(fmtMoney(amt)) : '') +
+        (lot !== null ? '<br>Lot : <b style="color:var(--text)">' + lot.toFixed(2) + '</b>' : '') + '</div></div>';
+    }
+    var h = '<div class="lot-card"><div class="lot-meta">Risque du trade : <b>' + fmtPct(r) + ' %</b> · répartition <b>' + pBig + ' / ' + pSmall + '</b> · ' +
+      (mode === "retracement" ? 'retracement' : 'mouvement de tendance') + '</div>';
+    h += '<div class="lot-grid">' + box("big", "Lot 1 · plus gros risque", pBig, rBig, aBig, lBig) + box("", "Lot 2 · plus petit risque", pSmall, rSmall, aSmall, lSmall) + '</div>';
+    h += '<ul class="risk-list">';
+    var L = function(tag, cls, txt, sub){ h += '<li><span class="rk-tag ' + cls + '">' + tag + '</span><span>' + txt + (sub ? '<span class="rk-sub">' + sub + '</span>' : '') + '</span></li>'; };
+    var thr = aSmall !== null ? ' (≈ <b>' + escapeHtml(fmtMoney(aSmall)) + '</b>)' : '';
+    if(mode === "tendance"){
+      L("Asian","asie","Trade encore en cours durant l'<b>Asian</b> → <b>clôture partielle du lot au plus gros risque</b> (lot 1).",
+        "Si le P&amp;L de cette clôture est <b>inférieur au SL du petit lot</b>" + thr + " → <b>fermer toutes les positions</b>.");
+      L("35 %","be","Profit à <b>35 % du TP</b> → <b>clôture partielle du lot au plus petit risque</b> (lot 2).");
+    } else {
+      L("1:1","be","Profit à <b>1:1 de mon plus gros risque</b> → <b>je sors (TP) le lot 1</b> et je mets le <b>lot 2 à BE</b>.", oneToOneLevel());
+    }
+    h += '</ul></div>';
+    panel.innerHTML = h;
+  }
+  document.querySelectorAll("#lotTabs button").forEach(function(b){
+    b.addEventListener("click", function(){ lotModeView = this.getAttribute("data-lm"); renderLot(); });
+  });
+  [fields.lot, fields.risk, fields.entry, fields.sl].forEach(function(el){ el.addEventListener("input", renderLot); });
   function rrValue(){ var v = parseFloat(String($("rt_rr").value).replace(",", ".")); return (isNaN(v) || v <= 0) ? null : v; }
   function rrCalc(){
     var e = parseFloat(fields.entry.value), sl = parseFloat(fields.sl.value), tp = parseFloat(fields.tp.value);
@@ -3120,7 +3212,7 @@
     document.querySelectorAll("#riskOpts button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-rs") === cur); });
   }
   buildRiskOpts();
-  function applyRiskDefault(){ if($("f_riskState").value && fields.risk.value === "") fields.risk.value = (sdMode() === "retracement" ? "0.5" : "1"); }
+  function applyRiskDefault(){ if($("f_riskState").value && fields.risk.value === "") fields.risk.value = String((state && num(state.account.risk) > 0) ? num(state.account.risk) : 1); }
   $("f_riskState").addEventListener("change", function(){ renderRisk(); applyRiskDefault(); });
 
   function buildModeOpts(){
@@ -3131,6 +3223,7 @@
       b.innerHTML = escapeHtml(SD_MODES[k]) + "<small>" + escapeHtml(SD_MODE_SUB[k]) + "</small>";
       b.addEventListener("click", function(){
         $("f_sdMode").value = ($("f_sdMode").value === k) ? "" : k;
+        lotModeView = "";
         updateStrategyUI();
       });
       box.appendChild(b);
@@ -3183,6 +3276,7 @@
     updateRulesUI();
     updateSetupHint();
     renderRisk();
+    renderLot();
   }
   function updateRulesUI(){
     var pr = sdSel() ? $("f_pairSel").value : "";
@@ -3279,6 +3373,7 @@
   // ---- BE 35% : suivi du TP touché ----
   function updateBe35UI(){
     $("be35Block").style.display = (formType === "trade" && fields.status.value === "be35") ? "" : "none";
+    $("wrapClotureSub").style.display = (formType === "trade" && fields.status.value === "cloture_gagnante") ? "" : "none";
   }
   fields.status.addEventListener("change", updateBe35UI);
   fields.tpHit.addEventListener("change", updateBe35UI);
@@ -3380,6 +3475,8 @@
     fields.direction.value = "achat";
     fields.status.value = "en_cours";
     fields.tpHit.checked = false;
+    $("f_clotureSub").value = "";
+    lotModeView = "";
     $("deleteTradeBtn").style.display = "none";
     formShots = [];
     formRemoved = [];
@@ -3410,6 +3507,7 @@
         fields.risk.value = t.risk !== undefined ? t.risk : "";
         $("f_riskState").value = (t.riskState && RISK_STATES[t.riskState]) ? t.riskState : "";
         fields.status.value = t.status || "en_cours";
+        $("f_clotureSub").value = t.clotureSub || "";
         fields.lot.value = t.lot !== undefined ? t.lot : "";
         fields.entry.value = t.entry !== undefined ? t.entry : "";
         fields.sl.value = t.sl !== undefined ? t.sl : "";
@@ -3478,6 +3576,7 @@
         risk: obsMode ? "" : fields.risk.value,
         riskState: (obsMode || stratVal !== SD_NAME || retrBeOnly) ? "" : $("f_riskState").value,
         status: obsMode ? "observation" : fields.status.value,
+        clotureSub: (!obsMode && fields.status.value === "cloture_gagnante") ? $("f_clotureSub").value : "",
         lot: obsMode ? "" : fields.lot.value, entry: obsMode ? "" : fields.entry.value, sl: obsMode ? "" : fields.sl.value, tp: obsMode ? "" : fields.tp.value,
         exit: obsMode ? "" : fields.exit.value, pnl: obsMode ? "" : fields.pnl.value,
         geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim(),
@@ -4531,7 +4630,7 @@
     }
     function statusColor(t){
       if(isObs(t)) return C.gold;
-      return ({gagnant:C.green, perdant:C.red, cloture_gagnante:C.green, cloture_perdante:C.red, en_cours:C.blue, breakeven:C.gray, be35:C.gold})[t.status] || C.gray;
+      return ({gagnant:C.green, perdant:C.red, cloture_gagnante:C.green, cloture_perdante:C.red, tp11:C.green, en_cours:C.blue, breakeven:C.gray, be35:C.gold})[t.status] || C.gray;
     }
     function signColor(n){ return n > 0 ? C.green : (n < 0 ? C.red : C.ink); }
 
@@ -4889,11 +4988,11 @@
         else if(obsT) cells.push(["Type", "Observation"]);
         if(hasVal(t.direction) && !isTrap(t)) cells.push(["Sens", t.direction === "vente" ? "Vente" : "Achat"]);
         if(!obsT){
-          cells.push(["Statut", STATUS_LABEL[t.status] || t.status || ""]);
+          cells.push(["Statut", statusLabel(t) || t.status || ""]);
           if(hasVal(t.risk)) cells.push(["Risque", t.risk + " %"]);
           if(hasVal(t.riskState)) cells.push(["Contexte du risque", RSL[t.riskState] || t.riskState]);
           if(sdModeOf(t) === "retracement"){
-            cells.push(["Gestion du risque", "BE a 1:1 (protection avant tout) + modele selon l'etat du compte"]);
+            cells.push(["Gestion du risque", "Lots divises : a 1:1 du plus gros risque, TP du gros lot + BE du petit lot"]);
           }
           if(hasVal(t.lot)) cells.push(["Lot", t.lot]);
           if(hasVal(t.entry)) cells.push(["Entrée", t.entry]);
