@@ -1340,6 +1340,19 @@
               <option value="p35">35 %</option>
             </select>
           </div>
+          <div id="wrapFinal" style="display:none; grid-column:1 / -1;">
+            <div class="section-label" style="margin-top:4px;">issue du trade (partie restante)</div>
+            <div class="form-grid">
+              <div class="field"><label for="f_finalOutcome">Issue finale</label>
+                <select id="f_finalOutcome"></select></div>
+              <div class="field num"><label for="f_partialAmt" id="lbPartial">Gain de la clôture partielle</label>
+                <input type="number" step="any" id="f_partialAmt" placeholder="montant en devise du compte"></div>
+              <div class="field num"><label for="f_finalAmt" id="lbFinal">Montant de l'issue finale</label>
+                <input type="number" step="any" id="f_finalAmt" placeholder="0 si BE exact"></div>
+            </div>
+            <div class="hint" id="finalHint"></div>
+            <div class="hint" id="finalTotal" style="color:var(--gold);"></div>
+          </div>
         </div>
 
         <div id="be35Block" style="display:none;">
@@ -1864,9 +1877,13 @@
   });
   var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", cloture_gagnante:"Clôture manuelle gagnante", cloture_perdante:"Clôture manuelle perdante", cloture_main:"Clôture manuelle", observation:"Observation", tp11:"TP 1:1 retracement"};
   var CLOT_SUB = { asian:"Protection Asian", p35:"35 %" };
+  var FINAL_LABEL = { be:"BE point d'entrée", sl:"SL (petit lot)", be35:"BE 35 %", tp:"TP" };
+  function hasFinal(t){ return !!(t && t.finalOutcome && FINAL_LABEL[t.finalOutcome] && (t.status === "tp11" || t.status === "cloture_gagnante")); }
+  function finalTagHtml(t){ return hasFinal(t) ? '<span class="tag sub-clot">→ ' + FINAL_LABEL[t.finalOutcome] + '</span>' : ""; }
   function statusLabel(t){
     var st = (t && t.status) || "en_cours", l = STATUS_LABEL[st] || "";
     if(st === "cloture_gagnante" && t.clotureSub && CLOT_SUB[t.clotureSub]) l += " · " + CLOT_SUB[t.clotureSub];
+    if(hasFinal(t)) l += " → " + FINAL_LABEL[t.finalOutcome];
     return l;
   }
   var TP_WINDOW_H = 36; // au-delà de 36 h après le BE, le TP touché n'est plus comptabilisé
@@ -1910,6 +1927,7 @@
   // issue d'un trade : une clôture manuelle compte selon le signe de son résultat
   function outcomeOf(t){
     if(!t) return null;
+    if(hasFinal(t)){ var tv = parseFloat(t.pnl); if(!isNaN(tv)) return tv > 0 ? "w" : (tv < 0 ? "l" : "be"); }
     if(t.status === "gagnant" || t.status === "cloture_gagnante" || t.status === "tp11") return "w";
     if(t.status === "perdant" || t.status === "cloture_perdante") return "l";
     if(t.status === "breakeven") return "be";
@@ -2829,6 +2847,10 @@
       h += grid([ item("TP touché", t.tpHit ? "Oui" : "Non") ]);
       if(tg) h += '<div style="margin:-6px 0 14px;">' + tg + '</div>';
     }
+    if(!obs && hasFinal(t)){
+      h += grid([ item("Clôture partielle", (t.partialAmt !== "" && t.partialAmt !== undefined) ? fmtMoney(num(t.partialAmt)) : ""),
+                  item("Issue finale", FINAL_LABEL[t.finalOutcome] + ((t.finalAmt !== "" && t.finalAmt !== undefined) ? " · " + fmtMoney(num(t.finalAmt)) : "")) ]);
+    }
     if(!obs){
       h += sect("exécution");
       h += grid([ item("Lot", t.lot), item("Risque", (t.risk !== undefined && t.risk !== "") ? t.risk + " %" : ""),
@@ -2911,7 +2933,7 @@
             (isObs(t)
               ? '<span class="tag status-observation">' + (isTrap(t) ? "Setup trap" : "Observation") + '</span>' + ((!isTrap(t) && t.direction) ? '<span class="tag dir-' + t.direction + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' : '')
               : '<span class="tag dir-' + (t.direction||"achat") + '">' + (t.direction==="vente"?"Vente":"Achat") + '</span>' +
-                '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' + ((t.status === "cloture_gagnante" && CLOT_SUB[t.clotureSub]) ? '<span class="tag sub-clot">' + CLOT_SUB[t.clotureSub] + '</span>' : '') + tpTagHtml(t)) +
+                '<span class="tag status-' + (t.status||"en_cours") + '">' + STATUS_LABEL[t.status||"en_cours"] + '</span>' + ((t.status === "cloture_gagnante" && CLOT_SUB[t.clotureSub]) ? '<span class="tag sub-clot">' + CLOT_SUB[t.clotureSub] + '</span>' : '') + finalTagHtml(t) + tpTagHtml(t)) +
             (t.improve && t.improve.trim() ? '<span class="tag tag-improve" title="Éléments à améliorer renseignés">↗ à améliorer</span>' : '') +
           '</div>' +
           '<div class="trade-meta">' +
@@ -3371,9 +3393,53 @@
   var formType = "trade";
 
   // ---- BE 35% : suivi du TP touché ----
+  function compositeMode(){
+    if(formType !== "trade") return "";
+    var st = fields.status.value, sub = $("f_clotureSub").value;
+    if(st === "tp11") return "tp11";
+    if(st === "cloture_gagnante" && (sub === "asian" || sub === "p35")) return "clot";
+    return "";
+  }
+  var FINAL_HINT = {
+    be:"Lot restant sorti au point d'entrée : laisse 0 (ou la petite différence réelle).",
+    sl:"Lot restant touché au SL (petit lot) : saisis le montant de la perte, le signe négatif est géré automatiquement.",
+    be35:"Lot restant sorti au BE 35 % : saisis le gain obtenu.",
+    tp:"Lot restant sorti au TP : saisis le gain obtenu."
+  };
+  function updateFinalUI(){
+    var m = compositeMode(), w = $("wrapFinal");
+    w.style.display = m ? "" : "none";
+    if(!m) return;
+    var sel = $("f_finalOutcome"), opts = m === "tp11" ? ["be","be35","tp"] : ["be","sl","tp"];
+    if(sel.getAttribute("data-m") !== m){
+      var cur = sel.getAttribute("data-pending") || sel.value;
+      sel.innerHTML = '<option value="">— choisir —</option>' + opts.map(function(k){ return '<option value="' + k + '">' + FINAL_LABEL[k] + '</option>'; }).join("");
+      sel.setAttribute("data-m", m); sel.removeAttribute("data-pending");
+      sel.value = opts.indexOf(cur) > -1 ? cur : "";
+    }
+    var sub = $("f_clotureSub").value;
+    $("lbPartial").textContent = m === "tp11" ? "Gain du TP 1:1 (gros lot)" : (sub === "asian" ? "Gain de la clôture partielle Asian (gros lot)" : "Gain de la clôture partielle à 35 % (petit lot)");
+    $("lbFinal").textContent = "Montant de l'issue finale (lot restant)";
+    $("finalHint").textContent = FINAL_HINT[sel.value] || "Choisis comment s'est terminée la partie restante du trade.";
+    syncFinalPnl();
+  }
+  function syncFinalPnl(){
+    if(!compositeMode()) return;
+    var pa = parseFloat($("f_partialAmt").value), fa = parseFloat($("f_finalAmt").value), o = $("f_finalOutcome").value;
+    if(o === "be" && isNaN(fa)) fa = 0;
+    if(isNaN(pa) && isNaN(fa)){ $("finalTotal").textContent = ""; return; }
+    if(o === "sl" && !isNaN(fa)) fa = -Math.abs(fa);
+    var tot = Math.round(((isNaN(pa) ? 0 : pa) + (isNaN(fa) ? 0 : fa)) * 100) / 100;
+    fields.pnl.value = tot;
+    $("finalTotal").textContent = "P&L total du trade (reporté dans « Résultat ») : " + fmtMoney(tot);
+  }
+  ["f_partialAmt","f_finalAmt"].forEach(function(id){ $(id).addEventListener("input", syncFinalPnl); });
+  $("f_finalOutcome").addEventListener("change", updateFinalUI);
+  $("f_clotureSub").addEventListener("change", function(){ updateFinalUI(); });
   function updateBe35UI(){
     $("be35Block").style.display = (formType === "trade" && fields.status.value === "be35") ? "" : "none";
     $("wrapClotureSub").style.display = (formType === "trade" && fields.status.value === "cloture_gagnante") ? "" : "none";
+    updateFinalUI();
   }
   fields.status.addEventListener("change", updateBe35UI);
   fields.tpHit.addEventListener("change", updateBe35UI);
@@ -3476,6 +3542,7 @@
     fields.status.value = "en_cours";
     fields.tpHit.checked = false;
     $("f_clotureSub").value = "";
+    (function(){ var fo = $("f_finalOutcome"); fo.innerHTML = ""; fo.removeAttribute("data-m"); fo.removeAttribute("data-pending"); $("f_partialAmt").value = ""; $("f_finalAmt").value = ""; $("finalTotal").textContent = ""; })();
     lotModeView = "";
     $("deleteTradeBtn").style.display = "none";
     formShots = [];
@@ -3508,6 +3575,9 @@
         $("f_riskState").value = (t.riskState && RISK_STATES[t.riskState]) ? t.riskState : "";
         fields.status.value = t.status || "en_cours";
         $("f_clotureSub").value = t.clotureSub || "";
+        if(t.finalOutcome) $("f_finalOutcome").setAttribute("data-pending", t.finalOutcome);
+        $("f_partialAmt").value = (t.partialAmt !== undefined && t.partialAmt !== null) ? t.partialAmt : "";
+        $("f_finalAmt").value = (t.finalAmt !== undefined && t.finalAmt !== null) ? t.finalAmt : "";
         fields.lot.value = t.lot !== undefined ? t.lot : "";
         fields.entry.value = t.entry !== undefined ? t.entry : "";
         fields.sl.value = t.sl !== undefined ? t.sl : "";
@@ -3577,6 +3647,9 @@
         riskState: (obsMode || stratVal !== SD_NAME || retrBeOnly) ? "" : $("f_riskState").value,
         status: obsMode ? "observation" : fields.status.value,
         clotureSub: (!obsMode && fields.status.value === "cloture_gagnante") ? $("f_clotureSub").value : "",
+        finalOutcome: (!obsMode && compositeMode()) ? $("f_finalOutcome").value : "",
+        partialAmt: (!obsMode && compositeMode()) ? $("f_partialAmt").value : "",
+        finalAmt: (!obsMode && compositeMode()) ? (($("f_finalOutcome").value === "sl" && $("f_finalAmt").value !== "") ? String(-Math.abs(parseFloat($("f_finalAmt").value) || 0)) : ($("f_finalOutcome").value === "be" && $("f_finalAmt").value === "" ? "0" : $("f_finalAmt").value)) : "",
         lot: obsMode ? "" : fields.lot.value, entry: obsMode ? "" : fields.entry.value, sl: obsMode ? "" : fields.sl.value, tp: obsMode ? "" : fields.tp.value,
         exit: obsMode ? "" : fields.exit.value, pnl: obsMode ? "" : fields.pnl.value,
         geo: fields.geo.value.trim(), macro: fields.macro.value.trim(), evolution: fields.evolution.value.trim(),
@@ -4989,6 +5062,10 @@
         if(hasVal(t.direction) && !isTrap(t)) cells.push(["Sens", t.direction === "vente" ? "Vente" : "Achat"]);
         if(!obsT){
           cells.push(["Statut", statusLabel(t) || t.status || ""]);
+          if(hasFinal(t)){
+            if(hasVal(t.partialAmt)) cells.push(["Cloture partielle", fmtPdfMoney(num(t.partialAmt))]);
+            if(hasVal(t.finalAmt)) cells.push(["Issue finale", fmtPdfMoney(num(t.finalAmt))]);
+          }
           if(hasVal(t.risk)) cells.push(["Risque", t.risk + " %"]);
           if(hasVal(t.riskState)) cells.push(["Contexte du risque", RSL[t.riskState] || t.riskState]);
           if(sdModeOf(t) === "retracement"){
