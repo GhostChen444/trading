@@ -1534,12 +1534,19 @@
             <summary><span class="rem-ico">🧱</span>Formation de setup<span class="rem-n">2</span></summary>
             <div class="rem-grp-body">
           <div class="reminder-red ul"><b>Rappel :</b> la zone la plus intéressante est la <b>plus haute de toutes les autres</b> (tendance baissière) ou la <b>plus basse de toutes les autres</b> (tendance haussière), en respectant les <b>plages horaires (killzones)</b> et les <b>règles de priorité</b>.</div>
-          <div class="reminder"><b>Concept du retracement</b><br>
+          <div class="reminder" data-rt="base"><b>Concept du retracement de base</b><br>
             Aller chercher de <b>petits RR</b> en appliquant les mécanismes SMC / ICT imbriqués avec le schéma <b>AMD</b>.<br>
             1. Sur l'éventuel mouvement de base, repérer les <b>traps</b> formés par le prix : ils seront liquidés.<br>
             2. Attendre un <b>CHoCH</b> du prix sur l'un des traps (cassure avec corps).<br>
             3. Attendre que le prix libère un <b>FVG ou un OB</b>, dans mes killzones, avec une structure AMD repérée.<br>
-            4. Retracement de base : aller chercher le <b>50 % du fibo du mouvement de tendance de base</b>. Sous-retracement : aller chercher le <b>BOS</b>.
+            4. Aller chercher le <b>50 % du fibo du mouvement de tendance de base</b>.
+          </div>
+          <div class="reminder" data-rt="sous"><b>Concept du sous-retracement</b><br>
+            1. <b>Confirmer la structure baissière</b> (ou haussière) par le <b>CHoCHRe</b>.<br>
+            2. <b>Observer la structure</b>.<br>
+            3. <b>Repérer les traps</b>.<br>
+            4. <b>Repérer les zones</b>.<br>
+            5. <b>Patienter et exécuter</b> : target le <b>BOS</b>.
           </div>
             </div>
           </details>
@@ -3495,7 +3502,7 @@
     var m = compositeMode(), w = $("wrapFinal");
     w.style.display = m ? "" : "none";
     if(!m) return;
-    var sel = $("f_finalOutcome"), opts = m === "tp11" ? ["be","be35","tp"] : ["be","sl","tp"];
+    var sel = $("f_finalOutcome"), opts = m === "tp11" ? ["be","be35","tp"] : ["be","be35","sl","tp"];
     if(sel.getAttribute("data-m") !== m){
       var cur = sel.getAttribute("data-pending") || sel.value;
       sel.innerHTML = '<option value="">— choisir —</option>' + opts.map(function(k){ return '<option value="' + k + '">' + FINAL_LABEL[k] + '</option>'; }).join("");
