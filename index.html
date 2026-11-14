@@ -1214,6 +1214,8 @@
         <div class="stat-row"><span class="k">BE 35% · TP touché ≤ 36 h</span><span class="v" id="statBe35">0 · 0</span></div>
         <div class="stat-row"><span class="k">TP 1:1 retracement</span><span class="v" id="statTp11">0</span></div>
         <div class="stat-row"><span class="k">Clôtures · Asian · 35 %</span><span class="v" id="statClot">0 · 0</span></div>
+        <div class="stat-row"><span class="k">Petit lot resté · BE · BE35 · SL · TP</span><span class="v" id="statRunSmall">0·0·0·0</span></div>
+        <div class="stat-row"><span class="k">Gros lot resté · BE · BE35 · SL · TP</span><span class="v" id="statRunBig">0·0·0·0</span></div>
         <div class="stat-row"><span class="k">Observations</span><span class="v" id="statObs">0</span></div>
       </section>
 
@@ -1877,13 +1879,21 @@
   });
   var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", cloture_gagnante:"Clôture manuelle gagnante", cloture_perdante:"Clôture manuelle perdante", cloture_main:"Clôture manuelle", observation:"Observation", tp11:"TP 1:1 retracement"};
   var CLOT_SUB = { asian:"Protection Asian", p35:"35 %" };
-  var FINAL_LABEL = { be:"BE point d'entrée", sl:"SL (petit lot)", be35:"BE 35 %", tp:"TP" };
+  var FINAL_LABEL = { be:"BE point d'entrée", sl:"SL", be35:"BE 35 %", tp:"TP" };
   function hasFinal(t){ return !!(t && t.finalOutcome && FINAL_LABEL[t.finalOutcome] && (t.status === "tp11" || t.status === "cloture_gagnante")); }
-  function finalTagHtml(t){ return hasFinal(t) ? '<span class="tag sub-clot">→ ' + FINAL_LABEL[t.finalOutcome] + '</span>' : ""; }
+  // lot resté en cours, déduit du type de clôture : Asian et TP 1:1 → petit lot ; 35 % (petit lot clôturé) → gros lot
+  function runLot(t){
+    if(!t) return "";
+    if(t.status === "tp11") return "petit";
+    if(t.status === "cloture_gagnante"){ if(t.clotureSub === "asian") return "petit"; if(t.clotureSub === "p35") return "gros"; }
+    return "";
+  }
+  function runLotLabel(t){ var r = runLot(t); return r ? r + " lot" : ""; }
+  function finalTagHtml(t){ return hasFinal(t) ? '<span class="tag sub-clot">→ ' + FINAL_LABEL[t.finalOutcome] + (runLot(t) ? ' · ' + runLotLabel(t) : '') + '</span>' : ""; }
   function statusLabel(t){
     var st = (t && t.status) || "en_cours", l = STATUS_LABEL[st] || "";
     if(st === "cloture_gagnante" && t.clotureSub && CLOT_SUB[t.clotureSub]) l += " · " + CLOT_SUB[t.clotureSub];
-    if(hasFinal(t)) l += " → " + FINAL_LABEL[t.finalOutcome];
+    if(hasFinal(t)) l += " → " + FINAL_LABEL[t.finalOutcome] + (runLot(t) ? " (" + runLotLabel(t) + ")" : "");
     return l;
   }
   var TP_WINDOW_H = 36; // au-delà de 36 h après le BE, le TP touché n'est plus comptabilisé
@@ -1927,7 +1937,6 @@
   // issue d'un trade : une clôture manuelle compte selon le signe de son résultat
   function outcomeOf(t){
     if(!t) return null;
-    if(hasFinal(t)){ var tv = parseFloat(t.pnl); if(!isNaN(tv)) return tv > 0 ? "w" : (tv < 0 ? "l" : "be"); }
     if(t.status === "gagnant" || t.status === "cloture_gagnante" || t.status === "tp11") return "w";
     if(t.status === "perdant" || t.status === "cloture_perdante") return "l";
     if(t.status === "breakeven") return "be";
@@ -2680,6 +2689,12 @@
     var cA = monthTrades.filter(function(t){ return t.status === "cloture_gagnante" && t.clotureSub === "asian"; }).length;
     var c35 = monthTrades.filter(function(t){ return t.status === "cloture_gagnante" && t.clotureSub === "p35"; }).length;
     $("statClot").textContent = cA + " · " + c35;
+    var run = { petit:{be:0,be35:0,sl:0,tp:0}, gros:{be:0,be35:0,sl:0,tp:0} };
+    monthTrades.forEach(function(t){ if(hasFinal(t) && runLot(t)) run[runLot(t)][t.finalOutcome]++; });
+    ["petit","gros"].forEach(function(k){
+      var r = run[k];
+      $(k === "petit" ? "statRunSmall" : "statRunBig").textContent = [r.be, r.be35, r.sl, r.tp].join("·");
+    });
   }
 
   function renderStatsGlobal(){
@@ -2849,6 +2864,7 @@
     }
     if(!obs && hasFinal(t)){
       h += grid([ item("Clôture partielle", (t.partialAmt !== "" && t.partialAmt !== undefined) ? fmtMoney(num(t.partialAmt)) : ""),
+                  item("Lot resté en cours", runLotLabel(t)),
                   item("Issue finale", FINAL_LABEL[t.finalOutcome] + ((t.finalAmt !== "" && t.finalAmt !== undefined) ? " · " + fmtMoney(num(t.finalAmt)) : "")) ]);
     }
     if(!obs){
@@ -3402,7 +3418,7 @@
   }
   var FINAL_HINT = {
     be:"Lot restant sorti au point d'entrée : laisse 0 (ou la petite différence réelle).",
-    sl:"Lot restant touché au SL (petit lot) : saisis le montant de la perte, le signe négatif est géré automatiquement.",
+    sl:"Lot restant touché au SL : saisis le montant de la perte, le signe négatif est géré automatiquement.",
     be35:"Lot restant sorti au BE 35 % : saisis le gain obtenu.",
     tp:"Lot restant sorti au TP : saisis le gain obtenu."
   };
@@ -3419,8 +3435,9 @@
     }
     var sub = $("f_clotureSub").value;
     $("lbPartial").textContent = m === "tp11" ? "Gain du TP 1:1 (gros lot)" : (sub === "asian" ? "Gain de la clôture partielle Asian (gros lot)" : "Gain de la clôture partielle à 35 % (petit lot)");
-    $("lbFinal").textContent = "Montant de l'issue finale (lot restant)";
-    $("finalHint").textContent = FINAL_HINT[sel.value] || "Choisis comment s'est terminée la partie restante du trade.";
+    var rl = (m === "tp11" || sub === "asian") ? "petit lot" : "gros lot";
+    $("lbFinal").textContent = "Montant de l'issue finale (" + rl + ")";
+    $("finalHint").textContent = "Lot resté en cours : " + rl + ". " + (FINAL_HINT[sel.value] || "Choisis comment s'est terminée cette partie du trade.");
     syncFinalPnl();
   }
   function syncFinalPnl(){
@@ -5064,6 +5081,7 @@
           cells.push(["Statut", statusLabel(t) || t.status || ""]);
           if(hasFinal(t)){
             if(hasVal(t.partialAmt)) cells.push(["Cloture partielle", fmtPdfMoney(num(t.partialAmt))]);
+            cells.push(["Lot reste en cours", runLotLabel(t)]);
             if(hasVal(t.finalAmt)) cells.push(["Issue finale", fmtPdfMoney(num(t.finalAmt))]);
           }
           if(hasVal(t.risk)) cells.push(["Risque", t.risk + " %"]);
