@@ -326,6 +326,7 @@
   .btn.danger-outline:hover{background:var(--red-soft);}
 
   .reminder{font-size:12px; line-height:1.5; padding:9px 12px; margin:0 0 12px; border-left:3px solid var(--gold, #c9a45c); background:rgba(201,164,92,.08); border-radius:6px;}
+  .reminder-red.ul{text-decoration:underline; text-underline-offset:3px;}
   .reminder-red{font-size:12.5px; line-height:1.5; font-weight:600; padding:10px 12px; margin:0 0 12px; border-left:3px solid var(--red, #C1695C); background:rgba(193,105,92,.12); color:var(--red, #C1695C); border-radius:6px;}
 
   /* ---------- rappels regroupés par rubrique ---------- */
@@ -1060,7 +1061,7 @@
         </div>
         <div class="fc-bubble">Il est possible de trader les retracements <b>après mon CHOCHRe</b> et <b>mon mouvement de base</b>, après la correction en <b>zone de S&amp;D</b> et en <b>OTE</b>.</div>
         <div class="fc-bubble">Pour un retracement, les trois ingrédients à réunir : <b>CHOCHRe</b> hors de la zone OTE, <b>zone de S&amp;D délivrée en OTE</b>, <b>killzone</b>. Il en manque un ? Je regarde, je ne tire pas.</div>
-        <div class="fc-bubble warn">Sur un retracement, je risque désormais <b>le même % qu'en tendance</b>, réparti en <b>2 lots</b> (60/40 sur un compte à 1 %, 70/30 sur un compte à 1,5 %). Si le narratif est flou, ou ne colle pas avec le mouvement actuel du prix (c’est-à-dire qu’il n’est pas en connivence avec les <b>récents flux journaliers</b>), je divise aussi mon risque par 2.</div>
+        <div class="fc-bubble warn">Sur un retracement, je risque désormais <b>le même % qu'en tendance</b>, réparti en <b>2 lots</b> (60/40 sur un compte à 1 %, 70/30 sur un compte à 1,5 %).</div>
         <div class="fc-bubble warn">Sur un retracement, je peux rentrer : à <b>1:1 de mon plus gros risque</b>, je sors (TP) le gros lot et je mets le petit lot à <b>BE</b>.</div>
       </div>
 
@@ -1386,7 +1387,7 @@
             </div>
           </details>
           <details class="rem-grp" open>
-            <summary><span class="rem-ico">🎯</span>Exécution<span class="rem-n">2</span></summary>
+            <summary><span class="rem-ico">🎯</span>Exécution<span class="rem-n">3</span></summary>
             <div class="rem-grp-body">
           <div class="reminder">Rappel : pour l'exécution en M5, assure-toi d'avoir repéré toutes les liquidités présentes dans ta zone de supply &amp; demand, absolument toutes celles qui se trouvent dans la zone.<br>
             <b>Pour rentrer en position, confirmations à avoir :</b><br>
@@ -1397,6 +1398,10 @@
             <b>NB :</b> si ma confirmation arrive hors de ma zone de base, attendre le premier retracement dans celle-ci (M5), même par une mèche, sans attendre aucune clôture. Mais attention : uniquement si le flux externe d'informations (fonda) n'a pas changé entre-temps.<br>
             <b>NB :</b> si, après m'avoir donné mes confirmations, le prix ne revient pas dans ma zone de base, attendre un <b>échange de contrepartie de liquidité qui a clôturé</b>, puis rentrer.
           </div>
+          <div class="reminder"><b>Zone d'exécution · mouvement de base</b><br>
+            • Je joue le <b>vrai mouvement de base</b>.<br>
+            • Si j'ai raté le mouvement de base, je peux trader les <b>impulsions</b>, mais toujours en <b>discount</b>, en allant chercher les <b>BOS</b>.
+          </div>
           <div class="reminder" id="slReminder"><b>SL (Stop Loss)</b><br>
             • OB : placer le SL au-dessus ou en dessous de la liquidité la plus haute ou la plus basse.<br>
             • FVG : placer le SL toujours derrière la première bougie.
@@ -1404,7 +1409,7 @@
             </div>
           </details>
           <details class="rem-grp" open>
-            <summary><span class="rem-ico">🧱</span>Formation de setup<span class="rem-n">4</span></summary>
+            <summary><span class="rem-ico">🧱</span>Formation de setup<span class="rem-n">5</span></summary>
             <div class="rem-grp-body">
           <div class="reminder">Rappel : assure-toi que ta zone soit entre le dernier haut ou bas entraînant le BOS et au-dessus des liquidités.</div>
           <div class="reminder" id="obFvgReminder"><b>Règles OB et FVG</b><br>
@@ -1414,18 +1419,7 @@
           </div>
           <div class="reminder-red" id="mitigReminder">Rappel : une zone (OB / FVG) n'est mitigée que lorsque, en H1, des <b>corps de bougie clôturent dans la zone</b>. Si ce ne sont que des mèches, c'est de la liquidité : la zone n'est pas encore mitigée.<br>Les OB et FVG mitigés en allant faire un BOS ne sont plus valables : la mitigation compte même lors de la création d'un BOS, et pas seulement sur le retracement du CHoCH.</div>
           <div class="reminder-red"><b>Rappel :</b> <b>ne pas trader les traps.</b></div>
-            </div>
-          </details>
-          <details class="rem-grp" open>
-            <summary><span class="rem-ico">⚖️</span>Risque<span class="rem-n">1</span></summary>
-            <div class="rem-grp-body">
-                    <div class="reminder-red"><b>Rappel risque :</b> si le setup est formé mais que le <b>narratif est flou</b>, ou si le <b>narratif n'est pas en adéquation avec le mouvement actuel du prix</b> (notamment sur un retracement), <b>diviser son risque par 2</b>.</div>
-            </div>
-          </details>
-          <details class="rem-grp" open>
-            <summary><span class="rem-ico">🏁</span>Target<span class="rem-n">1</span></summary>
-            <div class="rem-grp-body">
-          <div class="reminder-red"><b>Rappel target :</b> le target est au niveau de la <b>plus haute ou plus basse liquidité externe à récupérer, qui n'a pas encore été récupérée</b>.</div>
+          <div class="reminder-red ul"><b>Rappel :</b> la zone la plus intéressante est la <b>plus haute de toutes les autres</b> (tendance baissière) ou la <b>plus basse de toutes les autres</b> (tendance haussière), en respectant les <b>plages horaires (killzones)</b> et les <b>règles de priorité</b>.</div>
             </div>
           </details>
           <details class="rem-grp" open>
@@ -1504,16 +1498,21 @@
             </div>
           </details>
           <details class="rem-grp" open>
-            <summary><span class="rem-ico">🎯</span>Exécution<span class="rem-n">3</span></summary>
+            <summary><span class="rem-ico">🎯</span>Exécution<span class="rem-n">4</span></summary>
             <div class="rem-grp-body">
           <div class="reminder">Zone d'entrée : <b>OB ou FVG, jamais les deux</b>. Exécution identique au mouvement de tendance : zones repérées en M5 et réaction du prix sur la zone.</div>
           <div class="reminder"><b>Confirmation d'entrée :</b> si, après m'avoir donné mes confirmations, le prix ne revient pas dans ma zone de base, attendre un <b>échange de contrepartie de liquidité qui a clôturé</b>, puis rentrer.</div>
+          <div class="reminder"><b>Zone d'exécution · retracement</b><br>
+            • J'agis toujours en <b>premium</b> si j'ai raté mon <b>CHoCHRe</b>, ou s'il n'a délivré <b>aucune zone</b>.<br>
+            • Si j'ai raté le setup de base, je vais chercher les <b>BOS</b>.
+          </div>
           <div class="reminder-red"><b>Rappel retracement :</b> je peux rentrer : à <b>1:1 de mon plus gros risque</b>, je sors (TP) le <b>gros lot</b> et je mets le <b>petit lot à BE</b>.</div>
             </div>
           </details>
           <details class="rem-grp" open>
-            <summary><span class="rem-ico">🧱</span>Formation de setup<span class="rem-n">1</span></summary>
+            <summary><span class="rem-ico">🧱</span>Formation de setup<span class="rem-n">2</span></summary>
             <div class="rem-grp-body">
+          <div class="reminder-red ul"><b>Rappel :</b> la zone la plus intéressante est la <b>plus haute de toutes les autres</b> (tendance baissière) ou la <b>plus basse de toutes les autres</b> (tendance haussière), en respectant les <b>plages horaires (killzones)</b> et les <b>règles de priorité</b>.</div>
           <div class="reminder"><b>Concept du retracement</b><br>
             Aller chercher de <b>petits RR</b> en appliquant les mécanismes SMC / ICT imbriqués avec le schéma <b>AMD</b>.<br>
             1. Sur l'éventuel mouvement de base, repérer les <b>traps</b> formés par le prix : ils seront liquidés.<br>
@@ -1524,10 +1523,9 @@
             </div>
           </details>
           <details class="rem-grp" open>
-            <summary><span class="rem-ico">⚖️</span>Risque<span class="rem-n">2</span></summary>
+            <summary><span class="rem-ico">⚖️</span>Risque<span class="rem-n">1</span></summary>
             <div class="rem-grp-body">
           <div class="reminder-red"><b>Rappel risque :</b> sur un <b>retracement</b>, je risque le <b>même % qu'en tendance</b>, réparti sur <b>2 lots</b> (voir « rappel lot » plus bas).</div>
-          <div class="reminder-red"><b>Rappel risque :</b> si le setup est formé mais que le <b>narratif est flou</b>, ou si le <b>narratif n'est pas en adéquation avec le mouvement actuel du prix</b> (notamment sur un retracement), <b>diviser son risque par 2</b>.</div>
             </div>
           </details>
           <details class="rem-grp" open>
@@ -3185,6 +3183,7 @@
       L("35 %","be","Profit à <b>35 % du TP</b> → <b>clôture partielle du lot au plus petit risque</b> (lot 2).");
     } else {
       L("1:1","be","Profit à <b>1:1 de mon plus gros risque</b> → <b>je sors (TP) le lot 1</b> et je mets le <b>lot 2 à BE</b>.", oneToOneLevel());
+      L("Zone","news","Pas eu l'occasion d'exécuter au bon prix ? Me référer à ma <b>zone d'exécution sur TradingView</b> pour observer le 1:1.");
     }
     h += '</ul></div>';
     panel.innerHTML = h;
