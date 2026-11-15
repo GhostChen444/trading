@@ -1118,7 +1118,7 @@
         <div class="fc-bubble">Il est possible de trader les retracements <b>après mon CHOCHRe</b> et <b>mon mouvement de base</b>, après la correction en <b>zone de S&amp;D</b> et en <b>OTE</b>.</div>
         <div class="fc-bubble">Pour un retracement, les trois ingrédients à réunir : <b>CHOCHRe</b> hors de la zone OTE, <b>zone de S&amp;D délivrée en OTE</b>, <b>killzone</b>. Il en manque un ? Je regarde, je ne tire pas.</div>
         <div class="fc-bubble warn">Sur un retracement, je risque désormais <b>le même % qu'en tendance</b>, réparti en <b>3 lots</b> (60/20/20 sur un compte à 1 %, 70/15/15 sur un compte à 1,5 %).</div>
-        <div class="fc-bubble warn"><b>Deux types de retracement.</b> Le <b>retracement de base</b> (logique AMD / ICT / SMC, CHoCHRe, 3 lots 60/20/20 sur 1 %) : lot 1 clôturé à 1:1, lot 2 pour la protection Asian, lot 3 suit le mouvement jusqu'au bout, target 50 % du fibo. Si je rate le CHoCHRe, je peux trader des <b>sous-retracements</b> : zones à forte liquidation, donc attention aux traps, je suis le flux, je repère mes zones de S&amp;D, je target le <b>BOS</b> et je suis rigoureux sur le <b>1:1</b> (TP du lot de 60 %, les 2 lots de 20 % à BE).</div>
+        <div class="fc-bubble warn"><b>Deux types de retracement.</b> Le <b>retracement de base</b> (logique AMD / ICT / SMC, CHoCHRe, 3 lots 60/20/20 sur 1 %) : lot 1 clôturé à 1:1 (TradingView), lot 2 pour la protection Asian, lot 3 suit le mouvement jusqu'au bout, target 50 % du fibo. Si je rate le CHoCHRe, je peux trader des <b>sous-retracements</b> : zones à forte liquidation, donc attention aux traps, je suis le flux, je repère mes zones de S&amp;D, je target le <b>BOS</b> et je suis rigoureux sur le <b>1:1</b> (TradingView) (TP du lot de 60 %, les 2 lots de 20 % à BE).</div>
       </div>
 
       <!-- 05 RITUEL -->
@@ -1385,7 +1385,7 @@
             <select id="f_status">
               <option value="en_cours">En cours</option>
               <option value="gagnant">Gagnant</option>
-              <option value="tp11">TP 1:1 retracement (gagnant)</option>
+              <option value="tp11">TP 1:1 TradingView retracement (gagnant)</option>
               <option value="perdant">Perdant</option>
               <option value="breakeven">BE point d'entrée</option>
               <option value="be35">BE 35%</option>
@@ -1455,7 +1455,7 @@
           <details class="rem-grp" open>
             <summary><span class="rem-ico">🔀</span>Types de mouvement de base<span class="rem-n">2</span></summary>
             <div class="rem-grp-body">
-          <div class="reminder" data-bt="base"><b>Mouvement de base</b> : je joue le <b>vrai mouvement de base</b> (voir « Zone d'exécution · mouvement de base »).</div>
+          <div class="reminder" data-bt="base"><b>Mouvement de base</b> : je joue le <b>vrai mouvement de base</b> (voir « Zone d'exécution · mouvement de base », référentiel TradingView).</div>
           <div class="reminder" data-bt="sous"><b>Concept du sous-mouvement de base</b> : exécuté en zone <b>premium</b> si tendance baissière, en <b>discount</b> si tendance haussière.<br>
             1. <b>Retoucher les zones</b> qui envoient le mouvement de base.<br>
             2. Attendre que le prix <b>délivre la zone de S&amp;D</b> du prochain vrai mouvement de base.<br>
@@ -1496,11 +1496,11 @@
             <b>NB :</b> si ma confirmation arrive hors de ma zone de base, attendre le premier retracement dans celle-ci (M5), même par une mèche, sans attendre aucune clôture. Mais attention : uniquement si le flux externe d'informations (fonda) n'a pas changé entre-temps.<br>
             <b>NB :</b> si, après m'avoir donné mes confirmations, le prix ne revient pas dans ma zone de base, attendre un <b>échange de contrepartie de liquidité qui a clôturé</b>, puis rentrer.
           </div>
-          <div class="reminder" data-bt="base"><b>Zone d'exécution · mouvement de base</b><br>
+          <div class="reminder" data-bt="base"><b>Zone d'exécution · mouvement de base</b> <i>(référentiel : TradingView)</i><br>
             • Je joue le <b>vrai mouvement de base</b>.<br>
             • Si j'ai raté le mouvement de base, je peux trader les <b>impulsions</b>, mais toujours en <b>discount</b>, en allant chercher les <b>BOS</b>.
           </div>
-          <div class="reminder" data-bt="sous"><b>Zone d'exécution · sous-mouvement de base</b><br>
+          <div class="reminder" data-bt="sous"><b>Zone d'exécution · sous-mouvement de base</b> <i>(référentiel : TradingView)</i><br>
             • <b>Premium</b> si la tendance est baissière, <b>discount</b> si elle est haussière.<br>
             • Exécution en <b>M5</b> : voir le <b>niveau de protection (SL) en M5</b>.<br>
             • Confirmations : retour du prix en <b>OTE</b>, retour dans une <b>zone de S&amp;D</b>, le prix délivre un <b>OB qui délivre un FVG</b> → alors j'exécute.<br>
@@ -1595,14 +1595,14 @@
             <summary><span class="rem-ico">🔀</span>Types de retracement<span class="rem-n">2</span></summary>
             <div class="rem-grp-body">
           <div class="reminder" data-rt="base"><b>Retracement de base</b> : le setup idéal, qui suit la logique <b>AMD / ICT / SMC</b> (CHoCHRe, zone de S&amp;D délivrée en OTE, killzone).<br>
-            • Risque réparti en <b>3 lots 60 / 20 / 20</b> sur un compte à 1 % (70 / 15 / 15 à 1,5 %) : lot 1 = clôture à <b>1:1</b>, lot 2 = <b>protection Asian</b>, lot 3 = suit le mouvement jusqu'au bout.<br>
-            • À <b>1:1</b> : clôture partielle avec le lot de 60 %. Je laisse tourner <b>tant que le P&amp;L de cette clôture est supérieur aux SL des deux lots de 20 %</b>, qui restent à leur place de départ.<br>
+            • Risque réparti en <b>3 lots 60 / 20 / 20</b> sur un compte à 1 % (70 / 15 / 15 à 1,5 %) : lot 1 = clôture à <b>1:1</b> (TradingView), lot 2 = <b>protection Asian</b>, lot 3 = suit le mouvement jusqu'au bout.<br>
+            • À <b>1:1</b> (TradingView) : clôture partielle avec le lot de 60 %. Je laisse tourner <b>tant que le P&amp;L de cette clôture est supérieur aux SL des deux lots de 20 %</b>, qui restent à leur place de départ.<br>
             • Lot 3 : <b>BE au point d'entrée à 35 % du TP</b>, puis <b>SL à 35 % quand le prix arrive à 55 % du TP</b>. Si je suis face à une clôture Asian, je sors avec un lot de 20 %.<br>
             • Target : le <b>50 % du fibo</b> du mouvement de tendance de base.</div>
           <div class="reminder" data-rt="sous"><b>Sous-retracement</b> : si j'ai raté le retracement de base (CHoCHRe raté), je peux rentrer sur des <b>sous-retracements</b>. Mêmes concepts et même système d'exécution, mais <b>sans CHoCHRe</b> : je trade la <b>structure</b>, en <b>sous-tendance</b>.<br>
             • Zones à <b>forte liquidation</b> : attention aux <b>traps</b>, suivre le flux, repérer les zones de S&amp;D.<br>
             • Target : le <b>BOS</b>.<br>
-            • Risque en <b>3 lots 60 / 20 / 20</b>. À <b>1:1</b> : je sors (TP) avec le lot de 60 % et je mets les <b>2 lots de 20 % à BE</b> au point d'entrée.<br>
+            • Risque en <b>3 lots 60 / 20 / 20</b>. À <b>1:1</b> (TradingView) : je sors (TP) avec le lot de 60 % et je mets les <b>2 lots de 20 % à BE</b> au point d'entrée.<br>
             • Je suis ensuite la gestion : <b>SL à 35 %</b> quand le prix arrive à <b>55 % du TP</b>. Si je suis face à une <b>clôture Asian</b>, je sors avec un des lots de 20 %.</div>
             </div>
           </details>
@@ -1627,12 +1627,12 @@
             <div class="rem-grp-body">
           <div class="reminder">Zone d'entrée : <b>OB ou FVG, jamais les deux</b>. Exécution identique au mouvement de tendance : zones repérées en M5 et réaction du prix sur la zone.</div>
           <div class="reminder"><b>Confirmation d'entrée :</b> si, après m'avoir donné mes confirmations, le prix ne revient pas dans ma zone de base, attendre un <b>échange de contrepartie de liquidité qui a clôturé</b>, puis rentrer.</div>
-          <div class="reminder"><b>Zone d'exécution · retracement</b><br>
+          <div class="reminder"><b>Zone d'exécution · retracement</b> <i>(référentiel : TradingView)</i><br>
             • J'agis toujours en <b>premium</b> si j'ai raté mon <b>CHoCHRe</b>, ou s'il n'a délivré <b>aucune zone</b> (je passe alors sur des sous-retracements).<br>
             • Si j'ai raté le setup de base, je vais chercher les <b>BOS</b>.
           </div>
-          <div class="reminder-red" data-rt="sous"><b>Rappel sous-retracement :</b> je peux rentrer : à <b>1:1</b>, je sors (TP) avec le <b>lot de 60 %</b> et je mets les <b>2 lots de 20 % à BE</b>.</div>
-          <div class="reminder-red" data-rt="base"><b>Rappel retracement de base :</b> 3 lots <b>60 / 20 / 20</b> : à <b>1:1</b>, clôture partielle avec le lot de 60 % ; protection Asian avec un lot de 20 % ; le dernier lot suit le mouvement jusqu'au bout.</div>
+          <div class="reminder-red" data-rt="sous"><b>Rappel sous-retracement :</b> je peux rentrer : à <b>1:1</b> (TradingView), je sors (TP) avec le <b>lot de 60 %</b> et je mets les <b>2 lots de 20 % à BE</b>.</div>
+          <div class="reminder-red" data-rt="base"><b>Rappel retracement de base :</b> 3 lots <b>60 / 20 / 20</b> : à <b>1:1</b> (TradingView), clôture partielle avec le lot de 60 % ; protection Asian avec un lot de 20 % ; le dernier lot suit le mouvement jusqu'au bout.</div>
             </div>
           </details>
           <details class="rem-grp" open>
@@ -1734,8 +1734,8 @@
         <div id="riskBlock" style="display:none;">
           <div class="section-label">gestion du risque — rappels selon l'état du compte</div>
           <div id="retrRRWrap" style="display:none;">
-            <div class="reminder" data-rt="base"><b>Retracement de base :</b> 3 lots <b>60 / 20 / 20</b>. À <b>1:1</b>, clôture partielle avec le lot de 60 %, je laisse tourner tant que son P&amp;L est <b>supérieur aux SL des 2 lots de 20 %</b> (qui restent à leur place). Protection Asian : je sors avec un lot de 20 %. Le dernier lot suit la gestion (BE à 35 % du TP, SL à 35 % à 55 % du TP).</div>
-            <div class="reminder" data-rt="sous"><b>Sous-retracement :</b> le RR n'est plus pris en compte. <b>La protection avant tout, peu importe le R</b> : dès que le prix atteint le <b>1:1</b> : <b>TP du lot de 60 %</b> et <b>les 2 lots de 20 % à BE</b> immédiatement. Le modèle de gestion du risque dépend de l'<b>état du compte</b>, comme sur les mouvements de base.</div>
+            <div class="reminder" data-rt="base"><b>Retracement de base :</b> 3 lots <b>60 / 20 / 20</b>. À <b>1:1</b> (TradingView), clôture partielle avec le lot de 60 %, je laisse tourner tant que son P&amp;L est <b>supérieur aux SL des 2 lots de 20 %</b> (qui restent à leur place). Protection Asian : je sors avec un lot de 20 %. Le dernier lot suit la gestion (BE à 35 % du TP, SL à 35 % à 55 % du TP).</div>
+            <div class="reminder" data-rt="sous"><b>Sous-retracement :</b> le RR n'est plus pris en compte. <b>La protection avant tout, peu importe le R</b> : dès que le prix atteint le <b>1:1</b> (TradingView) : <b>TP du lot de 60 %</b> et <b>les 2 lots de 20 % à BE</b> immédiatement. Le modèle de gestion du risque dépend de l'<b>état du compte</b>, comme sur les mouvements de base.</div>
             <div class="reminder-red"><b>Rappel retracement :</b> la <b>tendance de base primera toujours</b>. Toujours <b>diviser son risque</b> et <b>se protéger</b> : c'est une <b>zone à forte probabilité de liquidation</b>.</div>
             <div style="display:none;">
               <input type="number" id="rt_rr">
@@ -2011,13 +2011,13 @@
       if(el.scrollHeight > 0) el.style.height = Math.min(el.scrollHeight + 2, window.innerHeight * 0.6) + "px";
     }
   });
-  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", cloture_gagnante:"Clôture manuelle gagnante", cloture_perdante:"Clôture manuelle perdante", cloture_main:"Clôture manuelle", observation:"Observation", tp11:"TP 1:1 retracement"};
+  var STATUS_LABEL = {gagnant:"Gagnant", perdant:"Perdant", en_cours:"En cours", breakeven:"BE point d'entrée", be35:"BE 35%", cloture_gagnante:"Clôture manuelle gagnante", cloture_perdante:"Clôture manuelle perdante", cloture_main:"Clôture manuelle", observation:"Observation", tp11:"TP 1:1 TradingView retracement"};
   var CLOT_SUB = { asian:"Protection Asian", p35:"35 %" };
   var RETR_TYPE_LABEL = { base:"Retracement de base", sous:"Sous-retracement" };
   function retrMgmtText(t){
     var k = t && t.retrType;
-    if(k === "sous") return "Sous-retracement : 3 lots 60/20/20 ; à 1:1 TP du lot de 60 % et 2 lots de 20 % à BE ; SL 35 % à 55 % du TP ; clôture Asian avec un lot de 20 %";
-    if(k === "base") return "Retracement de base : 3 lots 60/20/20 ; clôture à 1:1 (lot 60 %), protection Asian (lot 20 %), dernier lot suit jusqu'au bout";
+    if(k === "sous") return "Sous-retracement : 3 lots 60/20/20 ; à 1:1 (TradingView) TP du lot de 60 % et 2 lots de 20 % à BE ; SL 35 % à 55 % du TP ; clôture Asian avec un lot de 20 %";
+    if(k === "base") return "Retracement de base : 3 lots 60/20/20 ; clôture à 1:1 sur TradingView (lot 60 %), protection Asian (lot 20 %), dernier lot suit jusqu'au bout";
     return "Lots divisés (type de retracement non précisé)";
   }
   var FINAL_LABEL = { be:"BE point d'entrée", sl:"SL", be35:"BE 35 %", tp:"TP" };
@@ -3302,8 +3302,8 @@
     var R = function(tag, cls, txt, sub){ return { tag:tag, cls:cls, txt:txt, sub:sub || "" }; };
     // retracement : le BE « 35 % du TP » est supprimé (remplacé par le BE 1:1) ; le BE aux 35 % posé à 55 % du TP reste
     var NO_35 = function(r){ return r.txt.indexOf("Profit à <b>35 % du TP</b>") !== 0; };
-    var RETR_11 = function(){ return R("1:1","be","<b>Protection avant tout</b> : à <b>1:1</b> → <b>je sors (TP) avec le lot de 60 %</b> et je mets les <b>2 lots de 20 % à BE</b> au point d'entrée immédiatement.", oneToOneLevel()); };
-    var RETR_BASE_11 = function(){ return R("1:1","be","À <b>1:1</b> → <b>clôture partielle avec le lot de 60 %</b>. Je laisse tourner tant que son P&amp;L est <b>supérieur aux SL des 2 lots de 20 %</b>, qui restent à leur place de départ.", oneToOneLevel()); };
+    var RETR_11 = function(){ return R("1:1","be","<b>Protection avant tout</b> : à <b>1:1</b> (TradingView) → <b>je sors (TP) avec le lot de 60 %</b> et je mets les <b>2 lots de 20 % à BE</b> au point d'entrée immédiatement.", oneToOneLevel()); };
+    var RETR_BASE_11 = function(){ return R("1:1","be","À <b>1:1</b> (TradingView) → <b>clôture partielle avec le lot de 60 %</b>. Je laisse tourner tant que son P&amp;L est <b>supérieur aux SL des 2 lots de 20 %</b>, qui restent à leur place de départ.", oneToOneLevel()); };
     if(model === 1){
       var out = [
         retr ? R("Risque","risk","Retracement : <b>même risque qu'en tendance</b>, réparti sur <b>3 lots</b> (voir rappel lot).") : R("Risque","risk","Toujours risquer le <b>% du compte</b> prévu, réparti sur <b>2 lots</b> (voir rappel lot)."),
@@ -3365,8 +3365,8 @@
   }
   function lotKindOfKey(k){ return (k === "retrbase" || k === "sousretr") ? "retr" : "tendance"; }
   function lotRolesOfKey(k){
-    if(k === "retrbase") return ["clôture à 1:1","protection Asian","suit jusqu'au bout"];
-    if(k === "sousretr") return ["sortie à 1:1","protection Asian","suit (SL 35 % à 55 % du TP)"];
+    if(k === "retrbase") return ["clôture à 1:1 (TradingView)","protection Asian","suit jusqu'au bout"];
+    if(k === "sousretr") return ["sortie à 1:1 (TradingView)","protection Asian","suit (SL 35 % à 55 % du TP)"];
     return ["gros risque","petit risque"];
   }
   function renderLot(){
@@ -3404,15 +3404,15 @@
       L("35 %","be","Profit à <b>35 % du TP</b> → <b>clôture partielle du lot au plus petit risque</b> (lot 2).");
     } else if(mode === "retrbase"){
       var s20 = (amts[1] !== null) ? amts[1] + amts[2] : null;
-      L("1:1","be","À <b>1:1</b> : <b>clôture partielle avec le lot 1 (" + sh[0] + " %)</b>.",
+      L("1:1","be","À <b>1:1</b> (TradingView) : <b>clôture partielle avec le lot 1 (" + sh[0] + " %)</b>.",
         "Je laisse tourner tant que le P&amp;L de cette clôture est <b>supérieur aux SL des deux lots de " + sh[1] + " %</b>" + m(s20) + ". Après cette clôture, les SL restent à leur place de départ.");
       L("Asian","asie","Si le prix m'amène à une <b>clôture Asian</b> : je sors avec le <b>lot 2 (" + sh[1] + " %)</b>.");
       L("Suivi","be","<b>Lot 3 (" + sh[2] + " %)</b> suit le mouvement jusqu'au bout : <b>BE au point d'entrée à 35 % du TP</b>, puis <b>SL à 35 % quand le prix arrive à 55 % du TP</b>.",
         "Si l'Asian clôture n'est pas encore faite, j'applique quand même ces BE ; face à une situation de clôture Asian, je sors avec le lot adéquat (" + sh[1] + " %) et je sécurise.");
       L("Base","news","Retracement de base : target <b>50 % du fibo</b>.");
     } else {
-      L("1:1","be","À <b>1:1</b> : je sors (TP) avec le <b>lot 1 (" + sh[0] + " %)</b> et je mets les <b>lots 2 et 3 (" + sh[1] + " % / " + sh[2] + " %) à BE</b> au point d'entrée.",
-        "Si je n'ai pas eu l'occasion d'exécuter au bon prix : me référer à ma <b>zone d'exécution sur TradingView</b> pour observer le 1:1.");
+      L("1:1","be","À <b>1:1</b> (TradingView) : je sors (TP) avec le <b>lot 1 (" + sh[0] + " %)</b> et je mets les <b>lots 2 et 3 (" + sh[1] + " % / " + sh[2] + " %) à BE</b> au point d'entrée.",
+        "Si je n'ai pas eu l'occasion d'exécuter au bon prix : me référer à ma <b>zone d'exécution sur TradingView</b> (référentiel) pour observer le <b>1:1 sur TradingView</b>.");
       L("Suivi","be","Je suis la gestion : <b>SL à 35 %</b> quand le prix arrive à <b>55 % du TP</b>.");
       L("Asian","asie","Si je suis face à une <b>clôture Asian</b> : je sors avec <b>un des lots de " + sh[1] + " %</b>.");
       L("Sous","news","Zones à <b>forte liquidation</b> : attention aux <b>traps</b>, suivre le flux, repérer mes zones de S&amp;D. Target : le <b>BOS</b>.");
@@ -3424,14 +3424,14 @@
     b.addEventListener("click", function(){ lotModeView = this.getAttribute("data-lm"); renderLot(); });
   });
   // ---- issue du trade, lot par lot (sert au calcul du win rate) ----
-  var LOT_OUT = [["","— en cours —"],["tp","TP"],["c11","Clôture 1:1"],["asian","Clôture Asian (protection)"],["c35","Clôture 35 % du TP"],["be","BE point d'entrée"],["be35","BE 35 %"],["sl","SL"]];
-  var LOT_OUT_LABEL = { tp:"TP", c11:"Clôture 1:1", asian:"Clôture Asian", c35:"Clôture 35 %", be:"BE point d'entrée", be35:"BE 35 %", sl:"SL" };
-  var LOT_OUT_PDF = { tp:"TP", c11:"Cloture 1:1", asian:"Cloture Asian", c35:"Cloture 35 %", be:"BE point d'entree", be35:"BE 35 %", sl:"SL" };
+  var LOT_OUT = [["","— en cours —"],["tp","TP"],["c11","Clôture 1:1 (TradingView)"],["asian","Clôture Asian (protection)"],["c35","Clôture 35 % du TP"],["be","BE point d'entrée"],["be35","BE 35 %"],["sl","SL"]];
+  var LOT_OUT_LABEL = { tp:"TP", c11:"Clôture 1:1 (TradingView)", asian:"Clôture Asian", c35:"Clôture 35 %", be:"BE point d'entrée", be35:"BE 35 %", sl:"SL" };
+  var LOT_OUT_PDF = { tp:"TP", c11:"Cloture 1:1 (TradingView)", asian:"Cloture Asian", c35:"Cloture 35 %", be:"BE point d'entree", be35:"BE 35 %", sl:"SL" };
   var LOT_HINT = {
     base:"Asian : clôture du gros lot (si son P&L < SL du petit lot, tout fermer) · 35 % du TP : clôture du petit lot.",
     sousbase:"Asian : clôture du gros lot (si son P&L < SL du petit lot, tout fermer) · 35 % du TP : clôture du petit lot.",
-    retrbase:"Lot 1 : clôture 1:1 · lot 2 : protection Asian · lot 3 : suit le mouvement jusqu'au bout (BE 35 %, SL 35 % à 55 % du TP).",
-    sousretr:"Lot 1 : sortie 1:1 · lots 2 et 3 à BE au point d'entrée · SL à 35 % quand le prix arrive à 55 % du TP · un lot de 20 % sort à la clôture Asian."
+    retrbase:"Lot 1 : clôture 1:1 (TradingView) · lot 2 : protection Asian · lot 3 : suit le mouvement jusqu'au bout (BE 35 %, SL 35 % à 55 % du TP).",
+    sousretr:"Lot 1 : sortie 1:1 (TradingView) · lots 2 et 3 à BE au point d'entrée · SL à 35 % quand le prix arrive à 55 % du TP · un lot de 20 % sort à la clôture Asian."
   };
   var pendingLots = null;
   function hasLots(t){ return !!(t && Array.isArray(t.lots) && t.lots.length); }
@@ -3535,7 +3535,7 @@
     var e = parseFloat(fields.entry.value), sl = parseFloat(fields.sl.value);
     if(isNaN(e) || isNaN(sl) || e === sl) return "";
     var d = Math.abs(e) >= 100 ? 2 : 5, f = Math.pow(10, d);
-    return "Niveau 1:1 d'après ton entrée / SL : <b>" + (Math.round((e + (e - sl)) * f) / f) + "</b>";
+    return "Niveau 1:1 (référentiel TradingView) d'après ton entrée / SL : <b>" + (Math.round((e + (e - sl)) * f) / f) + "</b>";
   }
   function fmtRR(v){ return (Math.round(v * 100) / 100).toString().replace(".", ","); }
   function renderRisk(){
@@ -3852,7 +3852,7 @@
       sel.value = opts.indexOf(cur) > -1 ? cur : "";
     }
     var sub = $("f_clotureSub").value;
-    $("lbPartial").textContent = m === "tp11" ? "Gain du TP 1:1 (gros lot)" : (sub === "asian" ? "Gain de la clôture partielle Asian (gros lot)" : "Gain de la clôture partielle à 35 % (petit lot)");
+    $("lbPartial").textContent = m === "tp11" ? "Gain du TP 1:1 TradingView (gros lot)" : (sub === "asian" ? "Gain de la clôture partielle Asian (gros lot)" : "Gain de la clôture partielle à 35 % (petit lot)");
     var rl = (m === "tp11" || sub === "asian") ? "petit lot" : "gros lot";
     $("lbFinal").textContent = "Montant de l'issue finale (" + rl + ")";
     $("finalHint").textContent = "Lot resté en cours : " + rl + ". " + (FINAL_HINT[sel.value] || "Choisis comment s'est terminée cette partie du trade.");
@@ -5521,8 +5521,8 @@
           if(hasVal(t.risk)) cells.push(["Risque", t.risk + " %"]);
           if(hasVal(t.riskState)) cells.push(["Contexte du risque", RSL[t.riskState] || t.riskState]);
           if(sdModeOf(t) === "retracement"){
-            if(t.retrType === "sous"){ cells.push(["Type de retracement", "Sous-retracement"]); cells.push(["Gestion du risque", "3 lots 60/20/20 : a 1:1 TP du lot de 60 % et 2 lots de 20 % a BE ; cloture Asian avec un lot de 20 %"]); }
-            else if(t.retrType === "base"){ cells.push(["Type de retracement", "Retracement de base"]); cells.push(["Gestion du risque", "3 lots 60/20/20 : cloture a 1:1 (lot 60 %), protection Asian (lot 20 %), dernier lot suit jusqu'au bout"]); }
+            if(t.retrType === "sous"){ cells.push(["Type de retracement", "Sous-retracement"]); cells.push(["Gestion du risque", "3 lots 60/20/20 : a 1:1 (TradingView) TP du lot de 60 % et 2 lots de 20 % a BE ; cloture Asian avec un lot de 20 %"]); }
+            else if(t.retrType === "base"){ cells.push(["Type de retracement", "Retracement de base"]); cells.push(["Gestion du risque", "3 lots 60/20/20 : cloture a 1:1 sur TradingView (lot 60 %), protection Asian (lot 20 %), dernier lot suit jusqu'au bout"]); }
             else cells.push(["Gestion du risque", "Lots divises (type de retracement non precise)"]);
           }
           if(hasVal(t.lot)) cells.push(["Lot", t.lot]);
