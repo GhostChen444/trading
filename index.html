@@ -1415,6 +1415,17 @@
             <div class="hint" id="finalTotal" style="color:var(--gold);"></div>
           </div>
           <div id="wrapLots" style="display:none; grid-column:1 / -1;">
+            <div class="field" id="wrapStatusFinal" style="margin-bottom:14px;">
+              <label for="f_statusFinal">Statut final</label>
+              <select id="f_statusFinal">
+                <option value="en_cours">En cours</option>
+                <option value="gagnant">Gagnant</option>
+                <option value="perdant">Perdant</option>
+                <option value="cloture_gagnante">Clôture manuelle gagnante</option>
+                <option value="cloture_perdante">Clôture manuelle perdante</option>
+              </select>
+              <div class="hint" id="statusFinalHint"></div>
+            </div>
             <div class="section-label" style="margin-top:4px;">issue du trade · par lot</div>
             <div id="lotRows"></div>
             <div class="hint" id="lotsHint"></div>
@@ -2067,7 +2078,7 @@
   // issue d'un trade : une clôture manuelle compte selon le signe de son résultat
   function outcomeOf(t){
     if(!t) return null;
-    if(lotsComplete(t)){ var tvl = parseFloat(t.pnl); if(!isNaN(tvl)) return tvl > 0 ? "w" : (tvl < 0 ? "l" : "be"); }
+    if(lotsComplete(t) && t.status !== "cloture_gagnante" && t.status !== "cloture_perdante" && t.status !== "en_cours"){ var tvl = parseFloat(t.pnl); if(!isNaN(tvl)) return tvl > 0 ? "w" : (tvl < 0 ? "l" : "be"); }
     if(t.status === "gagnant" || t.status === "cloture_gagnante" || t.status === "tp11") return "w";
     if(t.status === "perdant" || t.status === "cloture_perdante") return "l";
     if(t.status === "breakeven") return "be";
@@ -3436,26 +3447,53 @@
     if(isNaN(v)) return null;
     return o === "sl" ? -Math.abs(v) : v;
   }
+  var holdEnCours = false;
+  var MANUAL_ST = ["cloture_gagnante", "cloture_perdante"];
+  function mirrorStatusFinal(){
+    var sel = $("f_statusFinal"), v = fields.status.value || "en_cours";
+    if(!sel) return;
+    if(!Array.prototype.some.call(sel.options, function(o){ return o.value === v; })){
+      var op = document.createElement("option"); op.value = v; op.textContent = STATUS_LABEL[v] || v; op.setAttribute("data-extra", "1"); sel.appendChild(op);
+    }
+    sel.value = v;
+  }
   function syncLots(){
     if(!lotsActive()) return;
     var rows = readLots(), n = rows.length, filled = 0, tot = 0;
     rows.forEach(function(r){ if(!r.o) return; var v = lotAmt(r.o, r.a); if(v === null) return; filled++; tot += v; });
     tot = Math.round(tot * 100) / 100;
-    if(n > 0 && filled === n){
+    var complete = n > 0 && filled === n, manual = MANUAL_ST.indexOf(fields.status.value) > -1, msg = "";
+    if(manual){
+      // clôture manuelle : le statut reste celui choisi, même si les lots ne sont pas tous renseignés
+      if(filled){ fields.pnl.value = tot; msg = "P&L des lots renseignés : " + fmtMoney(tot) + " (reporté dans « Résultat »)"; }
+      msg = (msg ? msg + " · " : "") + (filled < n ? (filled + "/" + n + " lots renseignés · ") : "") + STATUS_LABEL[fields.status.value];
+    } else if(complete && !holdEnCours){
       var res = tot > 0 ? "gagnant" : (tot < 0 ? "perdant" : "breakeven");
       fields.pnl.value = tot;
       fields.status.value = res;
-      $("lotsTotal").textContent = "P&L total du trade : " + fmtMoney(tot) + " · " + res + " (reporté dans « Résultat » et dans le statut)";
+      msg = "P&L total du trade : " + fmtMoney(tot) + " · " + res + " (reporté dans « Résultat » et dans le statut)";
     } else {
       fields.status.value = "en_cours";
-      $("lotsTotal").textContent = filled ? (filled + "/" + n + " lots clôturés · trade en cours") : "";
+      if(complete){ fields.pnl.value = tot; msg = "P&L total du trade : " + fmtMoney(tot) + " · maintenu « En cours »"; }
+      else msg = filled ? (filled + "/" + n + " lots clôturés · trade en cours") : "";
     }
+    $("lotsTotal").textContent = msg;
+    // Gagnant / Perdant ne se choisissent que lots complets (calculés d'après le P&L)
+    Array.prototype.forEach.call($("f_statusFinal").options, function(o){ if(o.value === "gagnant" || o.value === "perdant") o.disabled = !complete; });
+    mirrorStatusFinal();
     updateBe35UI();
   }
+  $("f_statusFinal").addEventListener("change", function(){
+    var v = this.value;
+    holdEnCours = (v === "en_cours");
+    fields.status.value = v;
+    syncLots();
+  });
   function renderLotRows(){
     var key = lotsActive() ? mtKey() : "", w = $("wrapLots");
     w.style.display = key ? "" : "none";
-    fields.status.disabled = !!key;
+    fields.status.disabled = false;
+    $("wrapStatus").style.display = (formType !== "trade" || key) ? "none" : "";
     if(!key) return;
     var sh = lotShares(lotKindOfKey(key), curRisk()), n = sh.length, roles = lotRolesOfKey(key), box = $("lotRows");
     if(box.getAttribute("data-n") !== String(n)){
@@ -3464,8 +3502,8 @@
         var row = document.createElement("div"); row.className = "lot-row";
         row.innerHTML = '<div class="lr-t"></div><select class="lr-o">' + LOT_OUT.map(function(o){ return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join("") + '</select>' +
           '<input class="lr-a" type="number" step="any" placeholder="montant (devise du compte)">';
-        row.querySelector(".lr-o").addEventListener("change", syncLots);
-        row.querySelector(".lr-a").addEventListener("input", syncLots);
+        row.querySelector(".lr-o").addEventListener("change", function(){ holdEnCours = false; syncLots(); });
+        row.querySelector(".lr-a").addEventListener("input", function(){ holdEnCours = false; syncLots(); });
         box.appendChild(row);
       }
       if(pendingLots){
@@ -3480,7 +3518,8 @@
     Array.prototype.forEach.call(box.querySelectorAll(".lot-row"), function(row, i){
       row.querySelector(".lr-t").textContent = "Lot " + (i + 1) + " · " + sh[i] + " % · " + roles[i];
     });
-    $("lotsHint").textContent = LOT_HINT[key] + " Le statut et le win rate sont calculés d'après le P&L total une fois tous les lots clôturés.";
+    $("lotsHint").textContent = LOT_HINT[key] + " Le statut et le win rate sont calculés d'après le P&L total une fois tous les lots clôturés ; une clôture manuelle ou « En cours » se choisit sans renseigner les lots.";
+    $("statusFinalHint").textContent = "Gagnant / Perdant : automatiques une fois tous les lots renseignés. Clôture manuelle et En cours : sélectionnables sans préciser l'état des lots.";
     syncLots();
   }
   [fields.lot, fields.risk, fields.entry, fields.sl].forEach(function(el){ el.addEventListener("input", renderLot); });
@@ -3935,7 +3974,8 @@
     editingTradeId = tradeId;
     form.reset();
     fields.direction.value = "achat";
-    fields.status.value = "en_cours";
+    fields.status.value = "en_cours"; holdEnCours = false;
+    (function(){ var so = $("f_statusFinal"); Array.prototype.slice.call(so.options).forEach(function(o){ if(o.getAttribute("data-extra")) so.removeChild(o); }); so.value = "en_cours"; })();
     fields.tpHit.checked = false;
     $("f_clotureSub").value = "";
     $("f_retrType").value = "";
@@ -3972,7 +4012,7 @@
         fields.trapNotes.value = t.trapNotes || "";
         fields.risk.value = t.risk !== undefined ? t.risk : "";
         $("f_riskState").value = (t.riskState && RISK_STATES[t.riskState]) ? t.riskState : "";
-        fields.status.value = t.status || "en_cours";
+        fields.status.value = t.status || "en_cours"; mirrorStatusFinal();
         $("f_clotureSub").value = t.clotureSub || "";
         $("f_retrType").value = t.retrType || "";
         $("f_baseType").value = t.baseType || "";
@@ -4055,7 +4095,7 @@
         risk: obsMode ? "" : fields.risk.value,
         riskState: (obsMode || stratVal !== SD_NAME || retrBeOnly) ? "" : $("f_riskState").value,
         status: obsMode ? "observation" : fields.status.value,
-        clotureSub: (!obsMode && fields.status.value === "cloture_gagnante") ? $("f_clotureSub").value : "",
+        clotureSub: (!obsMode && !lotsActive() && fields.status.value === "cloture_gagnante") ? $("f_clotureSub").value : "",
         finalOutcome: (!obsMode && compositeMode()) ? $("f_finalOutcome").value : "",
         partialAmt: (!obsMode && compositeMode()) ? $("f_partialAmt").value : "",
         finalAmt: (!obsMode && compositeMode()) ? (($("f_finalOutcome").value === "sl" && $("f_finalAmt").value !== "") ? String(-Math.abs(parseFloat($("f_finalAmt").value) || 0)) : ($("f_finalOutcome").value === "be" && $("f_finalAmt").value === "" ? "0" : $("f_finalAmt").value)) : "",
