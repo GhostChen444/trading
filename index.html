@@ -659,6 +659,21 @@
   .tag.ag-imp-moyen{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
   .tag.ag-imp-fort{background:var(--red-soft); color:var(--red); border-color:transparent;}
   .ag-important{border-left:2px solid var(--gold); background:rgba(200,155,74,0.08); padding:9px 14px; margin:8px 0 10px; border-radius:0 var(--r) var(--r) 0; font-size:13.5px; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere;}
+  .an-form{padding:16px; border:1px solid var(--gold-soft); border-radius:var(--r); background:rgba(200,155,74,0.05); margin:12px 0; animation:anIn .18s ease-out both;}
+  @keyframes anIn{from{opacity:0; transform:translateY(-6px);}}
+  .an-seg{display:flex; align-items:center; gap:6px; margin-bottom:12px; flex-wrap:wrap;}
+  .an-seg button{background:transparent; border:1px solid var(--border); color:var(--text-dim); border-radius:999px; padding:5px 14px; font-size:12.5px;}
+  .an-seg button.active{border-color:var(--gold); background:rgba(200,155,74,0.14); color:var(--text);}
+  .an-saved{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint); transition:color .2s;}
+  .an-saved.ok{color:var(--green);}
+  .an-actions{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:12px;}
+  .an-actions .grow{flex:1;}
+  .an-err{font-size:12px; color:var(--red); min-height:0;}
+  .an-flash{animation:anFlash 1.2s ease-out;}
+  @keyframes anFlash{from{background:rgba(200,155,74,0.18);}}
+  .an-patform{padding:12px; margin:8px 0; border:1px dashed var(--gold-soft); border-radius:var(--r); background:rgba(200,155,74,0.04);}
+  .an-patforms{display:grid; gap:10px;}
+  .ag-entry[data-note]{cursor:default;}
   .an-patterns{margin:14px 0 0; padding-left:14px; border-left:1px dashed var(--border);}
   .an-head{display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:4px;}
   .an-head .section-label{margin:0;}
@@ -2016,45 +2031,6 @@
   </div>
 </div>
 
-<!-- Setups agressifs : ajout / modification d'un constat ou d'une observation -->
-  <div class="modal" id="modalAggrNote" style="display:none;">
-    <div class="modal-header">
-      <div>
-        <h3 id="anFormTitle">Nouveau constat</h3>
-        <div class="sub">setup agressif · constat ou observation, avec ses patterns rattachés</div>
-      </div>
-      <button class="closebtn" type="button" onclick="closeOverlay()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="field">
-          <label for="an_kind">Type</label>
-          <select id="an_kind"><option value="constat">Constat</option><option value="observation">Observation</option></select>
-        </div>
-        <div class="field">
-          <label for="an_date">Date</label>
-          <input type="date" id="an_date">
-        </div>
-        <div class="field span2">
-          <label for="an_title">Intitulé</label>
-          <input type="text" id="an_title" placeholder="ex : le gold balaie la liquidité d'Asie avant chaque grosse annonce…" autocomplete="off">
-        </div>
-        <div class="field span2">
-          <label for="an_details">Détails</label>
-          <textarea id="an_details" placeholder="ce que je constate ou observe, dans quel contexte, ce que j'en retiens…"></textarea>
-        </div>
-      </div>
-      <div class="hint">Une fois enregistré, ajoute les patterns depuis la carte du constat ou de l'observation.</div>
-      <div class="form-error" id="anFormError"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn danger-outline" id="anDeleteBtn" type="button" style="display:none;">Supprimer</button>
-      <div style="flex:1;"></div>
-      <button class="btn" type="button" onclick="closeOverlay()">Annuler</button>
-      <button class="btn primary" type="button" id="anSaveBtn">Enregistrer</button>
-    </div>
-  </div>
-
 <!-- LIGHTBOX captures -->
 <div class="lightbox" id="lightbox">
   <button class="lb-close" type="button" id="lbClose" aria-label="Fermer">✕</button>
@@ -3063,10 +3039,10 @@
   var modalView = $("modalView");
   var modalAgenda = $("modalAgenda");
   var modalAggr = $("modalAggr");
-  var modalAggrNote = $("modalAggrNote");
+  
 
   function showOnly(modalEl){
-    [modalDay, modalForm, modalAccount, modalNotif, modalView, modalAgenda, modalAggr, modalAggrNote].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
+    [modalDay, modalForm, modalAccount, modalNotif, modalView, modalAgenda, modalAggr].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
     overlay.classList.add("show");
   }
   function closeOverlay(){
@@ -4887,91 +4863,195 @@
     list.forEach(function(e){ box.appendChild(aggrEl(e)); });
   }
 
-  // ---- constats & observations (chacun avec ses patterns) ----
+  // ---- constats & observations (chacun avec ses patterns) : édition directement dans la page ----
+  var anComposeKind = null, anComposeEl = null, anEditingId = null, anPatFor = null, anSaveTimer = null;
+  function anPersistSoon(){ clearTimeout(anSaveTimer); anSaveTimer = setTimeout(function(){ persist(); }, 500); }
+  function anFlushSave(){ if(anSaveTimer){ clearTimeout(anSaveTimer); anSaveTimer = null; persist(); } }
+  function anFocus(el){ if(!el) return; try{ el.focus({ preventScroll:true }); }catch(x){ el.focus(); } }
+  function anScrollTo(el){ if(el && el.scrollIntoView) el.scrollIntoView({ block:"nearest", behavior:"smooth" }); }
+  function anNoteLabel(n){ return n.kind === "observation" ? "observation" : "constat"; }
+
   function renderAggrNotes(){
-    var list = aggrNotes().filter(function(n){ return anFilter === "all" || n.kind === anFilter; });
+    var list = aggrNotes().filter(function(n){ return anFilter === "all" || n.kind === anFilter || n.id === anEditingId; });
     list.sort(function(a, b){
       var c = (a.date || "").localeCompare(b.date || "") || (a.createdAt || "").localeCompare(b.createdAt || "");
       return anSort === "asc" ? c : -c;
     });
-    $("anTotal").textContent = list.length ? list.length + " entrée" + (list.length > 1 ? "s" : "") : "";
+    $("anTotal").textContent = aggrNotes().length ? aggrNotes().length + " entrée" + (aggrNotes().length > 1 ? "s" : "") : "";
     var box = $("anList"); box.innerHTML = "";
+    if(anComposeKind && anComposeEl) box.appendChild(anComposeEl);
     if(!list.length){
-      box.innerHTML = '<div class="empty-state">' + (aggrNotes().length ? "Aucune entrée pour ce filtre." : "Rien pour l\'instant. Clique sur « + Constat » ou « + Observation », puis ajoute les patterns rattachés.") + '</div>';
+      if(!anComposeKind) box.innerHTML = '<div class="empty-state">' + (aggrNotes().length ? "Aucune entrée pour ce filtre." : "Rien pour l\'instant. Clique sur « + Constat » ou « + Observation », puis ajoute les patterns rattachés.") + '</div>';
       return;
     }
     list.forEach(function(n){ box.appendChild(anEl(n)); });
   }
 
+  // formulaire commun : création (brouillon, bouton Enregistrer) ou modification (enregistrement automatique)
+  function anFormEl(n, kind){
+    var isNew = !n, k = n ? (n.kind === "observation" ? "observation" : "constat") : kind;
+    var el = document.createElement("div");
+    el.className = "an-form";
+    el.innerHTML =
+      '<div class="an-seg"><button type="button" data-k="constat">Constat</button><button type="button" data-k="observation">Observation</button><span class="an-saved"></span></div>' +
+      '<div class="form-grid">' +
+        '<div class="field span2"><label>Intitulé</label><input type="text" class="an-t" autocomplete="off" placeholder="ex : le gold balaie la liquidité d\'Asie avant chaque grosse annonce…"></div>' +
+        '<div class="field"><label>Date</label><input type="date" class="an-d"></div>' +
+        '<div class="field span2"><label>Détails</label><textarea class="an-x" placeholder="ce que je constate ou observe, dans quel contexte, ce que j\'en retiens…"></textarea></div>' +
+      '</div>' +
+      '<div class="an-actions"></div>';
+    var t = el.querySelector(".an-t"), d = el.querySelector(".an-d"), x = el.querySelector(".an-x"),
+        saved = el.querySelector(".an-saved"), acts = el.querySelector(".an-actions");
+    t.value = n ? (n.title || "") : ""; d.value = n ? (n.date || "") : agKey(new Date()); x.value = n ? (n.details || "") : "";
+    el._kind = k;
+    function paintKind(){ el.querySelectorAll(".an-seg button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-k") === el._kind); }); }
+    paintKind();
+    function touch(){
+      if(isNew) return;
+      var tv = t.value.trim();
+      if(tv) n.title = tv;
+      n.date = d.value || n.date; n.details = x.value.trim(); n.kind = el._kind; n.updatedAt = new Date().toISOString();
+      saved.textContent = "Enregistré ✓"; saved.classList.add("ok");
+      anPersistSoon();
+    }
+    el.querySelectorAll(".an-seg button").forEach(function(b){
+      b.addEventListener("click", function(){ el._kind = this.getAttribute("data-k"); paintKind(); touch(); anFocus(t); });
+    });
+    [t, d, x].forEach(function(f){ f.addEventListener("input", touch); f.addEventListener("change", touch); });
+    function submit(){
+      var tv = t.value.trim();
+      if(!tv){ err.textContent = "Donne un intitulé."; anFocus(t); return; }
+      if(isNew){
+        var now = new Date().toISOString();
+        var note = { id:newId("an_"), kind:el._kind, title:tv, date:d.value || agKey(new Date()), details:x.value.trim(), patterns:[], createdAt:now, updatedAt:now };
+        aggrNotes().push(note);
+        persist();
+        anComposeKind = null; anComposeEl = null;
+        anFilter = "all"; $("anFilterSel").value = "all";
+        renderAggr();
+        var c = $("anList").querySelector('[data-note="' + note.id + '"]');
+        if(c){ c.classList.add("an-flash"); anScrollTo(c); }
+      } else { anCloseEdit(); }
+    }
+    function cancel(){ if(isNew){ anComposeKind = null; anComposeEl = null; renderAggrNotes(); } else anCloseEdit(); }
+    el.addEventListener("keydown", function(e){
+      if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); cancel(); }
+      else if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); submit(); }
+      else if(e.key === "Enter" && e.target === t){ e.preventDefault(); anFocus(x); }
+    });
+    var err = document.createElement("span"); err.className = "an-err";
+    var okBtn = document.createElement("button"); okBtn.type = "button"; okBtn.className = "btn primary"; okBtn.textContent = isNew ? "Enregistrer" : "Terminé";
+    okBtn.addEventListener("click", submit);
+    acts.appendChild(okBtn);
+    if(isNew){
+      var cb = document.createElement("button"); cb.type = "button"; cb.className = "btn"; cb.textContent = "Annuler"; cb.addEventListener("click", cancel); acts.appendChild(cb);
+    } else {
+      var db = document.createElement("button"); db.type = "button"; db.className = "btn danger-outline"; db.textContent = "Supprimer";
+      db.addEventListener("click", function(){ anDelete(n); }); acts.appendChild(db);
+    }
+    var sp = document.createElement("span"); sp.className = "grow"; acts.appendChild(sp);
+    var hint = document.createElement("span"); hint.className = "an-saved"; hint.textContent = "Ctrl + Entrée pour valider · Échap pour fermer"; acts.appendChild(hint);
+    acts.insertBefore(err, sp);
+    return el;
+  }
+  function anOpenCompose(kind){
+    if(aggrSub !== "notes"){ aggrSub = "notes"; }
+    anEditingId = null;
+    if(anComposeKind && anComposeEl){
+      anComposeKind = kind; anComposeEl._kind = kind;
+      anComposeEl.querySelectorAll(".an-seg button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-k") === kind); });
+    } else { anComposeKind = kind; anComposeEl = anFormEl(null, kind); }
+    renderAggr();
+    anScrollTo(anComposeEl); anFocus(anComposeEl.querySelector(".an-t"));
+  }
+  function anOpenEdit(id){
+    anFlushSave(); anComposeKind = null; anComposeEl = null;
+    anEditingId = id; renderAggrNotes();
+    var c = $("anList").querySelector('[data-note="' + id + '"]');
+    if(c){ anScrollTo(c); anFocus(c.querySelector(".an-t")); }
+  }
+  function anCloseEdit(){ anEditingId = null; anFlushSave(); persist(); renderAggr(); }
+  function anDelete(n){
+    var np = (n.patterns || []).length;
+    if(!confirm("Supprimer ce " + anNoteLabel(n) + (np ? " et ses " + np + " pattern" + (np > 1 ? "s" : "") : "") + " ? Cette action est irréversible.")) return;
+    var ids = []; (n.patterns || []).forEach(function(p){ (p.shots || []).forEach(function(sh){ ids.push(sh.id); }); });
+    deleteShots(ids);
+    root.aggrNotes = aggrNotes().filter(function(y){ return y.id !== n.id; });
+    anEditingId = null; persist(); renderAggr();
+  }
+
+  // ajout rapide d'un pattern, sans quitter la carte (les captures s'ajoutent via « Modifier » sur le pattern)
+  function anPatFormEl(n){
+    var el = document.createElement("div");
+    el.className = "an-patform";
+    el.innerHTML =
+      '<div class="form-grid">' +
+        '<div class="field span2"><label>Intitulé du pattern</label><input type="text" class="an-pt" autocomplete="off" placeholder="ex : sweep Asie + retour sur l\'OB avant le NFP…"></div>' +
+        '<div class="field"><label>Date</label><input type="date" class="an-pd"></div>' +
+        '<div class="field span2"><label>Motif fondamental</label><textarea class="an-pm" placeholder="l\'événement ou le narratif derrière ce mouvement…"></textarea></div>' +
+      '</div>' +
+      '<div class="an-actions"><button type="button" class="btn primary" data-a="add">Ajouter</button><button type="button" class="btn" data-a="close">Fermer</button><span class="an-err"></span><span class="grow"></span><span class="an-saved">Entrée = ajouter · Échap = fermer · captures : « Modifier »</span></div>';
+    var t = el.querySelector(".an-pt"), d = el.querySelector(".an-pd"), m = el.querySelector(".an-pm"), err = el.querySelector(".an-err");
+    d.value = agKey(new Date());
+    function add(){
+      var tv = t.value.trim();
+      if(!tv){ err.textContent = "Donne un intitulé."; anFocus(t); return; }
+      var now = new Date().toISOString();
+      if(!Array.isArray(n.patterns)) n.patterns = [];
+      n.patterns.push({ id:newId("ap_"), title:tv, date:d.value || agKey(new Date()), motif:m.value.trim(), shots:[], createdAt:now, updatedAt:now });
+      n.updatedAt = now; persist();
+      renderAggrNotes();
+      var c = $("anList").querySelector('[data-note="' + n.id + '"] .an-pt'); anFocus(c); // prêt pour le suivant
+    }
+    el.querySelector('[data-a="add"]').addEventListener("click", add);
+    el.querySelector('[data-a="close"]').addEventListener("click", function(){ anPatFor = null; renderAggrNotes(); });
+    el.addEventListener("keydown", function(e){
+      if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); anPatFor = null; renderAggrNotes(); }
+      else if(e.key === "Enter" && (e.ctrlKey || e.metaKey || e.target === t)){ e.preventDefault(); add(); }
+    });
+    return el;
+  }
+
   function anEl(n){
     var item = document.createElement("div");
     item.className = "tv-item ag-entry";
-    var isObs = n.kind === "observation", det = (n.details || "").trim(), pats = Array.isArray(n.patterns) ? n.patterns : [];
-    item.innerHTML =
-      '<div class="tv-top">' +
-        '<span class="tag ' + (isObs ? "status-observation" : "status-en_cours") + '">' + (isObs ? "Observation" : "Constat") + '</span>' +
-        '<span class="tv-pair">' + escapeHtml(n.title || "(sans titre)") + '</span>' +
-        (n.date ? '<span class="tv-date">' + escapeHtml(fmtTrapDate(n.date)) + '</span>' : '') +
-        '<div class="tv-actions"><button type="button" class="iconbtn" data-act="edit">Modifier</button></div>' +
-      '</div>' +
-      (det ? '<div class="ag-important"><b>Détails · </b>' + escapeHtml(det) + '</div>' : '') +
-      '<div class="an-patterns">' +
-        '<div class="an-head"><span class="section-label">patterns' + (pats.length ? ' · ' + pats.length : '') + '</span>' +
-        '<button type="button" class="btn" data-act="addpat">+ Ajouter un pattern</button></div>' +
-        '<div class="an-patlist"></div>' +
-      '</div>';
-    item.querySelector('[data-act="edit"]').addEventListener("click", function(){ openAggrNoteForm(n.id); });
-    item.querySelector('[data-act="addpat"]').addEventListener("click", function(){ openAggrForm(null, n.id); });
-    var pl = item.querySelector(".an-patlist");
-    if(!pats.length) pl.innerHTML = '<div class="an-empty">Aucun pattern rattaché.</div>';
+    item.setAttribute("data-note", n.id);
+    var pats = Array.isArray(n.patterns) ? n.patterns : [];
+    if(anEditingId === n.id){
+      item.appendChild(anFormEl(n));
+    } else {
+      var isObs = n.kind === "observation", det = (n.details || "").trim();
+      var head = document.createElement("div");
+      head.innerHTML =
+        '<div class="tv-top">' +
+          '<span class="tag ' + (isObs ? "status-observation" : "status-en_cours") + '">' + (isObs ? "Observation" : "Constat") + '</span>' +
+          '<span class="tv-pair">' + escapeHtml(n.title || "(sans titre)") + '</span>' +
+          (n.date ? '<span class="tv-date">' + escapeHtml(fmtTrapDate(n.date)) + '</span>' : '') +
+          '<div class="tv-actions"><button type="button" class="iconbtn" data-act="edit">Modifier</button></div>' +
+        '</div>' +
+        (det ? '<div class="ag-important"><b>Détails · </b>' + escapeHtml(det) + '</div>' : '');
+      head.querySelector('[data-act="edit"]').addEventListener("click", function(){ anOpenEdit(n.id); });
+      item.appendChild(head);
+      item.addEventListener("dblclick", function(e){ if(e.target.closest("button,input,textarea,select,.an-patterns")) return; anOpenEdit(n.id); });
+    }
+    var sec = document.createElement("div");
+    sec.className = "an-patterns";
+    sec.innerHTML = '<div class="an-head"><span class="section-label">patterns' + (pats.length ? ' · ' + pats.length : '') + '</span>' +
+      '<button type="button" class="btn" data-act="addpat">+ Ajouter un pattern</button></div><div class="an-patforms"></div><div class="an-patlist"></div>';
+    sec.querySelector('[data-act="addpat"]').addEventListener("click", function(){
+      anPatFor = (anPatFor === n.id) ? null : n.id; renderAggrNotes();
+      if(anPatFor){ var c = $("anList").querySelector('[data-note="' + n.id + '"] .an-pt'); anScrollTo(c); anFocus(c); }
+    });
+    if(anPatFor === n.id) sec.querySelector(".an-patforms").appendChild(anPatFormEl(n));
+    var pl = sec.querySelector(".an-patlist");
+    if(!pats.length && anPatFor !== n.id) pl.innerHTML = '<div class="an-empty">Aucun pattern rattaché.</div>';
     pats.slice().sort(function(a, b){ return (b.date || "").localeCompare(a.date || "") || (b.createdAt || "").localeCompare(a.createdAt || ""); })
       .forEach(function(p){ pl.appendChild(aggrEl(p, n.id)); });
+    item.appendChild(sec);
     return item;
   }
-
-  function openAggrNoteForm(id, kind){
-    anEditId = id || null;
-    var n = id ? aggrNoteById(id) : null;
-    if(id && !n) anEditId = null;
-    var k = n ? n.kind : (kind === "observation" ? "observation" : "constat");
-    $("anFormTitle").textContent = n ? "Modifier " + (k === "observation" ? "l'observation" : "le constat") : (k === "observation" ? "Nouvelle observation" : "Nouveau constat");
-    $("an_kind").value = k;
-    $("an_title").value = n ? (n.title || "") : "";
-    $("an_date").value = n ? (n.date || "") : agKey(new Date());
-    $("an_details").value = n ? (n.details || "") : "";
-    $("anFormError").textContent = "";
-    $("anDeleteBtn").style.display = n ? "" : "none";
-    showOnly(modalAggrNote);
-    if(!n) $("an_title").focus();
-  }
-  $("anSaveBtn").addEventListener("click", function(){
-    var err = $("anFormError"); err.textContent = "";
-    var title = $("an_title").value.trim(), date = $("an_date").value;
-    if(!title){ err.textContent = "Donne un intitulé."; $("an_title").focus(); return; }
-    if(!date){ err.textContent = "Choisis une date."; $("an_date").focus(); return; }
-    var now = new Date().toISOString();
-    var payload = { kind: $("an_kind").value === "observation" ? "observation" : "constat", title: title, date: date, details: $("an_details").value.trim(), updatedAt: now };
-    var existing = anEditId ? aggrNoteById(anEditId) : null;
-    if(existing) Object.assign(existing, payload);
-    else { payload.id = newId("an_"); payload.createdAt = now; payload.patterns = []; aggrNotes().push(payload); }
-    persist();
-    closeOverlay();
-    renderAggr();
-  });
-  $("anDeleteBtn").addEventListener("click", function(){
-    if(!anEditId) return;
-    var n = aggrNoteById(anEditId); if(!n) return;
-    var np = (n.patterns || []).length;
-    if(!confirm("Supprimer ce " + (n.kind === "observation" ? "observation" : "constat") + (np ? " et ses " + np + " pattern" + (np > 1 ? "s" : "") : "") + " ? Cette action est irréversible.")) return;
-    var ids = []; (n.patterns || []).forEach(function(p){ (p.shots || []).forEach(function(sh){ ids.push(sh.id); }); });
-    deleteShots(ids);
-    root.aggrNotes = aggrNotes().filter(function(x){ return x.id !== anEditId; });
-    persist();
-    closeOverlay();
-    renderAggr();
-  });
-  $("anAddConstat").addEventListener("click", function(){ openAggrNoteForm(null, "constat"); });
-  $("anAddObs").addEventListener("click", function(){ openAggrNoteForm(null, "observation"); });
+  $("anAddConstat").addEventListener("click", function(){ anOpenCompose("constat"); });
+  $("anAddObs").addEventListener("click", function(){ anOpenCompose("observation"); });
   $("anFilterSel").addEventListener("change", function(){ anFilter = this.value; renderAggrNotes(); });
   $("anSortSel").addEventListener("change", function(){ anSort = this.value; renderAggrNotes(); });
 
