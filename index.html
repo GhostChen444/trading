@@ -448,6 +448,35 @@
   }
   .acc-card.add:hover{border-color:var(--gold); color:var(--gold);}
   .acc-card.add .plus{font-family:var(--serif); font-size:34px; line-height:1;}
+  .pick-tabs{display:flex; gap:6px; margin:0 0 22px; border-bottom:1px solid var(--border-soft);}
+  .pick-tabs button{background:none; border:none; border-bottom:2px solid transparent; color:var(--text-dim); font:inherit; font-size:14px; padding:10px 16px; cursor:pointer; margin-bottom:-1px;}
+  .pick-tabs button:hover{color:var(--text);}
+  .pick-tabs button.active{color:var(--gold); border-bottom-color:var(--gold);}
+  .pick-count{font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-left:6px; border:1px solid var(--border); border-radius:999px; padding:1px 7px;}
+  .pick-open-card{background:var(--panel); border:1px solid var(--border); border-radius:var(--r); padding:20px; max-width:620px;}
+  .pick-open-card label{display:block; font-size:12px; color:var(--text-faint); margin-bottom:6px;}
+  .pick-open-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;}
+  .pick-open-row select{flex:1; min-width:200px;}
+  .pick-stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding-top:14px; border-top:1px solid var(--border-soft);}
+  .pick-stats .k{display:block; font-size:11px; color:var(--text-faint);}
+  .pick-stats .v{font-family:var(--mono); font-size:13.5px; color:var(--text);}
+  .pick-stats .v.pos{color:var(--green);} .pick-stats .v.neg{color:var(--red);}
+  .pick-manage-head{display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap;}
+  .acc-list{display:flex; flex-direction:column; gap:10px;}
+  .acc-row{display:grid; grid-template-columns:minmax(160px,1.4fr) repeat(4,minmax(70px,0.7fr)) auto; gap:14px; align-items:center; background:var(--panel); border:1px solid var(--border); border-radius:var(--r); padding:14px 16px;}
+  .acc-row:hover{border-color:var(--gold-soft);}
+  .acc-row .ar-name{font-family:var(--serif); font-size:16.5px; color:var(--text); word-break:break-word;}
+  .acc-row .ar-desc{font-size:12px; color:var(--text-faint); margin-top:2px; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;}
+  .acc-row .k{display:block; font-size:11px; color:var(--text-faint);}
+  .acc-row .v{font-family:var(--mono); font-size:13px; color:var(--text);}
+  .acc-row .v.pos{color:var(--green);} .acc-row .v.neg{color:var(--red);}
+  .acc-row .ar-actions{display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;}
+  @media (max-width:760px){
+    .acc-row{grid-template-columns:1fr 1fr;}
+    .acc-row .ar-main, .acc-row .ar-actions{grid-column:1 / -1;}
+    .acc-row .ar-actions{justify-content:flex-start;}
+    .pick-stats{grid-template-columns:1fr 1fr;}
+  }
   .setup-card{width:100%; max-width:560px;}
   .setup-card .modal-body{padding:22px;}
   .req{color:var(--gold);}
@@ -895,9 +924,33 @@
         <button class="cg-logout" type="button" id="pickLogoutBtn">Déconnexion</button>
       </div>
     </div>
-    <h2 class="pick-title">Quel compte veux-tu ouvrir ?</h2>
-    <p class="pick-sub">Choisis un compte existant pour accéder à son calendrier et à son journal, ou ajoutes-en un nouveau.</p>
-    <div class="acc-grid" id="accGrid"></div>
+    <div class="pick-tabs" id="pickTabs">
+      <button type="button" data-pt="open" class="active">Ouvrir un compte</button>
+      <button type="button" data-pt="manage">Comptes<span class="pick-count" id="pickCount">0</span></button>
+    </div>
+    <div id="pickOpen">
+      <h2 class="pick-title">Quel compte veux-tu ouvrir ?</h2>
+      <p class="pick-sub">Choisis un compte dans la liste pour accéder à son calendrier et à son journal.</p>
+      <div class="pick-open-card">
+        <label for="pickSelect">Compte</label>
+        <div class="pick-open-row">
+          <select id="pickSelect"></select>
+          <button class="btn primary" type="button" id="pickOpenBtn">Ouvrir le carnet</button>
+        </div>
+        <div class="pick-stats" id="pickSummary"></div>
+      </div>
+      <p class="pick-sub" style="margin-top:16px;">Créer, modifier ou supprimer un compte : onglet <a href="#" id="pickToManage" style="color:var(--gold);">Comptes</a>.</p>
+    </div>
+    <div id="pickManage" style="display:none;">
+      <div class="pick-manage-head">
+        <div>
+          <h2 class="pick-title">Mes comptes</h2>
+          <p class="pick-sub">Tous tes comptes au même endroit : ouvre, modifie ou supprime-les ici.</p>
+        </div>
+        <button class="btn primary" type="button" id="pickAddBtn">+ Ajouter un compte</button>
+      </div>
+      <div class="acc-list" id="accList"></div>
+    </div>
   </div>
 </div>
 
@@ -2047,6 +2100,7 @@
   var editingTradeId = null;
   var profitView = "profit";
   var setupIsFirst = false;
+  var setupEditId = null;
 
   // =====================================================================
   // FIREBASE
@@ -2547,54 +2601,65 @@
   // =====================================================================
   function enterPicker(){
     state = null;
+    setupEditId = null;
     activeDayKey = null; editingTradeId = null;
     if(!root.accounts.length){ openSetup(true); return; }
     renderPicker();
     showView("picker");
   }
 
-  function renderPicker(){
-    var grid = $("accGrid");
-    grid.innerHTML = "";
-    root.accounts.forEach(function(acc){
-      var s = accStats(acc);
-      var card = document.createElement("div");
-      card.className = "acc-card";
-      card.setAttribute("tabindex","0");
-      card.setAttribute("role","button");
-      card.setAttribute("data-open", acc.id);
-      var pnlCls = s.pnl > 0 ? "pos" : s.pnl < 0 ? "neg" : "";
-      card.innerHTML =
-        '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">' +
-          '<div class="acc-name">' + escapeHtml(acc.name) + '</div>' +
-          '<button class="iconbtn danger" type="button" data-delacc="1" style="flex-shrink:0;">Supprimer</button>' +
-        '</div>' +
-        '<div class="acc-desc">' + (acc.description ? escapeHtml(acc.description) : "Aucune description") + '</div>' +
-        '<div class="acc-stats">' +
-          '<div><span class="k">Solde</span><span class="v">' + escapeHtml(fmtCur(s.balance, acc.account.currency, false)) + '</span></div>' +
-          '<div><span class="k">Rendement</span><span class="v ' + pnlCls + '">' + fmtPct(s.ret, true) + '</span></div>' +
-          '<div><span class="k">Trades</span><span class="v">' + s.count + '</span></div>' +
-          '<div><span class="k">Réussite</span><span class="v">' + (s.winrate === null ? "—" : s.winrate + " %") + '</span></div>' +
-        '</div>';
-      function open(){ openApp(acc.id); }
-      card.addEventListener("click", open);
-      card.addEventListener("keydown", function(e){ if(e.target !== card) return; if(e.key === "Enter" || e.key === " "){ e.preventDefault(); open(); } });
-      card.querySelector("[data-delacc]").addEventListener("click", function(e){
-        e.stopPropagation();
-        deleteAccount(acc.id);
-      });
-      grid.appendChild(card);
-    });
-    var add = document.createElement("div");
-    add.className = "acc-card add";
-    add.setAttribute("tabindex","0");
-    add.setAttribute("role","button");
-    add.innerHTML = '<div><div class="plus">+</div><div>Ajouter un compte</div></div>';
-    function openNew(){ openSetup(false); }
-    add.addEventListener("click", openNew);
-    add.addEventListener("keydown", function(e){ if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openNew(); } });
-    grid.appendChild(add);
+  var pickTab = "open";
+  function setPickTab(t){
+    pickTab = t;
+    document.querySelectorAll("#pickTabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-pt") === t); });
+    $("pickOpen").style.display = t === "open" ? "" : "none";
+    $("pickManage").style.display = t === "manage" ? "" : "none";
   }
+  function lastAccId(){ try{ return localStorage.getItem("cg_lastAcc") || ""; }catch(e){ return ""; } }
+  function rememberAcc(id){ try{ localStorage.setItem("cg_lastAcc", id); }catch(e){} }
+  function accStatsHtml(acc, cls){
+    var s = accStats(acc), pnlCls = s.pnl > 0 ? "pos" : s.pnl < 0 ? "neg" : "";
+    return '<div><span class="k">Solde</span><span class="v">' + escapeHtml(fmtCur(s.balance, acc.account.currency, false)) + '</span></div>' +
+      '<div><span class="k">Rendement</span><span class="v ' + pnlCls + '">' + fmtPct(s.ret, true) + '</span></div>' +
+      '<div><span class="k">Trades</span><span class="v">' + s.count + '</span></div>' +
+      '<div><span class="k">Réussite</span><span class="v">' + (s.winrate === null ? "—" : s.winrate + " %") + '</span></div>';
+  }
+  function renderPickSummary(){
+    var acc = findAcc($("pickSelect").value);
+    $("pickSummary").innerHTML = acc ? accStatsHtml(acc) : "";
+  }
+  function renderPicker(){
+    $("pickCount").textContent = root.accounts.length;
+    // onglet « Ouvrir » : liste déroulante
+    var sel = $("pickSelect"), keep = sel.value || lastAccId();
+    sel.innerHTML = root.accounts.map(function(a){ return '<option value="' + escapeHtml(a.id) + '">' + escapeHtml(a.name) + '</option>'; }).join("");
+    sel.value = findAcc(keep) ? keep : root.accounts[0].id;
+    renderPickSummary();
+    // onglet « Comptes » : liste complète + CRUD
+    var list = $("accList"); list.innerHTML = "";
+    root.accounts.forEach(function(acc){
+      var row = document.createElement("div");
+      row.className = "acc-row";
+      row.innerHTML =
+        '<div class="ar-main"><div class="ar-name">' + escapeHtml(acc.name) + '</div><div class="ar-desc">' + (acc.description ? escapeHtml(acc.description) : "Aucune description") + '</div></div>' +
+        accStatsHtml(acc) +
+        '<div class="ar-actions">' +
+          '<button class="btn primary" type="button" data-act="open">Ouvrir</button>' +
+          '<button class="btn" type="button" data-act="edit">Modifier</button>' +
+          '<button class="btn danger-outline" type="button" data-act="del">Supprimer</button>' +
+        '</div>';
+      row.querySelector('[data-act="open"]').addEventListener("click", function(){ openApp(acc.id); });
+      row.querySelector('[data-act="edit"]').addEventListener("click", function(){ openSetupEdit(acc.id); });
+      row.querySelector('[data-act="del"]').addEventListener("click", function(){ deleteAccount(acc.id); });
+      list.appendChild(row);
+    });
+    setPickTab(pickTab);
+  }
+  document.querySelectorAll("#pickTabs button").forEach(function(b){ b.addEventListener("click", function(){ setPickTab(this.getAttribute("data-pt")); }); });
+  $("pickToManage").addEventListener("click", function(e){ e.preventDefault(); setPickTab("manage"); });
+  $("pickSelect").addEventListener("change", renderPickSummary);
+  $("pickOpenBtn").addEventListener("click", function(){ if($("pickSelect").value) openApp($("pickSelect").value); });
+  $("pickAddBtn").addEventListener("click", function(){ openSetup(false); });
 
   function deleteAccount(id){
     var acc = findAcc(id);
@@ -2608,8 +2673,29 @@
   }
 
   // ---- création d'un compte ----
+  function openSetupEdit(id){
+    var acc = findAcc(id); if(!acc) return;
+    openSetup(false);
+    setupEditId = id;
+    $("s_name").value = acc.name || "";
+    $("s_desc").value = acc.description || "";
+    $("s_initial").value = acc.account.initial !== undefined ? acc.account.initial : "";
+    var cur = acc.account.currency || "USD";
+    if(!Array.prototype.some.call($("s_currency").options, function(o){ return o.value === cur; })){
+      var op = document.createElement("option"); op.value = cur; op.textContent = cur; $("s_currency").appendChild(op);
+    }
+    $("s_currency").value = cur;
+    $("s_broker").value = acc.account.broker || "";
+    $("s_leverage").value = acc.account.leverage || "";
+    $("s_risk").value = acc.account.risk !== undefined ? acc.account.risk : "";
+    $("setupTitle").textContent = "Modifier le compte";
+    $("setupSub").textContent = "les trades de ce compte ne sont pas touchés";
+    $("setupCreateBtn").textContent = "Enregistrer les modifications";
+  }
   function openSetup(isFirst){
     setupIsFirst = isFirst;
+    setupEditId = null;
+    $("setupCreateBtn").textContent = "Créer le compte et ouvrir le carnet";
     $("s_name").value = "";
     $("s_desc").value = "";
     $("s_initial").value = "";
@@ -2635,6 +2721,23 @@
     var err = $("setupError");
     if(!name){ err.textContent = "Donne un nom à ton compte."; $("s_name").focus(); return; }
     if(initialRaw === "" || isNaN(initial) || initial <= 0){ err.textContent = "Renseigne un capital initial supérieur à 0."; $("s_initial").focus(); return; }
+    if(setupEditId){
+      var ex = findAcc(setupEditId);
+      if(ex){
+        ex.name = name;
+        ex.description = $("s_desc").value.trim();
+        ex.account.broker = $("s_broker").value.trim();
+        ex.account.currency = $("s_currency").value;
+        ex.account.initial = initial;
+        ex.account.leverage = $("s_leverage").value.trim();
+        ex.account.risk = parseFloat($("s_risk").value) || 0;
+        persist();
+      }
+      setupEditId = null;
+      pickTab = "manage";
+      enterPicker();
+      return;
+    }
     var acc = {
       id: newId("a_"),
       name: name,
@@ -2661,6 +2764,7 @@
     var acc = findAcc(id);
     if(!acc){ enterPicker(); return; }
     state = acc;
+    rememberAcc(id);
     viewYear = today.getFullYear();
     viewMonth = today.getMonth();
     tvStrat = ""; tvPair = "";
@@ -3242,7 +3346,7 @@
     if(kind === "retr") return hi ? [70,15,15] : [60,20,20];
     return hi ? [80,20] : [70,30];
   }
-  function fmtPct(v){ return (Math.round(v * 100) / 100).toString().replace(".", ","); }
+  function fmtLotPct(v){ return (Math.round(v * 100) / 100).toString().replace(".", ","); }
   function curRisk(){
     var r = parseFloat(String(fields.risk.value).replace(",", "."));
     if(isNaN(r) || r <= 0) r = num(state.account.risk);
@@ -3272,10 +3376,10 @@
     }
     function box(cls, title, p, rr, amt, lot){
       return '<div class="lot-box ' + cls + '"><div class="lb-t">' + title + '</div><div class="lb-pct">' + p + ' %</div><div class="lb-s">' +
-        fmtPct(rr) + ' % du compte' + (amt !== null ? ' · ≈ ' + escapeHtml(fmtMoney(amt)) : '') +
+        fmtLotPct(rr) + ' % du compte' + (amt !== null ? ' · ≈ ' + escapeHtml(fmtMoney(amt)) : '') +
         (lot !== null ? '<br>Lot : <b style="color:var(--text)">' + lot.toFixed(2) + '</b>' : '') + '</div></div>';
     }
-    var h = '<div class="lot-card"><div class="lot-meta">Risque du trade : <b>' + fmtPct(r) + ' %</b> · répartition <b>' + sh.join(" / ") + '</b> · ' +
+    var h = '<div class="lot-card"><div class="lot-meta">Risque du trade : <b>' + fmtLotPct(r) + ' %</b> · répartition <b>' + sh.join(" / ") + '</b> · ' +
       ({ tendance:'mouvement de base / sous-mouvement de base', retrbase:'retracement de base', sous:'sous-retracement' })[mode] + '</div>';
     h += '<div class="lot-grid" style="--n:' + n + '">' + sh.map(function(p, i){
       return box(i === 0 ? "big" : "", "Lot " + (i + 1) + " · " + roles[i], p, r * p / 100, amts[i], sizes ? sizes[i] : null);
