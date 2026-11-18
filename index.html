@@ -329,10 +329,21 @@
   .btn.danger-outline:hover{background:var(--red-soft);}
 
   .reminder{font-size:12px; line-height:1.5; padding:9px 12px; margin:0 0 12px; border-left:3px solid var(--gold, #c9a45c); background:rgba(201,164,92,.08); border-radius:6px;}
-  .sub-win{margin:10px 0 2px; border:1px solid rgba(201,164,92,.45); border-radius:6px; background:rgba(201,164,92,.06);}
-  .sub-win>summary{cursor:pointer; font-weight:700; padding:7px 10px; list-style:none;}
-  .sub-win>summary::-webkit-details-marker{display:none;}
-  .sub-win-body{padding:2px 12px 10px; line-height:1.6;}
+  .sous-wrap{margin:0 0 12px;}
+  .sous-intro{font-size:12px; line-height:1.5; padding:9px 12px; margin:0 0 10px; border-left:3px solid var(--gold, #c9a45c); background:rgba(201,164,92,.08); border-radius:6px;}
+  .sous-intro small{opacity:.85; font-size:11.5px;}
+  .sous-cfg{font-size:12px; line-height:1.55; border:1px solid var(--line, rgba(255,255,255,.14)); border-radius:8px; overflow:hidden;}
+  .sous-cfg-head{font-weight:700; padding:8px 12px; display:flex; align-items:center; gap:8px;}
+  .sous-cfg-body{padding:9px 12px 11px;}
+  .sous-badge{font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; padding:2px 8px; border-radius:999px; font-weight:800;}
+  .sous-cfg-a{border-color:rgba(201,164,92,.6);}
+  .sous-cfg-a .sous-cfg-head{background:rgba(201,164,92,.16);}
+  .sous-cfg-a .sous-badge{background:#c9a45c; color:#1a1a1a;}
+  .sous-cfg-b{border-color:rgba(106,155,214,.6);}
+  .sous-cfg-b .sous-cfg-head{background:rgba(106,155,214,.16);}
+  .sous-cfg-b .sous-badge{background:#6a9bd6; color:#101820;}
+  .sous-or{display:flex; align-items:center; gap:10px; margin:8px 0; font-size:11px; font-weight:800; letter-spacing:.12em; opacity:.8;}
+  .sous-or::before,.sous-or::after{content:""; flex:1; border-top:1px dashed currentColor; opacity:.5;}
   .reminder-red.ul{text-decoration:underline; text-underline-offset:3px;}
   .reminder-red{font-size:12.5px; line-height:1.5; font-weight:600; padding:10px 12px; margin:0 0 12px; border-left:3px solid var(--red, #C1695C); background:rgba(193,105,92,.12); color:var(--red, #C1695C); border-radius:6px;}
 
@@ -1504,20 +1515,28 @@
             <summary><span class="rem-ico">🔀</span>Types de mouvement de base<span class="rem-n">3</span></summary>
             <div class="rem-grp-body">
           <div class="reminder" data-bt="base"><b>Mouvement de base</b> : je joue le <b>vrai mouvement de base</b> (voir « Zone d'exécution · mouvement de base », référentiel TradingView).</div>
-          <div class="reminder" data-bt="sous"><b>Concept du sous-mouvement de base</b> : exécuté en zone <b>premium</b> si tendance baissière, en <b>discount</b> si tendance haussière.<br>
-            1. <b>Retoucher les zones</b> qui envoient le mouvement de base.<br>
-            2. Attendre que le prix <b>délivre la zone de S&amp;D</b> du prochain vrai mouvement de base.<br>
-            3. <b>Confirmer l'écart</b> à ce niveau (la zone de S&amp;D doit être <b>vide</b>).<br>
-            4. <b>Formation d'une zone de S&amp;D en killzone</b>, tout en suivant la structure.<br>
-            5. Aller <b>exécuter en M5 dans la zone</b> : voir le <b>niveau de protection (SL) en M5</b>.<br>
-            <b>Confirmations</b> avant d'exécuter :<br>
-            • <b>Retour du prix en OTE</b>.<br>
-            • <b>Retour dans une zone de S&amp;D</b>.<br>
-            • Le prix <b>délivre un OB qui délivre un FVG</b> → alors je peux exécuter.<br>
-            6. Target : le <b>50 % du fibo</b>.
-            <details class="sub-win" open>
-              <summary>🔎 CISDRe / CISDCon · formation du setup</summary>
-              <div class="sub-win-body">
+          <div class="sous-wrap" data-bt="sous">
+            <div class="sous-intro"><b>Concept du sous-mouvement de base</b> : exécuté en zone <b>premium</b> si tendance baissière, en <b>discount</b> si tendance haussière.<br>
+              <small>Deux configurations <b>indépendantes</b> : chacune a ses propres étapes et son propre target. Une seule suffit pour exécuter, la 2<sup>e</sup> ne dépend pas de la 1<sup>re</sup>.</small></div>
+            <div class="sous-cfg sous-cfg-a">
+              <div class="sous-cfg-head"><span class="sous-badge">Config 1</span>Zone de S&amp;D délivrée · OB → FVG</div>
+              <div class="sous-cfg-body">
+                1. <b>Retoucher les zones</b> qui envoient le mouvement de base.<br>
+                2. Attendre que le prix <b>délivre la zone de S&amp;D</b> du prochain vrai mouvement de base.<br>
+                3. <b>Confirmer l'écart</b> à ce niveau (la zone de S&amp;D doit être <b>vide</b>).<br>
+                4. <b>Formation d'une zone de S&amp;D en killzone</b>, tout en suivant la structure.<br>
+                5. Aller <b>exécuter en M5 dans la zone</b> : voir le <b>niveau de protection (SL) en M5</b>.<br>
+                <b>Confirmations</b> avant d'exécuter :<br>
+                • <b>Retour du prix en OTE</b>.<br>
+                • <b>Retour dans une zone de S&amp;D</b>.<br>
+                • Le prix <b>délivre un OB qui délivre un FVG</b> → alors je peux exécuter.<br>
+                6. Target : le <b>50 % du fibo</b>.
+              </div>
+            </div>
+            <div class="sous-or"><span>OU</span></div>
+            <div class="sous-cfg sous-cfg-b">
+              <div class="sous-cfg-head"><span class="sous-badge">Config 2</span>CISDRe / CISDCon · BOS → FVG</div>
+              <div class="sous-cfg-body">
                 1. Vérifier que le prix a effectué un <b>CISDRe</b> ou un <b>CISDCon</b>.<br>
                 2. Voir des <b>BOS</b> ayant entraîné des <b>accumulations de liquidités juste après</b>.<br>
                 3. Voir si le BOS <b>délivre un FVG dans la killzone</b> (une seule bougie dans la killzone suffit).<br>
@@ -1525,7 +1544,8 @@
                 5. Aller chercher le <b>niveau de protection en M5</b> (<b>liquidité externe</b>, contrepartie).<br>
                 6. Target : aller chercher un <b>BOS</b>.
               </div>
-            </details></div>
+            </div>
+          </div>
           <div class="reminder"><b>Rappel Fibonacci · tout mouvement de base</b> : je me réfère avec le <b>fibo</b> à partir du <b>mouvement qui libère la zone de S&amp;D</b>.<br>
             • Sur un <b>CISDRe</b> : je me réfère au <b>CISDRe</b> (fibo tracé sur le CISDRe).</div>
             </div>
@@ -1561,7 +1581,7 @@
             • Je joue le <b>vrai mouvement de base</b>.<br>
             • Si j'ai raté le mouvement de base, je peux trader les <b>impulsions</b>, mais toujours en <b>discount</b>, en allant chercher les <b>BOS</b>.
           </div>
-          <div class="reminder" data-bt="sous"><b>Zone d'exécution · sous-mouvement de base</b> <i>(référentiel : TradingView)</i><br>
+          <div class="reminder" data-bt="sous"><b>Zone d'exécution · sous-mouvement de base · Config 1</b> <i>(référentiel : TradingView)</i><br>
             • <b>Premium</b> si la tendance est baissière, <b>discount</b> si elle est haussière.<br>
             • Exécution en <b>M5</b> : voir le <b>niveau de protection (SL) en M5</b>.<br>
             • Confirmations : retour du prix en <b>OTE</b>, retour dans une <b>zone de S&amp;D</b>, le prix délivre un <b>OB qui délivre un FVG</b> → alors j'exécute.<br>
