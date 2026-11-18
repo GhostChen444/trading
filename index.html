@@ -329,6 +329,10 @@
   .btn.danger-outline:hover{background:var(--red-soft);}
 
   .reminder{font-size:12px; line-height:1.5; padding:9px 12px; margin:0 0 12px; border-left:3px solid var(--gold, #c9a45c); background:rgba(201,164,92,.08); border-radius:6px;}
+  .sub-win{margin:10px 0 2px; border:1px solid rgba(201,164,92,.45); border-radius:6px; background:rgba(201,164,92,.06);}
+  .sub-win>summary{cursor:pointer; font-weight:700; padding:7px 10px; list-style:none;}
+  .sub-win>summary::-webkit-details-marker{display:none;}
+  .sub-win-body{padding:2px 12px 10px; line-height:1.6;}
   .reminder-red.ul{text-decoration:underline; text-underline-offset:3px;}
   .reminder-red{font-size:12.5px; line-height:1.5; font-weight:600; padding:10px 12px; margin:0 0 12px; border-left:3px solid var(--red, #C1695C); background:rgba(193,105,92,.12); color:var(--red, #C1695C); border-radius:6px;}
 
@@ -1510,7 +1514,18 @@
             • <b>Retour du prix en OTE</b>.<br>
             • <b>Retour dans une zone de S&amp;D</b>.<br>
             • Le prix <b>délivre un OB qui délivre un FVG</b> → alors je peux exécuter.<br>
-            6. Target : le <b>50 % du fibo</b>.</div>
+            6. Target : le <b>50 % du fibo</b>.
+            <details class="sub-win" open>
+              <summary>🔎 CISDRe / CISDCon · formation du setup</summary>
+              <div class="sub-win-body">
+                1. Vérifier que le prix a effectué un <b>CISDRe</b> ou un <b>CISDCon</b>.<br>
+                2. Voir des <b>BOS</b> ayant entraîné des <b>accumulations de liquidités juste après</b>.<br>
+                3. Voir si le BOS <b>délivre un FVG dans la killzone</b> (une seule bougie dans la killzone suffit).<br>
+                4. Repérer une <b>liquidité (contrepartie) interne</b> à ce FVG : elle peut faire partie du <b>FVG</b> ou de la <b>structure</b>.<br>
+                5. Aller chercher le <b>niveau de protection en M5</b> (<b>liquidité externe</b>, contrepartie).<br>
+                6. Target : aller chercher un <b>BOS</b>.
+              </div>
+            </details></div>
           <div class="reminder"><b>Rappel Fibonacci · tout mouvement de base</b> : je me réfère avec le <b>fibo</b> à partir du <b>mouvement qui libère la zone de S&amp;D</b>.<br>
             • Sur un <b>CISDRe</b> : je me réfère au <b>CISDRe</b> (fibo tracé sur le CISDRe).</div>
             </div>
@@ -1563,6 +1578,7 @@
             <div class="rem-grp-body">
           <div class="reminder">Rappel : assure-toi que ta zone soit entre le dernier haut ou bas entraînant le BOS et au-dessus des liquidités.</div>
           <div class="reminder" id="obFvgReminder"><b>Règles OB et FVG</b><br>
+            • <b>Tous actifs · killzones :</b> pour un <b>OB</b>, la <b>bougie qui déclenche l'OB</b> (celle qui <b>récupère la liquidité</b>) doit être dans les <b>plages horaires (killzones)</b>. Pour un <b>FVG</b>, <b>une seule bougie dans la killzone suffit</b>.<br>
             • Un FVG sous un OB : l'OB est prioritaire.<br>
             • FVG dont la bougie du milieu est plus longue que la première (celle qui émet l'impulsion) : SL au-dessus ou au-dessous de la bougie précédente.<br>
             • FVG à trois bougies équilibrées : SL toujours au-dessus ou au-dessous de la bougie précédente. Même si la bougie du milieu est plus petite, le SL reste au même niveau, car on cherche toujours à entrer sur le niveau le plus bas ou le plus haut du FVG.
@@ -3808,7 +3824,7 @@
       GBPUSD: "Plage horaire exécution : exécuter depuis 6h UTC (pré-session de Londres) " + EXEC_TXT,
       XAUUSD: "Plage horaire exécution : de 00h à 02h UTC, puis exécuter depuis 6h UTC (pré-session de Londres) " + EXEC_TXT
     };
-    var RANGE_RULE_TXT = " Un OB est valable tant que la bougie qui récupère la liquidité se situe dans tes plages horaires. Un FVG dont toutes les bougies sont en dehors de ces plages n'est pas prenable : au moins une bougie doit se situer dans la plage.";
+    var RANGE_RULE_TXT = " Pour tous les actifs : la bougie qui déclenche l'OB (celle qui récupère la liquidité) doit impérativement se situer dans tes plages horaires (killzones). Pour un FVG, une seule bougie dans la killzone suffit ; si toutes ses bougies sont en dehors, il n'est pas prenable.";
     $("hoursReminder").innerHTML = HOURS_TXT[pr] ? HOURS_TXT[pr] + RANGE_RULE_TXT + (EXEC_RANGE[pr] ? "<br>" + EXEC_RANGE[pr] : "") : "";
     $("hoursReminder").style.display = HOURS_TXT[pr] ? "" : "none";
     var rhr = $("retrHoursReminder");
