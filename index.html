@@ -4478,7 +4478,18 @@
     });
     var linked = {};
     agList().forEach(function(x){ if(x.fromCtx) linked[x.fromCtx] = 1; });
-    return out.filter(function(c){ return !linked[c.key]; });
+    var flat = [];
+    out.forEach(function(c){
+      ["geo", "macro"].forEach(function(a){
+        var txt = c[a]; if(!txt) return;
+        var key = c.key + "|" + a;
+        if(linked[key] || linked[c.key]) return;
+        var cur = agNLP(txt, a, c.pairs);
+        flat.push({ virtual:true, date:c.date, accId:c.accId, accName:c.accName, pairs:c.pairs, createdAt:"~", type:a, text:txt,
+                    key:key, name:txt.split("\n")[0].slice(0, 60), details:txt, currencies:cur, impact:agMaxImpact(cur) });
+      });
+    });
+    return flat;
   }
   function agWeekItems(sk, ek){
     var list = agList().filter(function(e){ return e.date >= sk && e.date <= ek; }).concat(agTradeContexts(sk, ek));
@@ -4580,21 +4591,23 @@
     item.className = "tv-item ag-entry ag-ctx";
     var multi = ((root && root.accounts) || []).length > 1;
     var canOpen = !!(state && state.id === c.accId);
+    var geo = c.type === "geo";
+    var hasSig = c.currencies && Object.keys(c.currencies).length;
     item.innerHTML =
       '<div class="tv-top">' +
-        '<span class="tv-pair">Contexte du trade' + (c.pairs.length ? ' · ' + escapeHtml(c.pairs.join(", ")) : '') + '</span>' +
+        '<span class="tv-pair">' + (geo ? "Contexte géopolitique" : "Contexte macro") + (c.pairs.length ? ' · ' + escapeHtml(c.pairs.join(", ")) : '') + '</span>' +
+        '<span class="tag">' + (geo ? "Géopolitique" : "Macro") + '</span>' +
         '<span class="tag status-observation">Depuis un trade</span>' +
         (multi && c.accName ? '<span class="tag">' + escapeHtml(c.accName) + '</span>' : '') +
         '<div class="tv-actions"><button type="button" class="iconbtn" data-act="enrich">Détailler</button>' + (canOpen ? '<button type="button" class="iconbtn" data-act="day">Voir le jour</button>' : '') + '</div>' +
       '</div>' +
-      (c.geo ? '<div class="ag-ctx-part"><b>Contexte géopolitique</b><div class="tv-notes">' + escapeHtml(c.geo) + '</div></div>' : '') +
-      (c.macro ? '<div class="ag-ctx-part"><b>Contexte macro</b><div class="tv-notes">' + escapeHtml(c.macro) + '</div></div>' : '');
+      '<div class="tv-notes">' + escapeHtml(c.text) + '</div>' +
+      (hasSig ? '<div class="ag-ml-meta">Analyse NLP · biais et impact par monnaie, corrélations sur le reste</div>' + agCcyHtml({ currencies:c.currencies })
+              : '<div class="ag-ml-meta">Analyse NLP : aucun signal exploitable dans ce texte.</div>');
     item.querySelector('[data-act="enrich"]').addEventListener("click", function(){
-      var first = ((c.geo || c.macro || "").split("\n")[0] || "").slice(0, 60);
       openAgendaForm(null, {
-        key:c.key, date:c.date, name:first,
-        type: c.geo && !c.macro ? "geo" : (c.macro && !c.geo ? "macro" : ""),
-        details: (c.geo ? "Contexte géopolitique : " + c.geo : "") + (c.geo && c.macro ? "\n" : "") + (c.macro ? "Contexte macro : " + c.macro : "") + (c.pairs.length ? "\nPaires tradées : " + c.pairs.join(", ") : "")
+        key:c.key, date:c.date, name:c.name, type:c.type, currencies:c.currencies,
+        details: (geo ? "Contexte géopolitique : " : "Contexte macro : ") + c.text + (c.pairs.length ? "\nPaires tradées : " + c.pairs.join(", ") : "")
       });
     });
     var btn = item.querySelector('[data-act="day"]');
@@ -4608,8 +4621,6 @@
     return item;
   }
 
-  // ---- « À suivre » : événements à surveiller (nom, détail, date facultative) ----
-  var agfEditId = null;
   function agfReset(){
     agfEditId = null;
     $("agf_name").value = ""; $("agf_details").value = ""; $("agf_date").value = "";
@@ -4812,6 +4823,77 @@
   }
 
 
+
+  // ---- NLP : attribution du texte aux monnaies de la paire tradée ----
+  // Le texte est découpé en propositions ; chaque proposition est rattachée à la monnaie citée
+  // (Fed -> USD, BCE -> EUR, BoE -> GBP, Nasdaq -> NAS), puis son sentiment donne biais et impact.
+  // Seules les monnaies de la paire sont évaluées ; l'autre côté est déduit par les corrélations.
+  var AG_ENT = {
+    USD: "fed fomc powell dollar usd us usa americain americaine americains americaines etats unis washington trump treasury nfp cpi pce ism yields rendements",
+    EUR: "bce ecb lagarde euro eur eurozone europe europeen europeenne europeens allemagne germany france italie bund",
+    GBP: "boe bailey livre sterling gbp royaume uk britannique britanniques angleterre gilts",
+    NAS: "nasdaq tech nvidia apple microsoft semis semiconducteurs intelligence earnings resultats ustec"
+  };
+  var AG_INT = "fort forte forts majeur majeure surprise historique choc massif massive record brutal brutale significatif important importante".split(" ");
+  var AG_OFF = "guerre conflit tension tensions escalade attaque attaques sanctions crise incertitude missile missiles frappe frappes invasion menace".split(" ");
+  var AG_ON = "apaisement accord cessez treve paix detente".split(" ");
+  var AG_NEG = "pas non sans not never jamais".split(" ");
+  var AG_AMBIG = "inflation emploi creations refuge croissance surprise chaud".split(" ");
+  var agNlpT = null;
+  function agTok2(s){ return (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z0-9]+/).filter(function(w){ return w.length > 1; }); }
+  function agSet(a){ var o = {}; a.forEach(function(w){ o[w] = 1; }); return o; }
+  function agNlpInit(){
+    if(agNlpT) return agNlpT;
+    var ent = {}, lex = {};
+    Object.keys(AG_ENT).forEach(function(c){ ent[c] = agSet(AG_ENT[c].split(" ")); });
+    Object.keys(AG_LEX).forEach(function(cl){ AG_LEX[cl].split(" ").forEach(function(w){ if(AG_AMBIG.indexOf(w) < 0) lex[w] = cl === "bullish" ? 1 : -1; }); });
+    agNlpT = { ent:ent, lex:lex, intens:agSet(AG_INT), off:agSet(AG_OFF), on:agSet(AG_ON), neg:agSet(AG_NEG) };
+    return agNlpT;
+  }
+  function agPairCcys(pairs){
+    var set = {};
+    (pairs || []).forEach(function(p){
+      var u = (p || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if(/EURUSD/.test(u) || u === "EU"){ set.EUR = 1; set.USD = 1; }
+      else if(/GBPUSD/.test(u) || u === "GU"){ set.GBP = 1; set.USD = 1; }
+      else if(/XAU|GOLD/.test(u)){ set.USD = 1; }
+      else if(/USTEC|NAS|US100|NDX/.test(u)){ set.NAS = 1; set.USD = 1; }
+    });
+    return set;
+  }
+  function agNLP(text, type, pairs){
+    var T = agNlpInit(), set = agPairCcys(pairs), keys = Object.keys(set);
+    var allowed = keys.length ? set : null;
+    var def = (!allowed || allowed.USD) ? "USD" : keys[0];
+    var res = {};
+    String(text || "").split(/[.;!?\n,]+|\s(?:mais|while|but|tandis que|alors que)\s/i).forEach(function(cl){
+      var tk = agTok2(cl); if(!tk.length) return;
+      var ents = Object.keys(T.ent).filter(function(c){ return tk.some(function(w){ return T.ent[c][w]; }); });
+      var sent = 0, hit = 0, it = 0, off = 0, on = 0;
+      tk.forEach(function(w, i){
+        var sg = T.lex[w];
+        if(sg){ var ng = (i > 0 && T.neg[tk[i - 1]]) || (i > 1 && T.neg[tk[i - 2]]); sent += ng ? -sg : sg; hit++; }
+        if(T.intens[w]) it++;
+        if(T.off[w]) off++;
+        if(T.on[w]) on++;
+      });
+      var risk = off - on, signal = hit + off + on;
+      if(!ents.length && !signal) return;
+      (ents.length ? ents : [def]).forEach(function(c){
+        var r = res[c] || (res[c] = { s:0, m:0 });
+        r.s += sent + (c === "USD" ? risk : -risk);   // refuge : risk-off -> USD bullish, autres monnaies bearish
+        r.m += signal + (signal ? it : 0);
+      });
+    });
+    var out = {};
+    Object.keys(res).forEach(function(c){
+      if(allowed && !allowed[c]) return;
+      var r = res[c];
+      out[c] = { impact: r.m >= 4 ? "fort" : r.m >= 2 ? "moyen" : "faible", bias: r.s > 0 ? "bullish" : r.s < 0 ? "bearish" : "" };
+    });
+    return out;
+  }
+
   // ---- ML : sélection du modèle par validation croisée (5 plis) ----
   // Cascade : Naive Bayes -> régression logistique -> réseau de neurones (deep learning),
   // on s'arrête dès qu'un modèle atteint 90 % de précision validée ; sinon on garde le meilleur.
@@ -4891,7 +4973,7 @@
     if(agBestCache && agBestCache.key === key) return agBestCache.val;
     var n = L.length, pos = L.filter(function(e){ return e.currencies.USD.bias === "bullish"; }).length;
     var val = { n:n, ok:false, acc:null, name:"lexique + Naive Bayes", pred:agMakePred("nb", L) };
-    if(n >= 10 && pos > 0 && pos < n){
+    if(n >= 3 && pos > 0 && pos < n){
       var kinds = ["nb", "lr", "mlp"], names = { nb:"Naive Bayes", lr:"régression logistique", mlp:"réseau de neurones (deep learning)" }, bk = "nb", ba = -1;
       for(var i = 0; i < kinds.length; i++){
         var a = agCV(kinds[i], L);
@@ -4918,7 +5000,7 @@
     var acc = {};
     AG_ASSETS.forEach(function(a){ acc[a] = { num:0, den:0, n:0, drv:[] }; });
     acc.types = { macro:{ num:0, den:0, n:0 }, geo:{ num:0, den:0, n:0 } };
-    agList().forEach(function(e){
+    agList().concat(agTradeContexts(sk, ek)).forEach(function(e){
       if(!e.date || e.date < sk || e.date > ek || !e.currencies || !Object.keys(e.currencies).length) return;
       var age = Math.max(0, (agParseKey(ref) - agParseKey(e.date)) / 86400000);
       var d = Math.pow(0.5, age / 3);
@@ -4965,8 +5047,6 @@
     }
     var high = m.ok && m.acc >= 0.9 && m.n >= 20 && u.conf >= 50;
     var lvl = high ? "élevé" : (u.conf >= 30 ? "moyen" : "faible");
-    var q = !m.ok ? "Modèle non validé : " + m.n + "/10 notes avec biais USD minimum pour mesurer la précision."
-      : "Précision validée " + Math.round(m.acc * 100) + " % sur " + m.n + " notes · " + m.name + (m.acc < 0.9 ? " · sous 90 % : confiance élevée désactivée" : m.n < 20 ? " · 20 notes minimum pour un niveau élevé" : "");
     var tchips = ["macro", "geo"].map(function(k){
       var v = agVerdict(acc.types[k], null);
       return v ? '<span class="ag-chip ' + (v.lab === "bullish" ? "up" : v.lab === "bearish" ? "dn" : "") + '">' + (k === "geo" ? "Géopolitique" : "Macro") + " · USD " + v.lab + " " + Math.round(v.p * 100) + " %</span>" : "";
@@ -4980,7 +5060,6 @@
       '<div class="ag-ml-main"><span class="ag-ml-badge ' + cls + '">USD ' + u.lab.toUpperCase() + ' · ' + Math.round(u.p * 100) + ' %</span>' +
       '<div class="ag-ml-gauge"><i style="left:' + Math.round(u.p * 100) + '%"></i></div>' +
       '<span class="ag-ml-meta">confiance ' + lvl + ' (' + u.conf + ' %) · ' + u.n + ' événement' + (u.n > 1 ? "s" : "") + '</span></div>' +
-      '<div class="ag-ml-meta" style="margin-bottom:8px;">' + escapeHtml(q) + '</div>' +
       '<div class="ag-ml-grid">' + others.map(function(a){
         var v = V[a]; return '<span class="ag-chip ' + (v.lab === "bullish" ? "up" : v.lab === "bearish" ? "dn" : "") + '">' + a + " " + v.lab + " " + Math.round(v.p * 100) + " %</span>";
       }).join("") + '</div>' +
@@ -5145,7 +5224,7 @@
     var todayKey = agKey(new Date()), ws = agKey(agWeek), we = new Date(agWeek); we.setDate(we.getDate() + 6);
     $("ag_date").value = e ? (e.date || "") : ((todayKey >= ws && todayKey <= agKey(we)) ? todayKey : ws);
     agSetType(e ? e.type : (pre ? pre.type : ""));
-    agBuildCcy(e ? e.currencies : null);
+    agBuildCcy(e ? e.currencies : (pre ? pre.currencies : null));
     agCorrRender();
     $("ag_details").value = e ? (e.details || "") : "";
     $("ag_important").value = e ? (e.important || "") : "";
