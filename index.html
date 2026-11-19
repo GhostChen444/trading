@@ -727,6 +727,35 @@
   .ag-src-row .ag-src-fields{flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;}
   .ag-src-row input{background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:8px 10px; width:100%; outline:none;}
   .ag-src-row input:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,155,74,0.12);}
+
+  /* ---------- Grandes lignes : devises / biais / corrélations / synthèse ML ---------- */
+  .ag-ccy-box{display:grid; gap:8px;}
+  .ag-ccy{border:1px solid var(--border); border-radius:var(--r); padding:10px 12px; display:grid; grid-template-columns:150px 1fr 1fr; gap:10px 14px; align-items:center; background:var(--bg-2); opacity:.72; transition:opacity .15s, border-color .15s;}
+  .ag-ccy.on{opacity:1; border-color:var(--gold-soft);}
+  .ag-ccy label{display:inline-flex; align-items:center; gap:6px; margin:0; font-size:13px; color:var(--text); font-family:inherit; cursor:pointer;}
+  .ag-ccy input[type=checkbox]{width:auto; margin:0; padding:0; accent-color:var(--gold);}
+  .ag-ccy-g{display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px;}
+  .ag-ccy-g > span{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); min-width:44px;}
+  .ag-ccy-g label.bu{color:var(--green);} .ag-ccy-g label.be{color:var(--red);}
+  @media (max-width:620px){ .ag-ccy{grid-template-columns:1fr;} }
+  .ag-corr{margin-top:10px; padding:10px 12px; border:1px dashed var(--gold-soft); border-radius:var(--r); font-size:13px;}
+  .ag-corr-t{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin-bottom:6px;}
+  .ag-chips{display:flex; flex-wrap:wrap; gap:6px; margin:6px 0 2px; align-items:center;}
+  .ag-chip{font-family:var(--mono); font-size:11.5px; padding:3px 9px; border-radius:999px; border:1px solid var(--border); color:var(--text-dim); background:transparent;}
+  .ag-chip.up{color:var(--green); border-color:var(--green); background:var(--green-soft);}
+  .ag-chip.dn{color:var(--red); border-color:var(--red); background:var(--red-soft);}
+  .ag-der{font-size:12px; color:var(--text-faint); margin-top:0;}
+  .ag-sug{margin-top:8px; font-size:12.5px; color:var(--text-dim); display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+  .ag-ml{border:1px solid var(--gold-soft); border-radius:var(--r); padding:14px 16px; margin:0 0 14px; background:rgba(200,155,74,0.05);}
+  .ag-ml-main{display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin-bottom:10px;}
+  .ag-ml-badge{font-family:var(--serif); font-size:20px; padding:4px 14px; border-radius:var(--r); border:1px solid var(--border);}
+  .ag-ml-badge.up{color:var(--green); border-color:var(--green); background:var(--green-soft);}
+  .ag-ml-badge.dn{color:var(--red); border-color:var(--red); background:var(--red-soft);}
+  .ag-ml-gauge{flex:1; min-width:140px; height:6px; border-radius:3px; background:linear-gradient(90deg,var(--red),var(--border) 50%,var(--green)); position:relative;}
+  .ag-ml-gauge i{position:absolute; top:-4px; width:3px; height:14px; background:var(--text); border-radius:2px; transform:translateX(-50%);}
+  .ag-ml-meta{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
+  .ag-ml-grid{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+  .ag-ml-drv{font-size:12.5px; color:var(--text-dim); margin:6px 0;}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
 <style id="futurTheme">
@@ -1194,6 +1223,7 @@
     <div class="ag-review">
       <h4>Revue de fin de semaine</h4>
       <div class="hint">Ce qui s'est passé, ce qui a marché, ce que je retiens pour la semaine suivante. Enregistré automatiquement pour la semaine affichée.</div>
+      <div class="ag-ml" id="agML"></div>
       <textarea id="agReview" placeholder="Bilan de la semaine…"></textarea>
     </div>
     </div>
@@ -1981,7 +2011,7 @@
     <div class="modal-header">
       <div>
         <h3 id="agFormTitle">Nouvelle note</h3>
-        <div class="sub">grandes lignes à suivre · événement, détails, impact, sources</div>
+        <div class="sub">grandes lignes à suivre · événement, description, devises, impact, biais, sources</div>
       </div>
       <button class="closebtn" type="button" onclick="closeOverlay()">✕</button>
     </div>
@@ -1995,13 +2025,15 @@
           <label for="ag_date">Date</label>
           <input type="date" id="ag_date">
         </div>
-        <div class="field">
-          <label for="ag_impact">Impact</label>
-          <select id="ag_impact"><option value="">— choisir —</option><option value="faible">Faible</option><option value="moyen">Moyen</option><option value="fort">Fort</option></select>
-        </div>
         <div class="field span2">
-          <label for="ag_details">Détails</label>
+          <label for="ag_details">Description</label>
           <textarea id="ag_details" placeholder="chiffres, contexte, prévisions, ce qui est attendu…"></textarea>
+        </div>
+        <div class="span2" style="grid-column:1/-1;">
+          <div class="section-label" style="margin-top:4px;">devises concernées · impact · biais</div>
+          <div class="ag-ccy-box" id="agCcyBox"></div>
+          <div class="ag-corr" id="agCorr"></div>
+          <div class="hint" style="margin-top:6px;">Règle : USD bullish = EURUSD, GBPUSD, XAUUSD et Nasdaq bearish (et inversement). GBP ↔ GBPUSD, EUR ↔ EURUSD, Nasdaq ↔ USTEC dans le même sens.</div>
         </div>
         <div class="field span2">
           <label for="ag_important">Aspect important</label>
@@ -2009,11 +2041,11 @@
         </div>
       </div>
 
-      <div class="section-label">sources (liens)</div>
+      <div class="section-label">sources (liens) · facultatif, pense à en ajouter</div>
       <div id="agSrcList"></div>
       <button type="button" class="addbtn" id="agAddSrcBtn">+ Ajouter un lien</button>
 
-      <div class="section-label">captures (facultatif)</div>
+      <div class="section-label">captures · facultatif, pense à en ajouter</div>
       <div id="agShotList"></div>
       <button type="button" class="addbtn" id="agAddShotBtn">+ Ajouter une capture</button>
       <input type="file" id="agShotFile" class="file-input" accept="image/*" multiple>
@@ -4530,6 +4562,7 @@
 
     var ta = $("agReview");
     if(document.activeElement !== ta) ta.value = agReviews()[sk] || "";
+    agRenderML(sk, agKey(end));
     updateAgendaTabCount();
   }
 
@@ -4647,6 +4680,7 @@
         '<div class="tv-actions"><button type="button" class="iconbtn" data-act="edit">Modifier</button></div>' +
       '</div>' +
       (details ? '<div class="tv-notes">' + escapeHtml(details) + '</div>' : "") +
+      agCcyHtml(e) +
       (imp ? '<div class="ag-important"><b>À retenir · </b>' + escapeHtml(imp) + '</div>' : "") +
       '<div class="ag-sources"></div>' +
       '<div class="tv-shots"></div>';
@@ -4681,6 +4715,217 @@
     });
     return item;
   }
+
+
+  // ---- devises / biais / corrélations / synthèse ML ----
+  var AG_CCY = [["USD","Dollar (USD)"],["EUR","Euro (EUR)"],["GBP","Livre (GBP)"],["NAS","Nasdaq"]];
+  var AG_W = { faible:1, moyen:2, fort:3 };
+  var AG_PAIRS = ["EURUSD","GBPUSD","XAUUSD","USTEC"];
+  var AG_ASSETS = ["USD","EUR","GBP"].concat(AG_PAIRS);
+  var agMLText = "";
+  function agSign(b){ return b === "bullish" ? 1 : b === "bearish" ? -1 : 0; }
+
+  // Corrélations : USD ↑ => EURUSD, GBPUSD, XAUUSD, Nasdaq ↓ (inversement si USD ↓) ;
+  // GBP => GBPUSD, EUR => EURUSD, Nasdaq => USTEC (même sens).
+  // val = score signé (impact 1/2/3 × biais), mag = amplitude maximale possible.
+  function agScores(cur, usdTxt){
+    cur = cur || {};
+    var w = {}, s = {};
+    AG_CCY.forEach(function(c){ var v = cur[c[0]]; w[c[0]] = v ? (AG_W[v.impact] || 2) : 0; s[c[0]] = v ? agSign(v.bias) * w[c[0]] : 0; });
+    if(cur.USD && !s.USD && usdTxt) s.USD = usdTxt * w.USD;
+    return {
+      val: { USD: s.USD - 0.5 * (s.EUR + s.GBP + s.NAS), EUR: s.EUR, GBP: s.GBP,
+             EURUSD: s.EUR - s.USD, GBPUSD: s.GBP - s.USD, XAUUSD: -s.USD, USTEC: s.NAS - s.USD },
+      mag: { USD: w.USD + 0.5 * (w.EUR + w.GBP + w.NAS), EUR: w.EUR, GBP: w.GBP,
+             EURUSD: w.EUR + w.USD, GBPUSD: w.GBP + w.USD, XAUUSD: w.USD, USTEC: w.NAS + w.USD }
+    };
+  }
+  function agMaxImpact(cur){
+    var best = 0, lab = "";
+    Object.keys(cur || {}).forEach(function(k){ var v = AG_W[cur[k].impact] || 0; if(v > best){ best = v; lab = cur[k].impact; } });
+    return lab;
+  }
+  function agChip(label, v){
+    return '<span class="ag-chip ' + (v > 0 ? "up" : v < 0 ? "dn" : "") + '">' + label + (v > 0 ? " ▲" : v < 0 ? " ▼" : " –") + '</span>';
+  }
+  function agCcyHtml(e){
+    var cur = e.currencies;
+    if(!cur || !Object.keys(cur).length) return "";
+    var h = '<div class="ag-chips">';
+    AG_CCY.forEach(function(c){
+      var v = cur[c[0]]; if(!v) return;
+      h += '<span class="ag-chip ' + (v.bias === "bullish" ? "up" : v.bias === "bearish" ? "dn" : "") + '">' + c[0] + " · " + escapeHtml(v.impact || "") + " · " + (v.bias || "neutre") + '</span>';
+    });
+    var sc = agScores(cur, 0);
+    h += '</div><div class="ag-chips ag-der">→ ' + AG_PAIRS.map(function(a){ return agChip(a, sc.val[a]); }).join("") + '</div>';
+    return h;
+  }
+
+  // ---- ML 1 : classifieur Naive Bayes (lissage de Laplace) ----
+  // entraîné sur un petit lexique + tes propres notes dont le biais USD est renseigné
+  var AG_LEX = {
+    bullish: "hawkish hausse hausses relevement hike hikes higher strong forte fort solide resilient resilience rebond surprise beat above superieur chaud inflation croissance emploi creations refuge",
+    bearish: "dovish baisse baisses cut cuts lower weak faible recul ralentissement recession chomage miss below inferieur deficit shutdown pivot assouplissement detente"
+  };
+  function agTok(s){ return (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[^a-z]+/).filter(function(w){ return w.length > 2; }); }
+  function agNBModel(){
+    var m = { c:{ bullish:{}, bearish:{} }, tot:{ bullish:0, bearish:0 }, v:{}, prior:{ bullish:1, bearish:1 } };
+    function add(cl, w, n){ m.c[cl][w] = (m.c[cl][w] || 0) + n; m.tot[cl] += n; m.v[w] = 1; }
+    Object.keys(AG_LEX).forEach(function(cl){ AG_LEX[cl].split(" ").forEach(function(w){ add(cl, w, 2); }); });
+    agList().forEach(function(e){
+      var u = e.currencies && e.currencies.USD;
+      if(!u || (u.bias !== "bullish" && u.bias !== "bearish")) return;
+      m.prior[u.bias]++;
+      agTok((e.name || "") + " " + (e.details || "")).forEach(function(w){ add(u.bias, w, 1); });
+    });
+    return m;
+  }
+  function agNB(m, text){
+    var toks = agTok(text).filter(function(w){ return m.v[w]; });
+    if(!toks.length) return 0;
+    var V = Object.keys(m.v).length, lb = Math.log(m.prior.bullish), lr = Math.log(m.prior.bearish);
+    toks.forEach(function(w){
+      lb += Math.log(((m.c.bullish[w] || 0) + 1) / (m.tot.bullish + V));
+      lr += Math.log(((m.c.bearish[w] || 0) + 1) / (m.tot.bearish + V));
+    });
+    var p = 1 / (1 + Math.exp(lr - lb));
+    var s = (p - 0.5) * 2 * Math.min(1, toks.length / 3);
+    return Math.abs(s) < 0.2 ? 0 : s;
+  }
+
+  // ---- ML 2 : agrégation pondérée (impact × décroissance temporelle, demi-vie 3 j) ----
+  function agWeekStats(sk, ek, model){
+    var today = agKey(new Date());
+    var ref = (today >= sk && today <= ek) ? today : ek;
+    var acc = {};
+    AG_ASSETS.forEach(function(a){ acc[a] = { num:0, den:0, n:0, drv:[] }; });
+    agList().forEach(function(e){
+      if(!e.date || e.date < sk || e.date > ek || !e.currencies || !Object.keys(e.currencies).length) return;
+      var age = Math.max(0, (agParseKey(ref) - agParseKey(e.date)) / 86400000);
+      var d = Math.pow(0.5, age / 3);
+      var txt = (e.currencies.USD && !e.currencies.USD.bias) ? agNB(model, (e.name || "") + " " + (e.details || "")) : 0;
+      var sc = agScores(e.currencies, txt);
+      AG_ASSETS.forEach(function(a){
+        if(!sc.mag[a]) return;
+        var A = acc[a]; A.num += d * sc.val[a]; A.den += d * sc.mag[a]; A.n++;
+        if(sc.val[a]) A.drv.push({ name:e.name || "", c:d * sc.val[a] });
+      });
+    });
+    return acc;
+  }
+  // prior : moyenne exponentielle des 3 semaines précédentes (lissage bayésien léger)
+  function agPrior(sk, asset, model){
+    var num = 0, den = 0;
+    for(var k = 1; k <= 3; k++){
+      var s = agParseKey(sk); s.setDate(s.getDate() - 7 * k);
+      var e2 = new Date(s); e2.setDate(e2.getDate() + 6);
+      var A = agWeekStats(agKey(s), agKey(e2), model)[asset];
+      if(A.den){ var wk = Math.pow(0.5, k - 1); num += wk * (A.num / A.den); den += wk; }
+    }
+    return den ? num / den : null;
+  }
+  // verdict : inclinaison t ∈ [-1,1] → proba logistique ; confiance croît avec le nombre d'événements
+  function agVerdict(A, prior){
+    if(!A || !A.den) return null;
+    var t = A.num / A.den;
+    if(prior != null) t = 0.8 * t + 0.2 * prior;
+    var p = 1 / (1 + Math.exp(-3 * t * (1 - Math.exp(-A.n / 2))));
+    return { t:t, p:p, n:A.n, lab: p > 0.58 ? "bullish" : p < 0.42 ? "bearish" : "neutre", conf: Math.round(Math.abs(2 * p - 1) * 100) };
+  }
+
+  function agRenderML(sk, ek){
+    var box = $("agML"); if(!box) return;
+    var m = agNBModel(), acc = agWeekStats(sk, ek, m), V = {};
+    AG_ASSETS.forEach(function(a){ V[a] = agVerdict(acc[a], agPrior(sk, a, m)); });
+    var u = V.USD;
+    if(!u){
+      agMLText = "";
+      box.innerHTML = '<h4>Synthèse ML · biais du dollar</h4><div class="hint" style="margin:0;">Ajoute des événements avec devises, impacts et biais : la synthèse s\'affichera ici.</div>';
+      return;
+    }
+    var cls = u.lab === "bullish" ? "up" : u.lab === "bearish" ? "dn" : "";
+    var drv = acc.USD.drv.sort(function(a, b){ return Math.abs(b.c) - Math.abs(a.c); }).slice(0, 3);
+    var drvTxt = drv.map(function(x){ return x.name + " (" + (x.c > 0 ? "USD ▲" : "USD ▼") + ")"; }).join(", ");
+    var others = ["EUR","GBP"].concat(AG_PAIRS).filter(function(a){ return V[a]; });
+    box.innerHTML =
+      '<h4>Synthèse ML · biais du dollar</h4>' +
+      '<div class="ag-ml-main"><span class="ag-ml-badge ' + cls + '">USD ' + u.lab.toUpperCase() + ' · ' + Math.round(u.p * 100) + ' %</span>' +
+      '<div class="ag-ml-gauge"><i style="left:' + Math.round(u.p * 100) + '%"></i></div>' +
+      '<span class="ag-ml-meta">confiance ' + u.conf + ' % · ' + u.n + ' événement' + (u.n > 1 ? "s" : "") + '</span></div>' +
+      '<div class="ag-ml-grid">' + others.map(function(a){
+        var v = V[a]; return '<span class="ag-chip ' + (v.lab === "bullish" ? "up" : v.lab === "bearish" ? "dn" : "") + '">' + a + " " + v.lab + " " + Math.round(v.p * 100) + " %</span>";
+      }).join("") + '</div>' +
+      (drvTxt ? '<div class="ag-ml-drv"><b>Moteurs principaux :</b> ' + escapeHtml(drvTxt) + '</div>' : "") +
+      '<div class="hint" style="margin:6px 0 8px;">Méthode : pondération par impact et récence (demi-vie 3 jours), agrégation logistique, lissage avec les 3 semaines précédentes, classifieur Naive Bayes appris sur tes notes pour les événements sans biais. Indicatif, pas un conseil.</div>' +
+      '<button type="button" class="btn" id="agMLInsert">Insérer dans la revue</button>';
+    agMLText = "Synthèse ML — USD " + u.lab + " (" + Math.round(u.p * 100) + " %, confiance " + u.conf + " %, " + u.n + " événement" + (u.n > 1 ? "s" : "") + "). " +
+      others.filter(function(a){ return a !== "USD"; }).map(function(a){ return a + " " + V[a].lab; }).join(", ") + "." + (drvTxt ? " Moteurs : " + drvTxt + "." : "");
+  }
+  $("agML").addEventListener("click", function(ev){
+    if(!ev.target.closest("#agMLInsert") || !agMLText) return;
+    var ta = $("agReview");
+    ta.value = (ta.value.trim() ? ta.value.replace(/\s+$/, "") + "\n\n" : "") + agMLText;
+    ta.dispatchEvent(new Event("input"));
+  });
+
+  // ---- formulaire : devises / impact / biais à cocher ----
+  function agBuildCcy(cur){
+    var box = $("agCcyBox"); box.innerHTML = "";
+    AG_CCY.forEach(function(c){
+      var v = (cur && cur[c[0]]) || null;
+      var row = document.createElement("div");
+      row.className = "ag-ccy" + (v ? " on" : "");
+      row.setAttribute("data-c", c[0]);
+      row.innerHTML =
+        '<label><input type="checkbox" data-k="on"' + (v ? " checked" : "") + '> <b>' + c[1] + '</b></label>' +
+        '<div class="ag-ccy-g"><span>Impact</span>' +
+          [["faible","Faible"],["moyen","Moyen"],["fort","Fort"]].map(function(o){ return '<label><input type="checkbox" data-g="impact" value="' + o[0] + '"' + (v && v.impact === o[0] ? " checked" : "") + '> ' + o[1] + '</label>'; }).join("") + '</div>' +
+        '<div class="ag-ccy-g"><span>Biais</span>' +
+          '<label class="bu"><input type="checkbox" data-g="bias" value="bullish"' + (v && v.bias === "bullish" ? " checked" : "") + '> Bullish</label>' +
+          '<label class="be"><input type="checkbox" data-g="bias" value="bearish"' + (v && v.bias === "bearish" ? " checked" : "") + '> Bearish</label></div>';
+      box.appendChild(row);
+    });
+  }
+  function agReadCcy(){
+    var o = {};
+    $("agCcyBox").querySelectorAll(".ag-ccy").forEach(function(r){
+      if(!r.querySelector('[data-k="on"]').checked) return;
+      var im = r.querySelector('[data-g="impact"]:checked'), bi = r.querySelector('[data-g="bias"]:checked');
+      o[r.getAttribute("data-c")] = { impact: im ? im.value : "moyen", bias: bi ? bi.value : "" };
+    });
+    return o;
+  }
+  $("agCcyBox").addEventListener("change", function(ev){
+    var t = ev.target, row = t.closest(".ag-ccy"); if(!row) return;
+    var g = t.getAttribute("data-g"), on = row.querySelector('[data-k="on"]');
+    if(g && t.checked){
+      row.querySelectorAll('[data-g="' + g + '"]').forEach(function(x){ if(x !== t) x.checked = false; });
+      on.checked = true;
+    }
+    if(t.getAttribute("data-k") === "on" && t.checked && !row.querySelector('[data-g="impact"]:checked')){
+      row.querySelector('[data-g="impact"][value="moyen"]').checked = true;
+    }
+    row.classList.toggle("on", on.checked);
+    agCorrRender();
+  });
+  function agCorrRender(){
+    var box = $("agCorr"), cur = agReadCcy();
+    if(!Object.keys(cur).length){ box.innerHTML = '<div class="hint" style="margin:0;">Coche les devises concernées pour voir les corrélations déduites.</div>'; return; }
+    var sc = agScores(cur, 0);
+    var h = '<div class="ag-corr-t">Corrélations déduites</div><div class="ag-chips">' + AG_PAIRS.map(function(a){ return agChip(a, sc.val[a]); }).join("") + '</div>';
+    if(cur.USD && !cur.USD.bias){
+      var s = agNB(agNBModel(), $("ag_name").value + " " + $("ag_details").value);
+      if(s) h += '<div class="ag-sug">Suggestion ML pour le USD : <b>' + (s > 0 ? "bullish" : "bearish") + '</b> (' + Math.round(Math.abs(s) * 100) + ' %) <button type="button" class="iconbtn" data-sug="' + (s > 0 ? "bullish" : "bearish") + '">Appliquer</button></div>';
+    }
+    box.innerHTML = h;
+  }
+  $("agCorr").addEventListener("click", function(ev){
+    var b = ev.target.closest("[data-sug]"); if(!b) return;
+    var cb = $("agCcyBox").querySelector('.ag-ccy[data-c="USD"] [data-g="bias"][value="' + b.getAttribute("data-sug") + '"]');
+    if(cb){ cb.checked = true; cb.dispatchEvent(new Event("change", { bubbles:true })); }
+  });
+  $("ag_name").addEventListener("input", agCorrRender);
+  $("ag_details").addEventListener("input", agCorrRender);
 
   // ---- formulaire ----
   function agAddSrcRow(src){
@@ -4770,7 +5015,8 @@
     $("ag_name").value = e ? (e.name || "") : "";
     var todayKey = agKey(new Date()), ws = agKey(agWeek), we = new Date(agWeek); we.setDate(we.getDate() + 6);
     $("ag_date").value = e ? (e.date || "") : ((todayKey >= ws && todayKey <= agKey(we)) ? todayKey : ws);
-    $("ag_impact").value = e ? (e.impact || "") : "";
+    agBuildCcy(e ? e.currencies : null);
+    agCorrRender();
     $("ag_details").value = e ? (e.details || "") : "";
     $("ag_important").value = e ? (e.important || "") : "";
     $("agSrcList").innerHTML = "";
@@ -4791,6 +5037,8 @@
     var date = $("ag_date").value;
     if(!name){ err.textContent = "Donne un nom à l'événement ou à la note."; $("ag_name").focus(); return; }
     if(!date){ err.textContent = "Choisis une date."; $("ag_date").focus(); return; }
+    var cur = agReadCcy();
+    var prevE = agEditId ? agList().find(function(x){ return x.id === agEditId; }) : null;
     var sources = [], bad = "";
     $("agSrcList").querySelectorAll(".ag-src-row").forEach(function(row){
       var raw = row.querySelector('[data-k="url"]').value.trim();
@@ -4801,6 +5049,10 @@
       sources.push({ url:href, label:label });
     });
     if(bad){ err.textContent = "Lien invalide : « " + bad + " ». Utilise une adresse http(s) complète."; return; }
+    var miss = [];
+    if(!sources.length) miss.push("lien");
+    if(!agFormShots.length) miss.push("capture");
+    if(miss.length && !confirm("Aucun " + miss.join(" ni ") + " ajouté pour cet événement. Enregistrer quand même ?")) return;
 
     var btn = this;
     var newOnes = agFormShots.filter(function(sh){ return sh.isNew; });
@@ -4810,7 +5062,7 @@
     Promise.all(newOnes.map(uploadShot)).then(function(){
       var now = new Date().toISOString();
       var payload = {
-        name: name, date: date, impact: $("ag_impact").value,
+        name: name, date: date, impact: agMaxImpact(cur) || (prevE && prevE.impact) || "", currencies: cur,
         details: $("ag_details").value.trim(), important: $("ag_important").value.trim(),
         sources: sources,
         shots: agFormShots.map(function(sh){ return { id:sh.id, desc:(sh.desc || "").trim() }; }),
