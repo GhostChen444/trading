@@ -1222,9 +1222,9 @@
     <div class="tv-list" id="agList"></div>
     <div class="ag-review">
       <h4>Revue de fin de semaine</h4>
-      <div class="hint">Ce qui s'est passé, ce qui a marché, ce que je retiens pour la semaine suivante. Enregistré automatiquement pour la semaine affichée.</div>
+      <div class="hint">Synthèse automatique de la semaine affichée, calculée à partir des événements saisis dans Grandes lignes.</div>
       <div class="ag-ml" id="agML"></div>
-      <textarea id="agReview" placeholder="Bilan de la semaine…"></textarea>
+      <textarea id="agReview" placeholder="Bilan de la semaine…" style="display:none;"></textarea>
     </div>
     </div>
     <div id="agFollowPane" style="display:none;">
@@ -4840,7 +4840,7 @@
     var u = V.USD;
     if(!u){
       agMLText = "";
-      box.innerHTML = '<h4>Synthèse ML · biais du dollar</h4><div class="hint" style="margin:0;">Ajoute des événements avec devises, impacts et biais : la synthèse s\'affichera ici.</div>';
+      box.innerHTML = '<h4>Synthèse · biais du dollar</h4><div class="hint" style="margin:0;">Ajoute des événements avec devises, impacts et biais : la synthèse s\'affichera ici.</div>';
       return;
     }
     var cls = u.lab === "bullish" ? "up" : u.lab === "bearish" ? "dn" : "";
@@ -4848,18 +4848,18 @@
     var drvTxt = drv.map(function(x){ return x.name + " (" + (x.c > 0 ? "USD ▲" : "USD ▼") + ")"; }).join(", ");
     var others = ["EUR","GBP"].concat(AG_PAIRS).filter(function(a){ return V[a]; });
     box.innerHTML =
-      '<h4>Synthèse ML · biais du dollar</h4>' +
+      '<h4>Synthèse · biais du dollar</h4>' +
       '<div class="ag-ml-main"><span class="ag-ml-badge ' + cls + '">USD ' + u.lab.toUpperCase() + ' · ' + Math.round(u.p * 100) + ' %</span>' +
       '<div class="ag-ml-gauge"><i style="left:' + Math.round(u.p * 100) + '%"></i></div>' +
       '<span class="ag-ml-meta">confiance ' + u.conf + ' % · ' + u.n + ' événement' + (u.n > 1 ? "s" : "") + '</span></div>' +
       '<div class="ag-ml-grid">' + others.map(function(a){
         var v = V[a]; return '<span class="ag-chip ' + (v.lab === "bullish" ? "up" : v.lab === "bearish" ? "dn" : "") + '">' + a + " " + v.lab + " " + Math.round(v.p * 100) + " %</span>";
       }).join("") + '</div>' +
-      (drvTxt ? '<div class="ag-ml-drv"><b>Moteurs principaux :</b> ' + escapeHtml(drvTxt) + '</div>' : "") +
-      '<div class="hint" style="margin:6px 0 8px;">Méthode : pondération par impact et récence (demi-vie 3 jours), agrégation logistique, lissage avec les 3 semaines précédentes, classifieur Naive Bayes appris sur tes notes pour les événements sans biais. Indicatif, pas un conseil.</div>' +
-      '<button type="button" class="btn" id="agMLInsert">Insérer dans la revue</button>';
-    agMLText = "Synthèse ML — USD " + u.lab + " (" + Math.round(u.p * 100) + " %, confiance " + u.conf + " %, " + u.n + " événement" + (u.n > 1 ? "s" : "") + "). " +
+      '<div class="hint" style="margin:6px 0 8px;">Méthode : pondération par impact et récence (demi-vie 3 jours), agrégation logistique, lissage avec les 3 semaines précédentes, classifieur Naive Bayes appris sur tes notes pour les événements sans biais. Indicatif, pas un conseil.</div>';
+    agMLText = "USD " + u.lab + " (" + Math.round(u.p * 100) + " %, confiance " + u.conf + " %, " + u.n + " événement" + (u.n > 1 ? "s" : "") + "). " +
       others.filter(function(a){ return a !== "USD"; }).map(function(a){ return a + " " + V[a].lab; }).join(", ") + "." + (drvTxt ? " Moteurs : " + drvTxt + "." : "");
+    var nar = document.createElement("div"); nar.className = "ag-ml-drv"; nar.textContent = agMLText;
+    box.insertBefore(nar, box.querySelector(".hint"));
   }
   $("agML").addEventListener("click", function(ev){
     if(!ev.target.closest("#agMLInsert") || !agMLText) return;
@@ -4915,7 +4915,7 @@
     var h = '<div class="ag-corr-t">Corrélations déduites</div><div class="ag-chips">' + AG_PAIRS.map(function(a){ return agChip(a, sc.val[a]); }).join("") + '</div>';
     if(cur.USD && !cur.USD.bias){
       var s = agNB(agNBModel(), $("ag_name").value + " " + $("ag_details").value);
-      if(s) h += '<div class="ag-sug">Suggestion ML pour le USD : <b>' + (s > 0 ? "bullish" : "bearish") + '</b> (' + Math.round(Math.abs(s) * 100) + ' %) <button type="button" class="iconbtn" data-sug="' + (s > 0 ? "bullish" : "bearish") + '">Appliquer</button></div>';
+      if(s) h += '<div class="ag-sug">Suggestion pour le USD : <b>' + (s > 0 ? "bullish" : "bearish") + '</b> (' + Math.round(Math.abs(s) * 100) + ' %) <button type="button" class="iconbtn" data-sug="' + (s > 0 ? "bullish" : "bearish") + '">Appliquer</button></div>';
     }
     box.innerHTML = h;
   }
