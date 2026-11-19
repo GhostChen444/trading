@@ -4428,7 +4428,7 @@
   // =====================================================================
   var IMPACT_LABELS = { faible:"Impact faible", moyen:"Impact moyen", fort:"Impact fort" };
   var agEditId = null, agFormShots = [], agFormRemoved = [];
-  var agShownKey = "", agReviewTimer = null, agPreCtx = null;
+  var agShownKey = "", agReviewTimer = null, agPreCtx = null, agPrePairs = [];
 
   function agList(){ if(!root) return []; if(!Array.isArray(root.agenda)) root.agenda = []; return root.agenda; }
   function agReviews(){ if(!root) return {}; if(!root.agendaReviews || typeof root.agendaReviews !== "object") root.agendaReviews = {}; return root.agendaReviews; }
@@ -4486,7 +4486,7 @@
         if(linked[key] || linked[c.key]) return;
         var cur = agNLP(txt, a, c.pairs);
         flat.push({ virtual:true, date:c.date, accId:c.accId, accName:c.accName, pairs:c.pairs, createdAt:"~", type:a, text:txt,
-                    key:key, name:txt.split("\n")[0].slice(0, 60), details:txt, currencies:cur, impact:agMaxImpact(cur) });
+                    key:key, baseKey:c.key, geoText:c.geo, macroText:c.macro, name:txt.split("\n")[0].slice(0, 60), details:txt, currencies:cur, impact:agMaxImpact(cur) });
       });
     });
     return flat;
@@ -4605,9 +4605,14 @@
       (hasSig ? '<div class="ag-ml-meta">Analyse NLP · biais et impact par monnaie, corrélations sur le reste</div>' + agCcyHtml({ currencies:c.currencies })
               : '<div class="ag-ml-meta">Analyse NLP : aucun signal exploitable dans ce texte.</div>');
     item.querySelector('[data-act="enrich"]').addEventListener("click", function(){
+      // le formulaire reprend les deux contextes du trade ; les deux types sont cochés, l'analyse NLP remplit les monnaies
+      var parts = [], types = [];
+      if(c.geoText){ parts.push("Contexte géopolitique : " + c.geoText); types.push("geo"); }
+      if(c.macroText){ parts.push("Contexte macro : " + c.macroText); types.push("macro"); }
       openAgendaForm(null, {
-        key:c.key, date:c.date, name:c.name, type:c.type, currencies:c.currencies,
-        details: (geo ? "Contexte géopolitique : " : "Contexte macro : ") + c.text + (c.pairs.length ? "\nPaires tradées : " + c.pairs.join(", ") : "")
+        key:c.baseKey, date:c.date, name:((c.geoText || c.macroText || "").split("\n")[0]).slice(0, 60),
+        types:types, pairs:c.pairs, currencies:agNLP((c.geoText || "") + ". " + (c.macroText || ""), "", c.pairs),
+        details: parts.join("\n") + (c.pairs.length ? "\nPaires tradées : " + c.pairs.join(", ") : "")
       });
     });
     var btn = item.querySelector('[data-act="day"]');
@@ -4702,7 +4707,7 @@
     item.className = "tv-item ag-entry";
     var details = (e.details || "").trim(), imp = (e.important || "").trim();
     var impTag = IMPACT_LABELS[e.impact] ? '<span class="tag ag-imp-' + e.impact + '">' + IMPACT_LABELS[e.impact] + '</span>' : "";
-    if(e.type) impTag += '<span class="tag">' + (e.type === "geo" ? "Géopolitique" : "Macro") + '</span>';
+    agTypes(e).forEach(function(ty){ impTag += '<span class="tag">' + (ty === "geo" ? "Géopolitique" : "Macro") + '</span>'; });
     item.innerHTML =
       '<div class="tv-top">' +
         '<span class="tv-pair">' + escapeHtml(e.name || "(sans titre)") + '</span>' + impTag +
@@ -4752,6 +4757,8 @@
   var AG_PAIRS = ["EURUSD","GBPUSD","XAUUSD","USTEC"];
   var AG_ASSETS = ["USD","EUR","GBP"].concat(AG_PAIRS);
   var agMLText = "";
+  function agTypes(e){ return Array.isArray(e && e.types) ? e.types : (e && e.type ? [e.type] : []); }
+  function agDetectTypes(t){ var o = []; if(/contexte\s+g[ée]opolitique/i.test(t || "")) o.push("geo"); if(/contexte\s+macro/i.test(t || "")) o.push("macro"); return o; }
   function agSign(b){ return b === "bullish" ? 1 : b === "bearish" ? -1 : 0; }
 
   // Corrélations : USD ↑ => EURUSD, GBPUSD, XAUUSD, Nasdaq ↓ (inversement si USD ↓) ;
@@ -4904,7 +4911,7 @@
     var c = e.currencies || {}, x = [], i, lex = 0;
     for(i = 0; i < AG_DIM; i++) x.push(0);
     agTok((e.name || "") + " " + (e.details || "")).forEach(function(w){ x[agHash(w)] = Math.min(1, x[agHash(w)] + 0.5); lex += AG_LEXSET[w] || 0; });
-    x.push(e.type === "macro" ? 1 : 0, e.type === "geo" ? 1 : 0, c.USD ? (AG_W[c.USD.impact] || 2) / 3 : 0);
+    var ty = agTypes(e); x.push(ty.indexOf("macro") >= 0 ? 1 : 0, ty.indexOf("geo") >= 0 ? 1 : 0, c.USD ? (AG_W[c.USD.impact] || 2) / 3 : 0);
     ["EUR","GBP","NAS"].forEach(function(k){ var v = c[k]; x.push(v ? agSign(v.bias) * (AG_W[v.impact] || 2) / 3 : 0); });
     x.push(Math.max(-1, Math.min(1, lex / 3)), 1);
     return x;
@@ -4985,13 +4992,9 @@
     agBestCache = { key:key, val:val };
     return val;
   }
-  function agReadType(){ var c = $("agTypeBox").querySelector("input:checked"); return c ? c.value : ""; }
-  function agSetType(t){ $("agTypeBox").querySelectorAll("input").forEach(function(x){ x.checked = (x.value === t); }); }
-  $("agTypeBox").addEventListener("change", function(ev){
-    var t = ev.target;
-    if(t.checked) this.querySelectorAll("input").forEach(function(x){ if(x !== t) x.checked = false; });
-    agCorrRender();
-  });
+  function agReadType(){ var o = []; $("agTypeBox").querySelectorAll("input:checked").forEach(function(x){ o.push(x.value); }); return o; }
+  function agSetType(t){ var a = Array.isArray(t) ? t : (t ? [t] : []); $("agTypeBox").querySelectorAll("input").forEach(function(x){ x.checked = a.indexOf(x.value) >= 0; }); }
+  $("agTypeBox").addEventListener("change", function(){ agCorrRender(); });
 
   // ---- ML 2 : agrégation pondérée (impact × décroissance temporelle, demi-vie 3 j) ----
   function agWeekStats(sk, ek, model){
@@ -5011,7 +5014,7 @@
         var A = acc[a]; A.num += d * sc.val[a]; A.den += d * sc.mag[a]; A.n++;
         if(sc.val[a]) A.drv.push({ name:e.name || "", c:d * sc.val[a] });
       });
-      if(sc.mag.USD && acc.types[e.type]){ var T = acc.types[e.type]; T.num += d * sc.val.USD; T.den += d * sc.mag.USD; T.n++; }
+      if(sc.mag.USD) agTypes(e).forEach(function(ty){ var T = acc.types[ty]; if(!T) return; T.num += d * sc.val.USD; T.den += d * sc.mag.USD; T.n++; });
     });
     return acc;
   }
@@ -5118,16 +5121,22 @@
   });
   function agCorrRender(){
     var box = $("agCorr"), cur = agReadCcy();
-    if(!Object.keys(cur).length){ box.innerHTML = '<div class="hint" style="margin:0;">Coche les devises concernées pour voir les corrélations déduites.</div>'; return; }
+    var nlpBtn = '<div class="ag-sug"><button type="button" class="iconbtn" data-nlp="1">Analyser la description (NLP)</button></div>';
+    if(!Object.keys(cur).length){ box.innerHTML = '<div class="hint" style="margin:0;">Coche les devises concernées pour voir les corrélations déduites.</div>' + nlpBtn; return; }
     var sc = agScores(cur, 0);
     var h = '<div class="ag-corr-t">Corrélations déduites</div><div class="ag-chips">' + AG_PAIRS.map(function(a){ return agChip(a, sc.val[a]); }).join("") + '</div>';
     if(cur.USD && !cur.USD.bias){
-      var s = agBest().pred({ name:$("ag_name").value, details:$("ag_details").value, type:agReadType(), currencies:cur });
+      var s = agBest().pred({ name:$("ag_name").value, details:$("ag_details").value, types:agReadType(), currencies:cur });
       if(s) h += '<div class="ag-sug">Suggestion pour le USD : <b>' + (s > 0 ? "bullish" : "bearish") + '</b> (' + Math.round(Math.abs(s) * 100) + ' %) <button type="button" class="iconbtn" data-sug="' + (s > 0 ? "bullish" : "bearish") + '">Appliquer</button></div>';
     }
-    box.innerHTML = h;
+    box.innerHTML = h + nlpBtn;
   }
   $("agCorr").addEventListener("click", function(ev){
+    if(ev.target.closest("[data-nlp]")){
+      agBuildCcy(agNLP($("ag_name").value + ". " + $("ag_details").value, "", agPrePairs));
+      var dt = agDetectTypes($("ag_details").value); if(dt.length) agSetType(dt);
+      agCorrRender(); return;
+    }
     var b = ev.target.closest("[data-sug]"); if(!b) return;
     var cb = $("agCcyBox").querySelector('.ag-ccy[data-c="USD"] [data-g="bias"][value="' + b.getAttribute("data-sug") + '"]');
     if(cb){ cb.checked = true; cb.dispatchEvent(new Event("change", { bubbles:true })); }
@@ -5223,12 +5232,13 @@
     $("ag_name").value = e ? (e.name || "") : "";
     var todayKey = agKey(new Date()), ws = agKey(agWeek), we = new Date(agWeek); we.setDate(we.getDate() + 6);
     $("ag_date").value = e ? (e.date || "") : ((todayKey >= ws && todayKey <= agKey(we)) ? todayKey : ws);
-    agSetType(e ? e.type : (pre ? pre.type : ""));
+    agSetType(e ? agTypes(e) : (pre ? pre.types : []));
     agBuildCcy(e ? e.currencies : (pre ? pre.currencies : null));
     agCorrRender();
     $("ag_details").value = e ? (e.details || "") : "";
     $("ag_important").value = e ? (e.important || "") : "";
     agPreCtx = (!e && pre) ? pre.key : null;
+    agPrePairs = (!e && pre && pre.pairs) ? pre.pairs : [];
     if(!e && pre){
       $("ag_name").value = pre.name; $("ag_date").value = pre.date; $("ag_details").value = pre.details;
       $("agFormTitle").textContent = "Détailler l'événement du trade";
@@ -5277,7 +5287,7 @@
     Promise.all(newOnes.map(uploadShot)).then(function(){
       var now = new Date().toISOString();
       var payload = {
-        name: name, date: date, impact: agMaxImpact(cur) || (prevE && prevE.impact) || "", currencies: cur, type: agReadType(),
+        name: name, date: date, impact: agMaxImpact(cur) || (prevE && prevE.impact) || "", currencies: cur, types: agReadType(), type: agReadType()[0] || "",
         details: $("ag_details").value.trim(), important: $("ag_important").value.trim(),
         sources: sources,
         shots: agFormShots.map(function(sh){ return { id:sh.id, desc:(sh.desc || "").trim() }; }),
