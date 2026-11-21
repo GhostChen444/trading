@@ -819,6 +819,31 @@
   .ag-sy-stats div{display:flex; flex-direction:column; gap:4px;}
   .ag-sy-stats span{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
   .ag-sy-stats b{font-weight:500; font-size:15px; color:var(--text);}
+  .ag-rv-head{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:10px 16px; margin-bottom:4px;}
+  .ag-rv-head h4{margin:0 !important;}
+  .ag-rv-btns{display:flex; gap:8px; flex-wrap:wrap;}
+  .ag-rvbtn{background:transparent; border:1px solid var(--border); color:var(--text-dim); border-radius:var(--r); padding:7px 13px; font-size:12.5px; cursor:pointer;}
+  .ag-rvbtn:hover:not(:disabled){border-color:var(--gold-soft); color:var(--gold);}
+  .ag-rvbtn:disabled{opacity:.4; cursor:not-allowed;}
+  .ag-rvbtn.alert{border-color:var(--gold); color:var(--gold); background:rgba(200,155,74,0.12); animation:agRvPulse 1.6s ease-in-out infinite;}
+  @keyframes agRvPulse{0%,100%{box-shadow:0 0 0 0 rgba(200,155,74,0.35);}50%{box-shadow:0 0 0 5px rgba(200,155,74,0);}}
+  .ag-rv-status{font-size:12px; color:var(--text-faint); margin:0 0 12px; min-height:16px;}
+  .ag-rv-status.warn{color:var(--gold);}
+  .ag-rv-off{padding:22px 24px; border:1px dashed var(--border); border-radius:var(--r); color:var(--text-dim); font-size:13.5px; line-height:1.6; background:var(--bg-2); margin:10px 0 26px;}
+  .ag-nb{margin:0 24px 28px; padding:14px 18px; border:1px solid var(--gold-soft); border-left:3px solid var(--gold); border-radius:0 var(--r) var(--r) 0; background:rgba(200,155,74,0.07); font-size:13px; line-height:1.65; color:var(--text-dim);}
+  .ag-nb b{color:var(--gold);}
+  .ag-mo-tbl-w{overflow-x:auto; border:1px solid var(--border-soft); border-radius:var(--r);}
+  .ag-mo-tbl{width:100%; border-collapse:collapse; font-size:12.5px; min-width:560px;}
+  .ag-mo-tbl th{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); text-align:left; padding:10px 12px; border-bottom:1px solid var(--border-soft); font-weight:500;}
+  .ag-mo-tbl td{padding:10px 12px; border-bottom:1px solid var(--border-soft); color:var(--text-dim); vertical-align:middle;}
+  .ag-mo-tbl tr:last-child td{border-bottom:0;}
+  .ag-mo-tbl tr.off td{opacity:.55;}
+  .ag-mo-chip{display:inline-block; font-family:var(--mono); font-size:11px; padding:2px 8px; border-radius:20px; border:1px solid var(--border); white-space:nowrap;}
+  .ag-mo-chip.up{color:var(--green); border-color:var(--green); background:var(--green-soft);}
+  .ag-mo-chip.dn{color:var(--red); border-color:var(--red); background:var(--red-soft);}
+  .ag-mo-p{font-size:13.5px; line-height:1.7; color:var(--text-dim); margin:0 0 10px;}
+  .ag-mo-p b{color:var(--text);}
+  .ag-mo-cols{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:18px;}
   .ag-sy-intro{font-size:13px; line-height:1.6; color:var(--text-dim); margin:-4px 0 14px;}
   .ag-sy-card small{font-size:11.5px; line-height:1.45; color:var(--text-dim);}
   .ag-sy-card.warn{border-left-color:var(--gold); border-left-style:solid; background:linear-gradient(90deg, rgba(200,155,74,0.10), var(--bg-2) 80%);}
@@ -1356,6 +1381,7 @@
     <div class="ag-subtabs" id="agSubTabs">
       <button type="button" class="active" data-ag="week">Semaine</button>
       <button type="button" data-ag="follow">À suivre<span class="mt-count" id="agFollowCount"></span></button>
+      <button type="button" data-ag="month">Revue mensuelle</button>
     </div>
     <div id="agWeekPane">
     <div class="tv-bar">
@@ -1389,11 +1415,19 @@
     </div>
     <div class="tv-list" id="agList"></div>
     <div class="ag-review">
-      <h4>Revue de fin de semaine</h4>
-      <div class="hint">Synthèse automatique de la semaine affichée, calculée à partir des événements saisis dans Grandes lignes.</div>
+      <div class="ag-rv-head">
+        <h4>Revue de fin de semaine</h4>
+        <div class="ag-rv-btns">
+          <button type="button" class="ag-rvbtn" id="agRvRefresh" title="Recalculer le biais avec les grandes lignes actuelles">↻ Actualiser</button>
+          <button type="button" class="ag-rvbtn" id="agRvToggle">Masquer la revue</button>
+        </div>
+      </div>
+      <div class="hint">Synthèse de la semaine affichée, calculée à partir des événements saisis dans Grandes lignes. Elle reste figée tant que tu ne cliques pas sur « Actualiser ».</div>
+      <div class="ag-rv-status" id="agRvStatus"></div>
       <div class="ag-ml" id="agML"></div>
       <textarea id="agReview" placeholder="Bilan de la semaine…" style="display:none;"></textarea>
     </div>
+    <div class="ag-nb"><b>NB :</b> ces biais sont <b>temporaires</b>. Ils ne sont à prendre en compte que si la <b>technique ne montre aucun changement d’état de délivrance</b>, donc <b>aucun changement de tendance</b>.</div>
     </div>
     <div id="agFollowPane" style="display:none;">
       <div class="ag-follow-form">
@@ -1418,6 +1452,27 @@
         <div class="form-error" id="agfError"></div>
       </div>
       <div class="tv-list" id="agFollowList"></div>
+    </div>
+    <div id="agMonthPane" style="display:none;">
+      <div class="tv-bar">
+        <button class="navbtn" type="button" id="agmPrev" aria-label="Mois précédent">‹</button>
+        <div class="ag-weeklabel" id="agmLabel"></div>
+        <button class="navbtn" type="button" id="agmNext" aria-label="Mois suivant">›</button>
+        <button class="todaybtn" type="button" id="agmToday">Ce mois</button>
+      </div>
+      <div class="ag-review">
+        <div class="ag-rv-head">
+          <h4>Revue mensuelle</h4>
+          <div class="ag-rv-btns">
+            <button type="button" class="ag-rvbtn" id="agmGen">Générer la revue du mois</button>
+            <button type="button" class="ag-rvbtn" id="agmToggle">Masquer la revue</button>
+          </div>
+        </div>
+        <div class="hint">Construite à partir des synthèses hebdomadaires du mois : contexte géopolitique et macro, grands moteurs marquants et biais de fond.</div>
+        <div class="ag-rv-status" id="agmStatus"></div>
+        <div class="ag-ml" id="agMonthBox"></div>
+      </div>
+      <div class="ag-nb"><b>NB :</b> ces biais sont <b>temporaires</b>. Ils ne sont à prendre en compte que si la <b>technique ne montre aucun changement d’état de délivrance</b>, donc <b>aucun changement de tendance</b>.</div>
     </div>
   </section>
 
@@ -2784,7 +2839,7 @@
   // Modèle de données
   // =====================================================================
   function newId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null }, agenda:[], agendaReviews:{}, agendaFollow:[], aggressive:[], aggrNotes:[], missed:[] }; }
+  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null }, agenda:[], agendaReviews:{}, agendaSnap:{}, agendaMonthly:{}, agendaRvUi:{}, agendaFollow:[], aggressive:[], aggrNotes:[], missed:[] }; }
   function defaultAccountSettings(){ return { broker:"", currency:"USD", initial:10000, leverage:"", risk:1 }; }
 
   function isValidRoot(obj){
@@ -2822,6 +2877,7 @@
     if(!Array.isArray(out.aggrNotes)) out.aggrNotes = [];
     if(!Array.isArray(out.missed)) out.missed = [];
     if(!out.agendaReviews || typeof out.agendaReviews !== "object" || Array.isArray(out.agendaReviews)) out.agendaReviews = {};
+    ["agendaSnap", "agendaMonthly", "agendaRvUi"].forEach(function(k){ if(!out[k] || typeof out[k] !== "object" || Array.isArray(out[k])) out[k] = {}; });
     out.accounts.forEach(function(a){
       if(!a.id) a.id = newId("a_");
       if(!a.name) a.name = "Compte";
@@ -4787,7 +4843,7 @@
   var agSub = "week";
   function agSetSub(sub){
     agFlushReview();
-    agSub = sub === "follow" ? "follow" : "week";
+    agSub = sub === "follow" ? "follow" : (sub === "month" ? "month" : "week");
     renderAgenda();
   }
   document.querySelectorAll("#agSubTabs button").forEach(function(b){
@@ -4834,6 +4890,8 @@
     document.querySelectorAll("#agSubTabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-ag") === agSub); });
     $("agWeekPane").style.display = agSub === "week" ? "" : "none";
     $("agFollowPane").style.display = agSub === "follow" ? "" : "none";
+    $("agMonthPane").style.display = agSub === "month" ? "" : "none";
+    if(agSub === "month"){ renderMonth(); updateAgendaTabCount(); return; }
     if(agSub === "follow"){ renderFollow(); updateAgendaTabCount(); return; }
     var start = agWeek, end = new Date(start); end.setDate(end.getDate() + 6);
     var sk = agKey(start), ek = agKey(end);
@@ -5441,8 +5499,7 @@
       eco("USTEC global", "", kk(us.lab), ar(us.lab), resSub, true) + '</div>' +
       '<div class="ag-sy-tip"><b>USTEC = 60 % tech et croissance + 40 % dollar.</b> Le biais global est la synthèse des deux écosystèmes : un dollar fort pèse sur le Nasdaq, des actions tech en bonne santé le soutiennent. Une moitié sans donnée compte pour neutre.</div>';
   }
-  function agRenderML(sk, ek){
-    var box = $("agML"); if(!box) return;
+  function agBuildML(sk, ek){
     var m = agBest(), acc = agWeekStats(sk, ek, m), V = {};
     AG_ASSETS.forEach(function(a){ V[a] = agVerdict(acc[a], agPrior(sk, a, m)); });
     V.USTEC = agUstec(V.TECH, V.USDD);   // USTEC = synthèse 50/50 tech + dollar
@@ -5451,8 +5508,7 @@
     var head = '<div class="ag-sy-head"><h4>Synthèse · biais du dollar</h4><span class="ag-sy-week">' + escapeHtml(agWeekLabelText(agParseKey(sk))) + '</span></div>';
     if(!u){
       agMLText = "";
-      box.innerHTML = head + '<div class="ag-sy-empty">Ajoute des événements avec devises, impacts et biais : la synthèse s\'affichera ici.</div>';
-      return;
+      return { html: head + '<div class="ag-sy-empty">Ajoute des événements avec devises, impacts et biais : la synthèse s\'affichera ici.</div>', data: null };
     }
     function k(v){ return v.lab === "bullish" ? "up" : v.lab === "bearish" ? "dn" : "neu"; }
     function nTxt(n, w){ return n + " " + w + (n > 1 ? "s" : ""); }
@@ -5590,7 +5646,21 @@
     }
 
     agMLText = "";
-    box.innerHTML = h;
+    // données structurées de la synthèse : conservées avec la revue figée et réutilisées par la revue mensuelle
+    function sv(v){ return v ? { lab:v.lab, p:Math.round(v.p * 1000) / 1000, t:Math.round(v.t * 1000) / 1000, nEff:Math.round((v.nEff || 0) * 100) / 100, n:v.n || 0, nn:v.nn || 0, allNeu:!!v.allNeu } : null; }
+    var wk = agWeekItems(sk, ek), IW = { fort:3, moyen:2, faible:1, neutre:0.5 };
+    var evs = wk.map(function(e){ return { name:(e.name || "").trim().slice(0, 80), type:agTypes(e), impact:e.impact || "", date:e.date || "" }; })
+      .filter(function(e){ return e.name; })
+      .sort(function(a, b){ return (IW[b.impact] || 0) - (IW[a.impact] || 0); }).slice(0, 10);
+    function dr(list){ return agDrivers(list).map(function(x){ return { name:x.name, c:Math.round(x.c * 100) / 100 }; }); }
+    var dataOut = {
+      sk:sk, ek:ek, n:wk.length, usd:sv(V.USD), tech:sv(V.TECH), dol:sv(V.USDD), ustec:sv(V.USTEC),
+      usdLab:usdLab, techL:techL, dolL:dolL, noData:usdNone,
+      pairsAct: usdLab === "bullish" ? "sell" : usdLab === "bearish" ? "buy" : "abstain",
+      ustAct: (techL === "bearish" && dolL === "bullish") ? "sell" : ((techL === "bullish" && dolL === "bearish") ? "buy" : "abstain"),
+      dDrv: dr(acc.USDD.drv), tDrv: dr(techDrv), events: evs
+    };
+    return { html: h, data: dataOut };
   }
   $("agML").addEventListener("click", function(ev){
     if(!ev.target.closest("#agMLInsert") || !agMLText) return;
@@ -5598,6 +5668,300 @@
     ta.value = (ta.value.trim() ? ta.value.replace(/\s+$/, "") + "\n\n" : "") + agMLText;
     ta.dispatchEvent(new Event("input"));
   });
+
+
+  // =====================================================================
+  // Revue de semaine figée (↻ Actualiser, Masquer/Afficher) + revue mensuelle bâtie sur les synthèses hebdo.
+  // root.agendaSnap[lundi] = { ts, sig, html, data } · root.agendaMonthly["AAAA-MM"] = { ts, html, wsig, weeks }
+  // root.agendaRvUi[clé] = true (masquée) | false (affichée) ; clé = lundi de la semaine ou "m:AAAA-MM"
+  // =====================================================================
+  function agStore(k){ if(!root) return {}; if(!root[k] || typeof root[k] !== "object" || Array.isArray(root[k])) root[k] = {}; return root[k]; }
+  function agSnaps(){ return agStore("agendaSnap"); }
+  function agRvUi(){ return agStore("agendaRvUi"); }
+  function agHashStr(str){ var h = 5381; for(var i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+  function agWeekEnd(sk){ var e = agParseKey(sk); e.setDate(e.getDate() + 6); return agKey(e); }
+  function agFmtTs(iso){
+    var d = new Date(iso); if(isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("fr-FR", { day:"numeric", month:"short" }) + " à " + d.toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
+  }
+  // signature des grandes lignes de la semaine : change dès qu’une note est ajoutée, modifiée ou supprimée
+  function agWeekSig(sk, ek){
+    return agHashStr(agWeekItems(sk, ek).map(function(e){
+      return (e.id || e.key || "") + "|" + (e.updatedAt || e.createdAt || "") + "|" + (e.name || "") + "|" + (e.impact || "") + "|" + JSON.stringify(e.currencies || {});
+    }).join("§"));
+  }
+  function agRvHidden(key){
+    var v = agRvUi()[key];
+    if(v === true || v === false) return v;
+    if(key.slice(0, 2) === "m:") return false;
+    // par défaut, la semaine en cours reste masquée du lundi au jeudi : trop tôt pour établir un biais
+    var now = new Date(), d = now.getDay();
+    return key === agKey(agMonday(now)) && d >= 1 && d <= 4;
+  }
+  function agSnapshot(sk, ek){
+    var r = agBuildML(sk, ek);
+    var sn = { ts:new Date().toISOString(), sig:agWeekSig(sk, ek), html:r.html, data:r.data };
+    agSnaps()[sk] = sn;
+    persist();
+    return sn;
+  }
+
+  function agRenderML(sk, ek){
+    var box = $("agML"); if(!box) return;
+    var btnT = $("agRvToggle"), btnR = $("agRvRefresh"), st = $("agRvStatus");
+    var hid = agRvHidden(sk);
+    btnT.textContent = hid ? "Afficher la revue" : "Masquer la revue";
+    btnR.disabled = hid;
+    btnR.classList.remove("alert");
+    st.className = "ag-rv-status";
+    if(hid){
+      box.innerHTML = '<div class="ag-rv-off"><b>Revue masquée.</b> En milieu de semaine, c’est trop tôt pour établir un biais : continue à saisir tes grandes lignes. Clique sur « Afficher la revue » quand tu veux la voir, puis sur « Actualiser » après chaque nouvelle grande ligne.</div>';
+      st.textContent = "";
+      return;
+    }
+    var sn = agSnaps()[sk];
+    if(!sn && !agWeekItems(sk, ek).length){ box.innerHTML = agBuildML(sk, ek).html; st.textContent = ""; return; }
+    if(!sn) sn = agSnapshot(sk, ek);
+    box.innerHTML = sn.html;
+    var stale = sn.sig !== agWeekSig(sk, ek), ts = agFmtTs(sn.ts);
+    btnR.classList.toggle("alert", stale);
+    st.className = "ag-rv-status" + (stale ? " warn" : "");
+    st.innerHTML = stale
+      ? "<b>Les grandes lignes ont changé depuis la dernière actualisation</b> (" + escapeHtml(ts) + "). Clique sur « Actualiser » pour recalculer le biais."
+      : "À jour · calculée le " + escapeHtml(ts) + ".";
+  }
+  $("agRvToggle").addEventListener("click", function(){
+    var sk = agShownKey; if(!sk) return;
+    agRvUi()[sk] = !agRvHidden(sk);
+    persist();
+    agRenderML(sk, agWeekEnd(sk));
+  });
+  $("agRvRefresh").addEventListener("click", function(){
+    var sk = agShownKey; if(!sk) return;
+    var ek = agWeekEnd(sk);
+    if(agWeekItems(sk, ek).length) agSnapshot(sk, ek);
+    else { delete agSnaps()[sk]; persist(); }
+    agRenderML(sk, ek);
+  });
+
+  // ---------- revue mensuelle ----------
+  var agMonthD = new Date(); agMonthD = new Date(agMonthD.getFullYear(), agMonthD.getMonth(), 1);
+  function agMonthKey(d){ return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2); }
+  // semaines ISO dont le jeudi tombe dans le mois
+  function agMonthWeeks(d){
+    var out = [], st = agMonday(new Date(d.getFullYear(), d.getMonth(), 1));
+    for(var i = 0; i < 6; i++){
+      var thu = new Date(st); thu.setDate(thu.getDate() + 3);
+      if(thu.getMonth() === d.getMonth() && thu.getFullYear() === d.getFullYear()){
+        var en = new Date(st); en.setDate(en.getDate() + 6);
+        out.push({ sk:agKey(st), ek:agKey(en), start:new Date(st) });
+      }
+      st.setDate(st.getDate() + 7);
+    }
+    return out;
+  }
+  function agMonthParts(weeks){
+    var snaps = agSnaps();
+    return weeks.map(function(w){ return snaps[w.sk] ? "s" + snaps[w.sk].ts : "l" + agWeekSig(w.sk, w.ek); }).join("|");
+  }
+
+  function agBuildMonth(d){
+    var weeks = agMonthWeeks(d), snaps = agSnaps(), rows = [];
+    weeks.forEach(function(w){
+      var sn = snaps[w.sk], data = null, live = false;
+      if(sn) data = sn.data;
+      else if(agWeekItems(w.sk, w.ek).length){ data = agBuildML(w.sk, w.ek).data; live = true; }
+      rows.push({ w:w, data:data, live:live });
+    });
+    var used = rows.filter(function(r){ return r.data; });
+    var mTitle = MONTHS_FR[d.getMonth()] + " " + d.getFullYear();
+    var head = '<div class="ag-sy-head"><h4>Synthèse mensuelle · biais du dollar</h4><span class="ag-sy-week">' + escapeHtml(mTitle) + '</span></div>';
+    if(!used.length) return { html: head + '<div class="ag-sy-empty">Aucune synthèse hebdomadaire ce mois-ci : ajoute des grandes lignes avec devises, impacts et biais pour générer la revue.</div>', weeks:0, wsig:agMonthParts(weeks) };
+
+    // agrégation pondérée des semaines : évidence (impact × fraîcheur) × récence (les dernières semaines pèsent un peu plus)
+    function agg(key){
+      var num = 0, den = 0, nEff = 0, n = 0, nn = 0, pos = 0, neg = 0, neu = 0;
+      used.forEach(function(r, i){
+        var v = r.data[key]; if(!v) return;
+        var ev = 1 - Math.exp(-(v.nEff || 0) / 2), wg = (0.15 + ev) * (1 + 0.25 * i);
+        num += wg * v.t; den += wg; nEff += (v.nEff || 0); n += v.n || 0; nn += v.nn || 0;
+        if(v.lab === "bullish") pos++; else if(v.lab === "bearish") neg++; else neu++;
+      });
+      if(!den) return null;
+      var t = num / den, p = 1 / (1 + Math.exp(-3 * t * (1 - Math.exp(-nEff / 2))));
+      var lab = p > 0.58 ? "bullish" : p < 0.42 ? "bearish" : "neutre", dirW = pos + neg;
+      return { t:t, p:p, lab:lab, conf:Math.round(Math.abs(2 * p - 1) * 100), nEff:nEff, n:n, nn:nn, pos:pos, neg:neg, neu:neu,
+               coh:(dirW && lab !== "neutre") ? Math.round(100 * (lab === "bullish" ? pos : neg) / dirW) : null, allNeu:(n > 0 && nn >= n) };
+    }
+    var U = agg("usd"), T = agg("tech"), D = agg("dol");
+    var usdLab = (U && !U.allNeu) ? U.lab : "neutre", techL = T ? T.lab : "neutre", dolL = D ? D.lab : "neutre";
+    function kk(l){ return l === "bullish" ? "up" : l === "bearish" ? "dn" : "neu"; }
+    function chip(l){ return '<span class="ag-mo-chip ' + kk(l) + '">' + (l === "bullish" ? "▲ Bullish" : l === "bearish" ? "▼ Bearish" : "● Neutre") + '</span>'; }
+    function actTxt(a){ return a === "sell" ? "SELL" : a === "buy" ? "BUY" : "S’abstenir"; }
+    function actChip(a){ return '<span class="ag-mo-chip ' + (a === "sell" ? "dn" : a === "buy" ? "up" : "") + '">' + actTxt(a) + '</span>'; }
+    var pairsAct = usdLab === "bullish" ? "sell" : usdLab === "bearish" ? "buy" : "abstain";
+    var ustAct = (techL === "bearish" && dolL === "bullish") ? "sell" : ((techL === "bullish" && dolL === "bearish") ? "buy" : "abstain");
+
+    // ---- carte principale ----
+    var pct = U ? Math.round(U.p * 100) : 50, cls = kk(usdLab);
+    var labTxt = !U ? "AUCUN BIAIS SAISI" : (U.allNeu ? "NEUTRE" : U.lab.toUpperCase());
+    var h = head +
+      '<div class="ag-sy-hero ' + cls + '">' +
+        '<div><span class="ag-sy-eyebrow">Biais de fond du mois</span>' +
+          '<div class="ag-sy-verdict"><span class="ag-sy-ccy">USD</span><span class="ag-sy-lab">' + labTxt + '</span></div>' +
+          ((U && !U.allNeu) ? '<div class="ag-sy-pct">' + pct + ' %<small>estimation</small></div>' : '') +
+        '</div>' +
+        '<div><div class="ag-sy-gauge"><i style="left:' + pct + '%"></i></div>' +
+          '<div class="ag-sy-scale"><span>Bearish</span><span>Neutre</span><span>Bullish</span></div>' +
+          '<div class="ag-sy-stats">' +
+            '<div><span>Semaines analysées</span><b>' + used.length + ' / ' + weeks.length + '</b></div>' +
+            '<div><span>Confiance</span><b>' + (U && !U.allNeu ? U.conf + ' %' : '—') + '</b></div>' +
+            '<div><span>Cohérence</span><b>' + (U && U.coh !== null ? U.coh + ' %' : '—') + '</b></div>' +
+            '<div><span>Semaines bullish</span><b>' + (U ? U.pos : 0) + '</b></div>' +
+            '<div><span>Semaines bearish</span><b>' + (U ? U.neg : 0) + '</b></div>' +
+            '<div><span>Semaines neutres</span><b>' + (U ? U.neu : 0) + '</b></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    // ---- opérations dominantes du mois ----
+    function opCard(name, c, act, sub){ return '<div class="ag-sy-card ' + c + '"><span class="ag-sy-card-n">' + name + '</span><span class="ag-sy-card-b">' + act + '</span><small>' + sub + '</small></div>'; }
+    var opC = [["EURUSD", "EU"], ["GBPUSD", "GU"], ["XAUUSD", "XAU"]].map(function(a){
+      if(pairsAct === "sell") return opCard(a[0], "dn", "▼ SELL · bearish", "Dollar haussier sur le mois : " + a[1] + " baissier.");
+      if(pairsAct === "buy") return opCard(a[0], "up", "▲ BUY · bullish", "Dollar baissier sur le mois : " + a[1] + " haussier.");
+      return opCard(a[0], "warn", "⛔ S’abstenir", "Dollar neutre sur le mois : pas de direction sur " + a[1] + ".");
+    }).join("");
+    var CT = { bullish:"haussier", bearish:"baissier", neutre:"neutre" };
+    var ustC = ustAct === "sell" ? opCard("USTEC", "dn", "▼ SELL · bearish", "Tech baissière + dollar haussier : corrélation respectée.")
+      : ustAct === "buy" ? opCard("USTEC", "up", "▲ BUY · bullish", "Tech haussière + dollar baissier : corrélation respectée.")
+      : opCard("USTEC", "warn", "⛔ S’abstenir", (techL === "neutre" || dolL === "neutre") ? "La tech ou le dollar est neutre sur le mois : pas d’opération." : "Corrélation non respectée : tech " + CT[techL] + " et dollar " + CT[dolL] + ".");
+    h += '<div class="ag-sy-sec">Opérations dominantes · tendance de fond du mois</div>' +
+      '<div class="ag-sy-intro">Même logique que la revue de semaine, appliquée au biais agrégé du mois. Ce sont des tendances de fond : la technique décide de l’exécution.</div>' +
+      '<div class="ag-sy-cards">' + opC + ustC + '</div>';
+
+    // ---- semaine par semaine ----
+    h += '<div class="ag-sy-sec">Semaine par semaine</div><div class="ag-mo-tbl-w"><table class="ag-mo-tbl"><thead><tr><th>Semaine</th><th>Notes</th><th>USD</th><th>Tech</th><th>EU · GU · XAU</th><th>USTEC</th></tr></thead><tbody>' +
+      rows.map(function(r){
+        var lbl = 'S' + agIsoWeek(r.w.start) + ' · ' + escapeHtml(agWeekLabelText(r.w.start));
+        if(!r.data) return '<tr class="off"><td>' + lbl + '</td><td colspan="5">Aucune grande ligne</td></tr>';
+        var x = r.data;
+        return '<tr><td>' + lbl + (r.live ? ' <small style="color:var(--text-faint);">(calculée à la volée)</small>' : '') + '</td><td>' + x.n + '</td>' +
+          '<td>' + (x.usd && !x.usd.allNeu ? chip(x.usd.lab) : chip("neutre")) + '</td>' +
+          '<td>' + chip(x.techL || "neutre") + '</td>' +
+          '<td>' + actChip(x.pairsAct) + '</td><td>' + actChip(x.ustAct) + '</td></tr>';
+      }).join("") + '</tbody></table></div>';
+
+    // ---- contexte géopolitique et macro : événements marquants du mois ----
+    var IW = { fort:3, moyen:2, faible:1, neutre:0.5 }, seen = {}, evAll = [];
+    used.forEach(function(r){
+      (r.data.events || []).forEach(function(e){
+        var k = (e.name || "").toLowerCase() + "|" + e.date;
+        if(seen[k]) return; seen[k] = 1; evAll.push(e);
+      });
+    });
+    function evList(type){
+      var l = evAll.filter(function(e){ return (e.type || []).indexOf(type) >= 0; })
+        .sort(function(a, b){ return (IW[b.impact] || 0) - (IW[a.impact] || 0) || (b.date || "").localeCompare(a.date || ""); }).slice(0, 5);
+      return l;
+    }
+    function evBlock(title, l){
+      if(!l.length) return '<div><div class="ag-sy-bal-t">' + title + '</div><div class="ag-mo-p">Aucun événement noté ce mois-ci.</div></div>';
+      return '<div><div class="ag-sy-bal-t">' + title + '</div><ul class="ag-sy-drv">' + l.map(function(e){
+        return '<li><span>' + escapeHtml(e.name) + '</span><em>' + (e.impact ? escapeHtml(e.impact) + ' · ' : '') + escapeHtml(fmtTrapDate(e.date)) + '</em></li>';
+      }).join("") + '</ul></div>';
+    }
+    var geoL = evList("geo"), macL = evList("macro");
+    h += '<div class="ag-sy-sec">Contexte géopolitique et macro · événements marquants</div><div class="ag-mo-cols">' + evBlock("Géopolitique", geoL) + evBlock("Macro", macL) + '</div>';
+
+    // ---- grands moteurs récurrents (dollar / tech) ----
+    function recur(key){
+      var m = {};
+      used.forEach(function(r){
+        (r.data[key] || []).forEach(function(x){
+          var k = (x.name || "").toLowerCase(), o = m[k] || (m[k] = { name:x.name, c:0, w:0 });
+          o.c += x.c; o.w++;
+        });
+      });
+      return Object.keys(m).map(function(k){ return m[k]; }).filter(function(x){ return Math.abs(x.c) > 1e-9; })
+        .sort(function(a, b){ return Math.abs(b.c) - Math.abs(a.c); }).slice(0, 4);
+    }
+    function recBlock(title, tag, l){
+      if(!l.length) return '';
+      return '<div><div class="ag-sy-bal-t">' + title + '</div><ul class="ag-sy-drv">' + l.map(function(x){
+        return '<li><span>' + escapeHtml(x.name) + (x.w > 1 ? ' <small style="color:var(--text-faint);">· ' + x.w + ' semaines</small>' : '') + '</span><em class="' + (x.c > 0 ? 'up' : 'dn') + '">' + tag + (x.c > 0 ? ' ▲' : ' ▼') + '</em></li>';
+      }).join("") + '</ul></div>';
+    }
+    var rd = recBlock("Moteurs du dollar", "USD", recur("dDrv")), rt = recBlock("Moteurs du Nasdaq · tech", "NAS", recur("tDrv"));
+    if(rd || rt) h += '<div class="ag-sy-sec">Grands moteurs du mois · fondamentaux à suivre</div><div class="ag-mo-cols">' + rd + rt + '</div>';
+
+    // ---- synthèse rédigée ----
+    var m = agBest(), first = used[0].data, last = used[used.length - 1].data, paras = [];
+    function names(l){ return l.map(function(e){ return "<b>" + escapeHtml(e.name) + "</b>"; }).join(", "); }
+    if(geoL.length || macL.length){
+      paras.push("<b>Contexte.</b> " + (geoL.length ? "Côté géopolitique, le mois est marqué par " + names(geoL.slice(0, 3)) + ". " : "Aucun événement géopolitique noté. ") +
+        (macL.length ? "Côté macro, les éléments clés sont " + names(macL.slice(0, 3)) + "." : "Aucun événement macro noté."));
+    }
+    if(U && !U.allNeu){
+      var lastLab = last.usd && !last.usd.allNeu ? last.usd.lab : "neutre";
+      paras.push("<b>Biais du mois.</b> Sur " + used.length + " semaine" + (used.length > 1 ? "s" : "") + " analysée" + (used.length > 1 ? "s" : "") + ", le dollar est <b>" + U.lab + "</b> à " + pct + " % (confiance " + U.conf + " %" + (U.coh !== null ? ", " + U.coh + " % des semaines directionnelles dans le même sens" : "") + "). " +
+        (used.length > 1 ? "La dernière semaine est <b>" + lastLab + "</b> : " + (lastLab === U.lab ? "elle confirme le biais de fond." : (lastLab === "neutre" ? "elle tempère le biais de fond." : "elle contredit le biais de fond, à surveiller.")) : ""));
+    } else {
+      paras.push("<b>Biais du mois.</b> Le dollar ne dégage pas de direction claire sur le mois : les semaines se compensent ou restent neutres.");
+    }
+    paras.push("<b>Opérations.</b> " + (pairsAct === "sell" ? "Dollar haussier : EU, GU et XAU baissiers, ventes prioritaires. " : pairsAct === "buy" ? "Dollar baissier : EU, GU et XAU haussiers, achats prioritaires. " : "Dollar neutre : abstention sur EU, GU et XAU. ") +
+      (ustAct === "sell" ? "USTEC : tech baissière + dollar haussier, vente." : ustAct === "buy" ? "USTEC : tech haussière + dollar baissier, achat." : "USTEC : abstention (tech ou dollar neutre, ou corrélation non respectée)."));
+    paras.push("<b>Modèle.</b> " + (m && m.ok
+      ? "La pondération des événements s’appuie sur le modèle « " + escapeHtml(m.name) + " » entraîné sur tes " + m.n + " grandes lignes étiquetées (précision validée " + Math.round(m.acc * 100) + " %)."
+      : "Pas assez de grandes lignes étiquetées sur le dollar pour entraîner un modèle d’apprentissage : la pondération repose sur le lexique et un classifieur Naive Bayes.") +
+      " Le biais du mois agrège les synthèses hebdomadaires, avec plus de poids pour les semaines riches en événements à fort impact et pour les plus récentes.");
+    h += '<div class="ag-sy-sec">Synthèse du mois</div><div class="ag-sy-tip" style="margin-top:0;">' + paras.map(function(x){ return '<p class="ag-mo-p">' + x + '</p>'; }).join("") + '</div>';
+    return { html:h, weeks:used.length, wsig:agMonthParts(weeks) };
+  }
+
+  function renderMonth(){
+    var mk = agMonthKey(agMonthD), key = "m:" + mk;
+    $("agmLabel").innerHTML = '<small>Revue mensuelle</small>' + escapeHtml(MONTHS_FR[agMonthD.getMonth()] + " " + agMonthD.getFullYear());
+    var store = agStore("agendaMonthly")[mk], hid = agRvHidden(key);
+    var box = $("agMonthBox"), st = $("agmStatus"), gen = $("agmGen"), tg = $("agmToggle");
+    tg.textContent = hid ? "Afficher la revue" : "Masquer la revue";
+    tg.disabled = !store;
+    gen.textContent = store ? "↻ Actualiser" : "Générer la revue du mois";
+    gen.classList.remove("alert");
+    st.className = "ag-rv-status";
+    if(!store){
+      box.innerHTML = '<div class="ag-rv-off">Aucune revue mensuelle pour ce mois. Clique sur « Générer la revue du mois » pour la construire à partir des synthèses de chaque semaine.</div>';
+      st.textContent = "";
+      return;
+    }
+    var stale = store.wsig !== agMonthParts(agMonthWeeks(agMonthD)), ts = agFmtTs(store.ts);
+    if(hid){
+      box.innerHTML = '<div class="ag-rv-off"><b>Revue mensuelle masquée.</b> Clique sur « Afficher la revue » pour la revoir.</div>';
+    } else {
+      box.innerHTML = store.html;
+    }
+    gen.classList.toggle("alert", stale);
+    st.className = "ag-rv-status" + (stale ? " warn" : "");
+    st.innerHTML = stale
+      ? "<b>Des synthèses hebdomadaires ont changé depuis la génération</b> (" + escapeHtml(ts) + "). Clique sur « Actualiser » pour recalculer."
+      : "À jour · générée le " + escapeHtml(ts) + " à partir de " + store.weeks + " semaine" + (store.weeks > 1 ? "s" : "") + ".";
+  }
+  $("agmGen").addEventListener("click", function(){
+    var mk = agMonthKey(agMonthD), r = agBuildMonth(agMonthD);
+    if(!r.weeks){ $("agMonthBox").innerHTML = r.html; $("agmStatus").textContent = ""; return; }
+    agStore("agendaMonthly")[mk] = { ts:new Date().toISOString(), html:r.html, wsig:r.wsig, weeks:r.weeks };
+    agRvUi()["m:" + mk] = false;
+    persist();
+    renderMonth();
+  });
+  $("agmToggle").addEventListener("click", function(){
+    var key = "m:" + agMonthKey(agMonthD);
+    agRvUi()[key] = !agRvHidden(key);
+    persist();
+    renderMonth();
+  });
+  $("agmPrev").addEventListener("click", function(){ agMonthD = new Date(agMonthD.getFullYear(), agMonthD.getMonth() - 1, 1); renderMonth(); });
+  $("agmNext").addEventListener("click", function(){ agMonthD = new Date(agMonthD.getFullYear(), agMonthD.getMonth() + 1, 1); renderMonth(); });
+  $("agmToday").addEventListener("click", function(){ var n = new Date(); agMonthD = new Date(n.getFullYear(), n.getMonth(), 1); renderMonth(); });
 
   // ---- formulaire : devises / impact / biais à cocher ----
   function agGroupsHtml(v){
