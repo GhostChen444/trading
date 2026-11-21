@@ -734,6 +734,26 @@
   .ag-ccy{border:1px solid var(--border); border-radius:var(--r); padding:10px 12px; display:grid; grid-template-columns:150px 1fr 1fr; gap:10px 14px; align-items:center; background:var(--bg-2); opacity:.72; transition:opacity .15s, border-color .15s;}
   .ag-ccy.on{opacity:1; border-color:var(--gold-soft);}
   .ag-ccy.neu .ag-ccy-g.bi{opacity:.4;}
+  /* Nasdaq / USTEC : formulaire par action */
+  .ag-ccy.ag-nas{grid-template-columns:1fr;}
+  .ag-nas-panel{display:none; gap:10px;}
+  .ag-ccy.ag-nas.on .ag-nas-panel{display:grid;}
+  .ag-nas-hint{font-size:12.5px; line-height:1.55; color:var(--text-dim);}
+  .ag-st{border:1px solid var(--border-soft); border-radius:var(--r); padding:10px 14px; opacity:.8; transition:opacity .15s, border-color .15s;}
+  .ag-st.on{opacity:1; border-color:var(--gold-soft); background:rgba(200,155,74,0.04);}
+  .ag-st.obs{border-style:dashed;}
+  .ag-st-h small{color:var(--text-faint); font-size:11.5px; margin-left:4px;}
+  .ag-st-d{display:none; margin-top:12px; gap:10px 14px;}
+  .ag-st.on .ag-st-d{display:grid;}
+  .ag-st.neu .ag-ccy-g.bi{opacity:.4;}
+  .ag-st-d [data-k="sdesc"]{background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:8px 10px; width:100%; outline:none; font-family:inherit; font-size:13px; line-height:1.5; resize:vertical;}
+  .ag-st-d textarea[data-k="sdesc"]{min-height:64px;}
+  .ag-st-d [data-k="sdesc"]:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,155,74,0.12);}
+  .ag-nas-agg{font-family:var(--mono); font-size:11.5px; letter-spacing:.04em; color:var(--gold); padding-top:2px;}
+  .ag-nas-det{display:grid; gap:6px; margin:8px 0 2px;}
+  .ag-nas-l{display:flex; flex-wrap:wrap; gap:4px 10px; align-items:baseline; font-size:12.5px;}
+  .ag-nas-l .ag-chip{flex-shrink:0;}
+  .ag-nas-t{color:var(--text-dim); overflow-wrap:anywhere; white-space:pre-wrap;}
   .ag-ccy label{display:inline-flex; align-items:center; gap:6px; margin:0; font-size:13px; color:var(--text); font-family:inherit; cursor:pointer;}
   .ag-ccy input[type=checkbox]{width:auto; margin:0; padding:0; accent-color:var(--gold);}
   .ag-ccy-g{display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px;}
@@ -791,6 +811,24 @@
   .ag-sy-drv em.up{color:var(--green);} .ag-sy-drv em.dn{color:var(--red);}
   .ag-sy-note{margin-top:26px; padding:16px 20px; border:1px dashed var(--border); border-radius:var(--r); font-size:13px; line-height:1.6; color:var(--text-dim);}
   .ag-sy-note b{color:var(--text); font-weight:500;}
+  .ag-sy-tip{margin-top:16px; padding:15px 20px; border-left:3px solid var(--gold); background:rgba(200,155,74,0.07); border-radius:0 var(--r) var(--r) 0; font-size:13px; line-height:1.65; color:var(--text-dim);}
+  .ag-sy-tip b{color:var(--text); font-weight:500;}
+  .ag-sy-split{display:flex; height:6px; border-radius:3px; overflow:hidden; margin:12px 0 6px; max-width:320px;}
+  .ag-sy-split i{flex:1; background:var(--gold-soft);} .ag-sy-split i + i{background:var(--border); margin-left:2px;}
+  .ag-sy-split-l{display:flex; justify-content:space-between; max-width:320px; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
+  .ag-sy-ust{display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:14px; align-items:stretch;}
+  .ag-sy-op{display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:22px; color:var(--text-faint);}
+  .ag-sy-eco{display:flex; flex-direction:column; gap:8px; padding:18px 20px; border:1px solid var(--border); border-top:3px solid var(--border); border-radius:var(--r); background:var(--bg-2); min-width:0;}
+  .ag-sy-eco.up{border-top-color:var(--green); background:linear-gradient(180deg, var(--green-soft), var(--bg-2) 70%);}
+  .ag-sy-eco.dn{border-top-color:var(--red); background:linear-gradient(180deg, var(--red-soft), var(--bg-2) 70%);}
+  .ag-sy-eco.neu{border-top-style:dashed;}
+  .ag-sy-eco.res{border-width:2px; border-top-width:3px;}
+  .ag-sy-eco-h{display:flex; justify-content:space-between; align-items:baseline; gap:10px;}
+  .ag-sy-eco-w{font-family:var(--mono); font-size:11px; color:var(--gold);}
+  .ag-sy-eco-b{font-size:17px; color:var(--text-dim);}
+  .ag-sy-eco.up .ag-sy-eco-b{color:var(--green);} .ag-sy-eco.dn .ag-sy-eco-b{color:var(--red);}
+  .ag-sy-eco small{font-size:12px; line-height:1.5; color:var(--text-faint); overflow-wrap:anywhere;}
+  @media (max-width:760px){ .ag-sy-ust{grid-template-columns:1fr;} .ag-sy-op{font-size:18px;} }
   .ag-sy-narr{margin-top:26px; font-size:13px; line-height:1.65; color:var(--text-faint);}
   @media (max-width:760px){ .ag-ml{padding:22px 18px 26px;} .ag-sy-hero{grid-template-columns:1fr; padding:22px 20px;} .ag-sy-pct{font-size:38px;} }
   #agTypeBox{display:flex; gap:18px; flex-wrap:wrap;}
@@ -4793,7 +4831,8 @@
   var AG_W = { faible:1, moyen:2, fort:3 };
   var AG_NEUTRAL = 1.5;   // poids d’une grande ligne neutre : aucun signal directionnel, mais elle dilue le biais (dénominateur)
   var AG_PAIRS = ["EURUSD","GBPUSD","XAUUSD","USTEC"];
-  var AG_ASSETS = ["USD","EUR","GBP"].concat(AG_PAIRS);
+  // TECH = santé des actions tech (Nasdaq seul) ; USDD = dollar saisi directement : les deux moitiés de USTEC, sans double comptage
+  var AG_ASSETS = ["USD","EUR","GBP"].concat(AG_PAIRS, ["TECH","USDD"]);
   var agMLText = "";
   function agTypes(e){ return Array.isArray(e && e.types) ? e.types : (e && e.type ? [e.type] : []); }
   function agDetectTypes(t){ var o = []; if(/contexte\s+g[ée]opolitique/i.test(t || "")) o.push("geo"); if(/contexte\s+macro/i.test(t || "")) o.push("macro"); return o; }
@@ -4802,7 +4841,25 @@
   // Corrélations : USD ↑ => EURUSD, GBPUSD, XAUUSD, Nasdaq ↓ (inversement si USD ↓) ;
   // GBP => GBPUSD, EUR => EURUSD, Nasdaq => USTEC (même sens).
   // val = score signé (impact 1/2/3 × biais), mag = amplitude maximale possible.
-  var AG_INV = { USD:["USD","EUR","GBP","NAS"], EUR:["EUR"], GBP:["GBP"], EURUSD:["EUR","USD"], GBPUSD:["GBP","USD"], XAUUSD:["USD"], USTEC:["NAS","USD"] };
+  // Nasdaq (USTEC) = synthèse de 8 grands actifs technologiques
+  var AG_STOCKS = [["AAPL","Apple"],["MSFT","Microsoft"],["NVDA","Nvidia"],["AMZN","Amazon"],["GOOGL","Alphabet"],["META","Meta"],["TSLA","Tesla"],["AVGO","Broadcom"]];
+  // Agrège les actions ciblées + l'observation globale en un seul {impact, bias} pour le Nasdaq.
+  // Biais = signe du score pondéré (impact 1/2/3) ; les entrées neutres tempèrent (poids AG_NEUTRAL) ;
+  // des signaux opposés qui s'annulent donnent un Nasdaq neutre ; une entrée sans biais est ignorée.
+  function agNasAgg(list){
+    var S = 0, M = 0, dir = 0, dirW = 0;
+    list.forEach(function(e){
+      if(e.impact === "neutre"){ M += AG_NEUTRAL; return; }
+      var sg = agSign(e.bias); if(!sg) return;
+      var w = AG_W[e.impact] || 2; S += sg * w; M += w; dir++; dirW += w;
+    });
+    if(!M) return { impact:"moyen", bias:"" };
+    if(!dir) return { impact:"neutre", bias:"" };
+    var t = S / M, avg = dirW / dir;
+    if(Math.abs(t) < 0.2) return { impact:"neutre", bias:"" };
+    return { impact: avg >= 2.5 ? "fort" : avg >= 1.5 ? "moyen" : "faible", bias: t > 0 ? "bullish" : "bearish" };
+  }
+  var AG_INV = { USD:["USD","EUR","GBP","NAS"], EUR:["EUR"], GBP:["GBP"], EURUSD:["EUR","USD"], GBPUSD:["GBP","USD"], XAUUSD:["USD"], USTEC:["NAS","USD"], TECH:["NAS"], USDD:["USD"] };
   function agIsNeu(v){ return !!v && v.impact === "neutre"; }
   // Impact « neutre » : score signé = 0 (aucune direction) mais poids AG_NEUTRAL dans l'amplitude,
   // donc la grande ligne tempère le biais au lieu de le renforcer.
@@ -4821,9 +4878,9 @@
     });
     return {
       val: { USD: s.USD - 0.5 * (s.EUR + s.GBP + s.NAS), EUR: s.EUR, GBP: s.GBP,
-             EURUSD: s.EUR - s.USD, GBPUSD: s.GBP - s.USD, XAUUSD: -s.USD, USTEC: s.NAS - s.USD },
+             EURUSD: s.EUR - s.USD, GBPUSD: s.GBP - s.USD, XAUUSD: -s.USD, USTEC: s.NAS - s.USD, TECH: s.NAS, USDD: s.USD },
       mag: { USD: w.USD + 0.5 * (w.EUR + w.GBP + w.NAS), EUR: w.EUR, GBP: w.GBP,
-             EURUSD: w.EUR + w.USD, GBPUSD: w.GBP + w.USD, XAUUSD: w.USD, USTEC: w.NAS + w.USD },
+             EURUSD: w.EUR + w.USD, GBPUSD: w.GBP + w.USD, XAUUSD: w.USD, USTEC: w.NAS + w.USD, TECH: w.NAS, USDD: w.USD },
       neu: neu
     };
   }
@@ -4849,7 +4906,19 @@
     });
     var sc = agScores(cur, 0);
     h += '</div><div class="ag-chips ag-der">→ ' + AG_PAIRS.map(function(a){ return agChip(a, sc.val[a]); }).join("") + '</div>';
+    var nas = cur.NAS;
+    if(nas && (nas.stocks || nas.obs)){
+      h += '<div class="ag-nas-det">';
+      AG_STOCKS.forEach(function(st){ var x = nas.stocks && nas.stocks[st[0]]; if(x) h += agNasLine(st[0], x); });
+      if(nas.obs) h += agNasLine("Observation globale", nas.obs);
+      h += '</div>';
+    }
     return h;
+  }
+  function agNasLine(label, x){
+    var nv = agIsNeu(x);
+    return '<div class="ag-nas-l"><span class="ag-chip ' + (nv ? "neu" : x.bias === "bullish" ? "up" : x.bias === "bearish" ? "dn" : "") + '">' + escapeHtml(label) + " · " + (nv ? "neutre" : escapeHtml(x.impact || "") + " · " + (x.bias || "neutre")) + '</span>' +
+      (x.desc ? '<span class="ag-nas-t">' + escapeHtml(x.desc) + '</span>' : "") + '</div>';
   }
 
   // ---- ML 1 : classifieur Naive Bayes (lissage de Laplace) ----
@@ -5057,6 +5126,7 @@
     var ref = (today >= sk && today <= ek) ? today : ek;
     var acc = {};
     AG_ASSETS.forEach(function(a){ acc[a] = { num:0, den:0, n:0, nn:0, drv:[] }; });
+    acc.TECH.stk = {};
     acc.types = { macro:{ num:0, den:0, n:0, nn:0 }, geo:{ num:0, den:0, n:0, nn:0 } };
     agList().concat(agTradeContexts(sk, ek)).forEach(function(e){
       if(!e.date || e.date < sk || e.date > ek || !e.currencies || !Object.keys(e.currencies).length) return;
@@ -5069,6 +5139,8 @@
         var A = acc[a]; A.num += d * sc.val[a]; A.den += d * sc.mag[a]; A.n++; if(sc.neu[a]) A.nn++;
         if(sc.val[a]) A.drv.push({ name:e.name || "", c:d * sc.val[a] });
       });
+      var nsx = e.currencies.NAS && e.currencies.NAS.stocks;
+      if(nsx) Object.keys(nsx).forEach(function(tk){ var x = nsx[tk], sg = agIsNeu(x) ? 0 : agSign(x.bias) * (AG_W[x.impact] || 2); acc.TECH.stk[tk] = (acc.TECH.stk[tk] || 0) + d * sg; });
       if(sc.mag.USD) agTypes(e).forEach(function(ty){ var T = acc.types[ty]; if(!T) return; T.num += d * sc.val.USD; T.den += d * sc.mag.USD; T.n++; if(sc.neu.USD) T.nn++; });
     });
     return acc;
@@ -5097,10 +5169,45 @@
     return { t:t, p:p, n:A.n, nn:nn, lab: p > 0.58 ? "bullish" : p < 0.42 ? "bearish" : "neutre", conf: Math.round(Math.abs(2 * p - 1) * 100) };
   }
 
+  // USTEC = 50 % santé des actions tech + 50 % dollar (inversé). Chaque moitié est évaluée séparément ;
+  // une moitié sans donnée compte pour neutre : elle ne fabrique pas de direction.
+  function agUstec(vt, vd){
+    if(!vt && !vd) return null;
+    var tt = vt ? vt.t : 0, td = vd ? -vd.t : 0;
+    var t = 0.5 * tt + 0.5 * td;
+    var n = (vt ? vt.n : 0) + (vd ? vd.n : 0), nn = (vt ? vt.nn : 0) + (vd ? vd.nn : 0), nd = n - nn;
+    if(nd <= 0) return { t:0, p:0.5, n:n, nn:nn, lab:"neutre", conf:0, allNeu:true, tt:tt, td:td };
+    var p = 1 / (1 + Math.exp(-3 * t * (1 - Math.exp(-nd / 2))));
+    return { t:t, p:p, n:n, nn:nn, lab: p > 0.58 ? "bullish" : p < 0.42 ? "bearish" : "neutre", conf: Math.round(Math.abs(2 * p - 1) * 100), tt:tt, td:td };
+  }
+  function agUstecHtml(V, acc){
+    var us = V.USTEC, vt = V.TECH, vd = V.USDD;
+    function kk(l){ return l === "bullish" ? "up" : l === "bearish" ? "dn" : "neu"; }
+    function ar(l){ return l === "bullish" ? "▲ Bullish" : l === "bearish" ? "▼ Bearish" : "● Neutre"; }
+    function pl(n, w){ return n + " " + w + (n > 1 ? "s" : ""); }
+    var techLab = vt ? vt.lab : "neutre", dolLab = vd ? vd.lab : "neutre";
+    var effLab = dolLab === "bullish" ? "bearish" : dolLab === "bearish" ? "bullish" : "neutre";
+    var stk = acc.TECH.stk || {};
+    var tk = Object.keys(stk).filter(function(x){ return Math.abs(stk[x]) > 0.05; }).sort(function(a, b){ return Math.abs(stk[b]) - Math.abs(stk[a]); }).slice(0, 4);
+    var stkTxt = tk.map(function(x){ return x + (stk[x] > 0 ? " ▲" : " ▼"); }).join(" · ");
+    var techSub = vt ? pl(vt.n, "grande ligne") + " tech" + (vt.nn ? " · " + pl(vt.nn, "neutre") : "") + (stkTxt ? " · " + stkTxt : "") : "Aucune donnée tech cette semaine : compte pour neutre.";
+    var dolSub = vd ? pl(vd.n, "grande ligne") + " sur le dollar" + (vd.nn ? " · " + pl(vd.nn, "neutre") : "") : "Aucun biais dollar saisi : compte pour neutre.";
+    function eco(title, w, cls, big, sub, res){
+      return '<div class="ag-sy-eco ' + cls + (res ? " res" : "") + '"><div class="ag-sy-eco-h"><span class="ag-sy-card-n">' + title + '</span>' + (w ? '<span class="ag-sy-eco-w">' + w + '</span>' : "") + '</div><span class="ag-sy-eco-b">' + big + '</span><small>' + sub + '</small></div>';
+    }
+    var div = us.tt && us.td && Math.abs(us.tt) > 0.2 && Math.abs(us.td) > 0.2 && us.tt * us.td < 0;
+    var resSub = us.allNeu ? "Toutes les grandes lignes sont neutres : le biais de base prévaut." : (div ? "Les deux écosystèmes divergent : le biais est tempéré." : "Les deux écosystèmes pèsent à parts égales.");
+    return '<div class="ag-sy-sec">USTEC · synthèse de 2 écosystèmes</div><div class="ag-sy-ust">' +
+      eco("Santé des actions tech", "50 %", kk(techLab), ar(techLab), techSub) + '<div class="ag-sy-op">+</div>' +
+      eco("Dollar (inversé)", "50 %", kk(effLab), dolLab === "neutre" ? "● Neutre" : "USD " + dolLab + " → " + (effLab === "bullish" ? "▲" : "▼") + " pour USTEC", dolSub) + '<div class="ag-sy-op">=</div>' +
+      eco("USTEC global", "", kk(us.lab), ar(us.lab), resSub, true) + '</div>' +
+      '<div class="ag-sy-tip"><b>USTEC = 50 % santé tech + 50 % dollar.</b> Le biais global est la synthèse des deux écosystèmes : un dollar fort pèse sur le Nasdaq, des actions tech en bonne santé le soutiennent. Une moitié sans donnée compte pour neutre.</div>';
+  }
   function agRenderML(sk, ek){
     var box = $("agML"); if(!box) return;
     var m = agBest(), acc = agWeekStats(sk, ek, m), V = {};
     AG_ASSETS.forEach(function(a){ V[a] = agVerdict(acc[a], agPrior(sk, a, m)); });
+    V.USTEC = agUstec(V.TECH, V.USDD);   // USTEC = synthèse 50/50 tech + dollar
     var u = V.USD;
     var head = '<div class="ag-sy-head"><h4>Synthèse · biais du dollar</h4><span class="ag-sy-week">' + escapeHtml(agWeekLabelText(agParseKey(sk))) + '</span></div>';
     if(!u){
@@ -5142,8 +5249,10 @@
       }).join("");
     }
     var cc = cards(["EUR", "GBP"]), ca = cards(AG_PAIRS);
-    if(cc) h += '<div class="ag-sy-sec">Devises</div><div class="ag-sy-cards">' + cc + '</div>';
+    if(cc) h += '<div class="ag-sy-sec">Devises</div><div class="ag-sy-cards">' + cc + '</div>' +
+      '<div class="ag-sy-tip"><b>Forex : le dollar pèse plus lourd.</b> Le biais du dollar a plus d’impact que celui de l’EUR ou du GBP, donc le biais de ces devises n’est pas à prendre en compte à 100 %. La corrélation avec le dollar est directe : trader EURUSD ou GBPUSD revient à trader le dollar à 100 %.</div>';
     if(ca) h += '<div class="ag-sy-sec">Actifs corrélés</div><div class="ag-sy-cards">' + ca + '</div>';
+    if(V.USTEC) h += agUstecHtml(V, acc);
 
     var tc = ["macro", "geo"].map(function(t){
       var v = agVerdict(acc.types[t], null); if(!v) return "";
@@ -5178,54 +5287,101 @@
   });
 
   // ---- formulaire : devises / impact / biais à cocher ----
+  function agGroupsHtml(v){
+    return '<div class="ag-ccy-g"><span>Impact</span>' +
+        [["neutre","Neutre"],["faible","Faible"],["moyen","Moyen"],["fort","Fort"]].map(function(o){ return '<label><input type="checkbox" data-g="impact" value="' + o[0] + '"' + (v && v.impact === o[0] ? " checked" : "") + '> ' + o[1] + '</label>'; }).join("") + '</div>' +
+      '<div class="ag-ccy-g bi"><span>Biais</span>' +
+        '<label class="bu"><input type="checkbox" data-g="bias" value="bullish"' + (v && v.bias === "bullish" ? " checked" : "") + '> Bullish</label>' +
+        '<label class="be"><input type="checkbox" data-g="bias" value="bearish"' + (v && v.bias === "bearish" ? " checked" : "") + '> Bearish</label></div>';
+  }
+  function agStockRow(key, label, sub, e, isObs){
+    var desc = e ? escapeHtml(e.desc || "") : "";
+    return '<div class="ag-st' + (e ? " on" : "") + (e && e.impact === "neutre" ? " neu" : "") + (isObs ? " obs" : "") + '" data-s="' + key + '">' +
+      '<label class="ag-st-h"><input type="checkbox" data-k="son"' + (e ? " checked" : "") + '> <b>' + label + '</b>' + (sub ? ' <small>' + sub + '</small>' : "") + '</label>' +
+      '<div class="ag-st-d">' + agGroupsHtml(e) +
+        (isObs ? '<textarea data-k="sdesc" placeholder="Observation globale sur le Nasdaq : secteur tech, semi-conducteurs, IA, taux… (sans cibler une action)">' + desc + '</textarea>'
+               : '<input type="text" data-k="sdesc" placeholder="Description : résultats, annonce, rumeur… pour ' + label + '" value="' + desc + '">') +
+      '</div></div>';
+  }
+  function agNasHtml(v){
+    var st = (v && v.stocks) || {}, ob = (v && v.obs) || null;
+    if(v && !v.stocks && !v.obs) ob = { impact:v.impact, bias:v.bias, desc:"" };   // ancien format : repris comme observation globale
+    var h = '<label><input type="checkbox" data-k="on"' + (v ? " checked" : "") + '> <b>Nasdaq (USTEC)</b></label>' +
+      '<div class="ag-nas-panel"><div class="ag-nas-hint">USTEC est la synthèse de 8 grands actifs technologiques. Coche l\'action impactée, puis son impact, son biais et une description. Pour une grande ligne qui ne vise pas une action précise, utilise l\'observation globale. Les entrées sont agrégées en un biais Nasdaq, puis croisées avec le dollar.</div>';
+    AG_STOCKS.forEach(function(x){ h += agStockRow(x[0], x[0], x[1], st[x[0]], false); });
+    h += agStockRow("_obs", "Observation globale", "", ob, true);
+    return h + '<div class="ag-nas-agg" id="agNasAgg"></div></div>';
+  }
   function agBuildCcy(cur){
     var box = $("agCcyBox"); box.innerHTML = "";
     AG_CCY.forEach(function(c){
-      var v = (cur && cur[c[0]]) || null;
+      var v = (cur && cur[c[0]]) || null, nas = c[0] === "NAS";
       var row = document.createElement("div");
-      row.className = "ag-ccy" + (v ? " on" : "") + (v && v.impact === "neutre" ? " neu" : "");
+      row.className = "ag-ccy" + (nas ? " ag-nas" : "") + (v ? " on" : "") + (!nas && v && v.impact === "neutre" ? " neu" : "");
       row.setAttribute("data-c", c[0]);
-      row.innerHTML =
-        '<label><input type="checkbox" data-k="on"' + (v ? " checked" : "") + '> <b>' + c[1] + '</b></label>' +
-        '<div class="ag-ccy-g"><span>Impact</span>' +
-          [["neutre","Neutre"],["faible","Faible"],["moyen","Moyen"],["fort","Fort"]].map(function(o){ return '<label><input type="checkbox" data-g="impact" value="' + o[0] + '"' + (v && v.impact === o[0] ? " checked" : "") + '> ' + o[1] + '</label>'; }).join("") + '</div>' +
-        '<div class="ag-ccy-g bi"><span>Biais</span>' +
-          '<label class="bu"><input type="checkbox" data-g="bias" value="bullish"' + (v && v.bias === "bullish" ? " checked" : "") + '> Bullish</label>' +
-          '<label class="be"><input type="checkbox" data-g="bias" value="bearish"' + (v && v.bias === "bearish" ? " checked" : "") + '> Bearish</label></div>';
+      row.innerHTML = nas ? agNasHtml(v) :
+        '<label><input type="checkbox" data-k="on"' + (v ? " checked" : "") + '> <b>' + c[1] + '</b></label>' + agGroupsHtml(v);
       box.appendChild(row);
     });
+  }
+  function agReadEntry(sc){
+    var im = sc.querySelector('[data-g="impact"]:checked'), bi = sc.querySelector('[data-g="bias"]:checked'), d = sc.querySelector('[data-k="sdesc"]');
+    var imp = im ? im.value : "moyen";
+    return { impact: imp, bias: imp === "neutre" ? "" : (bi ? bi.value : ""), desc: d ? d.value.trim() : "" };
   }
   function agReadCcy(){
     var o = {};
     $("agCcyBox").querySelectorAll(".ag-ccy").forEach(function(r){
       if(!r.querySelector('[data-k="on"]').checked) return;
-      var im = r.querySelector('[data-g="impact"]:checked'), bi = r.querySelector('[data-g="bias"]:checked');
-      o[r.getAttribute("data-c")] = { impact: im ? im.value : "moyen", bias: (im && im.value === "neutre") ? "" : (bi ? bi.value : "") };
+      var c = r.getAttribute("data-c");
+      if(c === "NAS"){
+        var stocks = {}, obs = null, list = [];
+        r.querySelectorAll(".ag-st").forEach(function(sc){
+          if(!sc.querySelector('[data-k="son"]').checked) return;
+          var e = agReadEntry(sc), key = sc.getAttribute("data-s");
+          list.push(e);
+          if(key === "_obs") obs = e; else stocks[key] = e;
+        });
+        var ag = agNasAgg(list);
+        o.NAS = { impact: ag.impact, bias: ag.bias };
+        if(Object.keys(stocks).length) o.NAS.stocks = stocks;
+        if(obs) o.NAS.obs = obs;
+        return;
+      }
+      var e = agReadEntry(r);
+      o[c] = { impact: e.impact, bias: e.bias };
     });
     return o;
   }
   $("agCcyBox").addEventListener("change", function(ev){
     var t = ev.target, row = t.closest(".ag-ccy"); if(!row) return;
+    var isNas = row.getAttribute("data-c") === "NAS", sc = t.closest(".ag-st") || row;
     var g = t.getAttribute("data-g"), on = row.querySelector('[data-k="on"]');
+    var son = sc !== row ? sc.querySelector('[data-k="son"]') : null;
     if(g && t.checked){
-      row.querySelectorAll('[data-g="' + g + '"]').forEach(function(x){ if(x !== t) x.checked = false; });
-      on.checked = true;
+      sc.querySelectorAll('[data-g="' + g + '"]').forEach(function(x){ if(x !== t) x.checked = false; });
+      on.checked = true; if(son) son.checked = true;
       // Impact neutre = aucun biais ; choisir un biais sort de « neutre » (impact moyen par défaut)
-      if(g === "impact" && t.value === "neutre") row.querySelectorAll('[data-g="bias"]').forEach(function(x){ x.checked = false; });
+      if(g === "impact" && t.value === "neutre") sc.querySelectorAll('[data-g="bias"]').forEach(function(x){ x.checked = false; });
       if(g === "bias"){
-        var ni = row.querySelector('[data-g="impact"][value="neutre"]');
-        if(ni && ni.checked){ ni.checked = false; row.querySelector('[data-g="impact"][value="moyen"]').checked = true; }
+        var ni = sc.querySelector('[data-g="impact"][value="neutre"]');
+        if(ni && ni.checked){ ni.checked = false; sc.querySelector('[data-g="impact"][value="moyen"]').checked = true; }
       }
     }
-    row.classList.toggle("neu", !!row.querySelector('[data-g="impact"][value="neutre"]:checked'));
-    if(t.getAttribute("data-k") === "on" && t.checked && !row.querySelector('[data-g="impact"]:checked')){
+    if(!(isNas && sc === row)) sc.classList.toggle("neu", !!sc.querySelector('[data-g="impact"][value="neutre"]:checked'));
+    if(t.getAttribute("data-k") === "on" && t.checked && !isNas && !row.querySelector('[data-g="impact"]:checked')){
       row.querySelector('[data-g="impact"][value="moyen"]').checked = true;
+    }
+    if(t.getAttribute("data-k") === "son"){
+      if(t.checked){ on.checked = true; if(!sc.querySelector('[data-g="impact"]:checked')) sc.querySelector('[data-g="impact"][value="moyen"]').checked = true; }
+      sc.classList.toggle("on", t.checked);
     }
     row.classList.toggle("on", on.checked);
     agCorrRender();
   });
   function agCorrRender(){
     var box = $("agCorr"), cur = agReadCcy();
+    agNasAggLine(cur);
     var nlpBtn = '<div class="ag-sug"><button type="button" class="iconbtn" data-nlp="1">Analyser la description (NLP)</button></div>';
     if(!Object.keys(cur).length){ box.innerHTML = '<div class="hint" style="margin:0;">Coche les devises concernées pour voir les corrélations déduites.</div>' + nlpBtn; return; }
     var sc = agScores(cur, 0);
@@ -5235,6 +5391,16 @@
       if(s) h += '<div class="ag-sug">Suggestion pour le USD : <b>' + (s > 0 ? "bullish" : "bearish") + '</b> (' + Math.round(Math.abs(s) * 100) + ' %) <button type="button" class="iconbtn" data-sug="' + (s > 0 ? "bullish" : "bearish") + '">Appliquer</button></div>';
     }
     box.innerHTML = h + nlpBtn;
+  }
+  function agNasAggLine(cur){
+    var el = $("agNasAgg"); if(!el) return;
+    var n = cur.NAS;
+    if(!n){ el.textContent = ""; return; }
+    var cnt = (n.stocks ? Object.keys(n.stocks).length : 0) + (n.obs ? 1 : 0);
+    var sc = agScores(cur, 0), net = sc.val.USTEC;
+    var lab = n.bias ? n.bias + " · " + n.impact : (n.impact === "neutre" ? "neutre" : "aucun biais renseigné");
+    el.textContent = "Nasdaq agrégé : " + lab + (cnt ? " (" + cnt + " entrée" + (cnt > 1 ? "s" : "") + ")" : "") +
+      (cur.USD ? " · avec le USD : USTEC " + (net > 0 ? "▲" : net < 0 ? "▼" : "–") : " · ajoute le USD pour voir la corrélation sur USTEC");
   }
   $("agCorr").addEventListener("click", function(ev){
     if(ev.target.closest("[data-nlp]")){
