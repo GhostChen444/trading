@@ -667,6 +667,15 @@
   /* ---------- onglet « Grandes lignes » (agenda de la semaine) ---------- */
   .ag-weeklabel{font-family:var(--serif); font-size:17px; color:var(--text); min-width:0;}
   .ag-weeklabel small{display:block; font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin-bottom:2px;}
+  .ag-filters{display:flex; flex-wrap:wrap; gap:10px 14px; align-items:flex-end; padding:12px 20px; border-bottom:1px solid var(--border-soft); background:var(--bg-2);}
+  .ag-filters .agf{display:flex; flex-direction:column; gap:3px; min-width:0;}
+  .ag-filters label{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
+  .ag-filters select{background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:7px 28px 7px 10px; font-size:13px; outline:none; min-width:130px;}
+  .ag-filters select:focus{border-color:var(--gold);}
+  .ag-filters select.active{border-color:var(--gold-soft); color:var(--gold);}
+  .ag-filters .agf-reset{background:transparent; border:1px solid var(--border); color:var(--text-dim); border-radius:var(--r); padding:7px 12px; font-size:12.5px;}
+  .ag-filters .agf-reset:hover{border-color:var(--gold-soft); color:var(--gold);}
+  .ag-filters .agf-reset[hidden]{display:none;}
   .ag-day{font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); padding:18px 0 6px; border-bottom:1px solid var(--border-soft);}
   .ag-day:first-child{padding-top:8px;}
   .ag-entry .tv-pair{overflow-wrap:anywhere;}
@@ -1301,6 +1310,27 @@
       <button class="todaybtn" type="button" id="agToday">Cette semaine</button>
       <span class="tv-total" id="agTotal"></span>
       <button class="btn primary" type="button" id="agAdd">+ Ajouter</button>
+    </div>
+    <div class="ag-filters" id="agFilters">
+      <div class="agf"><label for="agfImpact">Impact</label>
+        <select id="agfImpact">
+          <option value="">Tous</option>
+          <option value="fort">Fort</option>
+          <option value="moyen">Moyen</option>
+          <option value="faible">Faible</option>
+          <option value="neutre">Neutre</option>
+        </select></div>
+      <div class="agf"><label for="agfCcy">Monnaie</label>
+        <select id="agfCcy">
+          <option value="">Toutes</option>
+          <option value="USD">Dollar (USD)</option>
+          <option value="EUR">Euro (EUR)</option>
+          <option value="GBP">Livre (GBP)</option>
+          <option value="NAS">Nasdaq</option>
+        </select></div>
+      <div class="agf"><label for="agfDay">Date</label>
+        <select id="agfDay"></select></div>
+      <button type="button" class="agf-reset" id="agfReset" hidden>Réinitialiser</button>
     </div>
     <div class="tv-list" id="agList"></div>
     <div class="ag-review">
@@ -4626,6 +4656,41 @@
     b.addEventListener("click", function(){ agSetSub(this.getAttribute("data-ag")); });
   });
 
+  // ---- filtres de l'onglet Semaine : impact · monnaie · jour ----
+  // La synthèse de fin de semaine reste calculée sur TOUTES les notes de la semaine (le filtre ne change que la liste).
+  var agFilter = { impact:"", ccy:"", day:"" };
+  function agMatchFilter(e){
+    var cur = e.currencies || {};
+    if(agFilter.day && e.date !== agFilter.day) return false;
+    if(agFilter.ccy){
+      var v = cur[agFilter.ccy];
+      if(!v) return false;
+      if(agFilter.impact) return v.impact === agFilter.impact;
+      return true;
+    }
+    if(agFilter.impact) return e.impact === agFilter.impact;
+    return true;
+  }
+  function agRenderFilters(start, allList){
+    var days = [], counts = {};
+    for(var i = 0; i < 7; i++){ var d = new Date(start); d.setDate(d.getDate() + i); days.push(agKey(d)); }
+    allList.forEach(function(e){ counts[e.date] = (counts[e.date] || 0) + 1; });
+    if(agFilter.day && days.indexOf(agFilter.day) < 0) agFilter.day = "";   // on a changé de semaine
+    var sel = $("agfDay");
+    sel.innerHTML = '<option value="">Toute la semaine</option>' + days.map(function(k){
+      return '<option value="' + k + '">' + escapeHtml(fmtTrapDate(k)) + (counts[k] ? " (" + counts[k] + ")" : "") + '</option>';
+    }).join("");
+    sel.value = agFilter.day;
+    $("agfImpact").value = agFilter.impact;
+    $("agfCcy").value = agFilter.ccy;
+    ["agfImpact", "agfCcy", "agfDay"].forEach(function(id){ $(id).classList.toggle("active", !!$(id).value); });
+    $("agfReset").hidden = !(agFilter.impact || agFilter.ccy || agFilter.day);
+  }
+  $("agfImpact").addEventListener("change", function(){ agFilter.impact = this.value; renderAgenda(); });
+  $("agfCcy").addEventListener("change", function(){ agFilter.ccy = this.value; renderAgenda(); });
+  $("agfDay").addEventListener("change", function(){ agFilter.day = this.value; renderAgenda(); });
+  $("agfReset").addEventListener("click", function(){ agFilter = { impact:"", ccy:"", day:"" }; renderAgenda(); });
+
   function renderAgenda(){
     if(!root) return;
     document.querySelectorAll("#agSubTabs button").forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-ag") === agSub); });
@@ -4638,14 +4703,19 @@
     var lbl = $("agWeekLabel");
     lbl.innerHTML = '<small>Semaine ' + agIsoWeek(start) + (sk === agKey(agMonday(new Date())) ? " · en cours" : "") + '</small>' + escapeHtml(agWeekLabelText(start));
 
-    var list = agWeekItems(sk, ek);
+    var allList = agWeekItems(sk, ek);
+    agRenderFilters(start, allList);
+    var list = allList.filter(agMatchFilter);
+    var filtered = !!(agFilter.impact || agFilter.ccy || agFilter.day);
     var nFort = list.filter(function(e){ return e.impact === "fort"; }).length;
-    $("agTotal").textContent = list.length ? (list.length + " note" + (list.length > 1 ? "s" : "") + (nFort ? " · " + nFort + " à fort impact" : "")) : "";
+    $("agTotal").textContent = list.length || filtered ? ((filtered ? list.length + " / " + allList.length : list.length) + " note" + (list.length > 1 ? "s" : "") + (nFort ? " · " + nFort + " à fort impact" : "")) : "";
 
     var box = $("agList");
     box.innerHTML = "";
     if(!list.length){
-      box.innerHTML = '<div class="empty-state">Rien de noté pour cette semaine. Clique sur « + Ajouter » pour noter un événement, une idée, un lien ou une capture à suivre.</div>';
+      box.innerHTML = filtered && allList.length
+        ? '<div class="empty-state">Aucune note ne correspond à ces filtres cette semaine. Utilise « Réinitialiser » pour tout revoir.</div>'
+        : '<div class="empty-state">Rien de noté pour cette semaine. Clique sur « + Ajouter » pour noter un événement, une idée, un lien ou une capture à suivre.</div>';
     } else {
       var lastDay = null;
       list.forEach(function(e){
