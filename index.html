@@ -807,6 +807,11 @@
   .ag-sy-stats div{display:flex; flex-direction:column; gap:4px;}
   .ag-sy-stats span{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
   .ag-sy-stats b{font-weight:500; font-size:15px; color:var(--text);}
+  .ag-sy-intro{font-size:13px; line-height:1.6; color:var(--text-dim); margin:-4px 0 14px;}
+  .ag-sy-card small{font-size:11.5px; line-height:1.45; color:var(--text-dim);}
+  .ag-sy-card.warn{border-left-color:var(--gold); border-left-style:solid; background:linear-gradient(90deg, rgba(200,155,74,0.10), var(--bg-2) 80%);}
+  .ag-sy-card.warn .ag-sy-card-b{color:var(--gold);}
+  .ag-sy-flux{margin:0; padding-left:18px; display:grid; gap:6px;}
   .ag-sy-sec{display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); margin:34px 0 14px;}
   .ag-sy-sec::after{content:""; flex:1; height:1px; background:var(--border-soft);}
   .ag-sy-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px;}
@@ -5355,6 +5360,31 @@
         '</div>' +
       '</div>';
 
+    // ---- opérations à prioriser la semaine suivante ----
+    // Dollar bullish => SELL EURUSD / GBPUSD / XAUUSD ; dollar bearish => BUY. USTEC : il faut une confluence tech + dollar.
+    var usdLab = (u.noData || u.allNeu) ? "neutre" : u.lab;
+    var techL = V.TECH ? V.TECH.lab : "neutre", dolL = V.USDD ? V.USDD.lab : "neutre";
+    function opCard(name, cls, act, sub){
+      return '<div class="ag-sy-card ' + cls + '"><span class="ag-sy-card-n">' + name + '</span><span class="ag-sy-card-b">' + act + '</span><small>' + sub + '</small></div>';
+    }
+    var opCards = [["EURUSD", "EU"], ["GBPUSD", "GU"], ["XAUUSD", "XAU"]].map(function(a){
+      if(usdLab === "bullish") return opCard(a[0], "dn", "▼ SELL", "Dollar bullish : " + a[1] + " à vendre en priorité.");
+      if(usdLab === "bearish") return opCard(a[0], "up", "▲ BUY", "Dollar bearish : " + a[1] + " à acheter en priorité.");
+      return opCard(a[0], "neu", "● Pas de priorité", "Dollar neutre : le biais de base prévaut.");
+    }).join("");
+    var nasCard;
+    if(techL === "bearish" && dolL === "bullish") nasCard = opCard("USTEC", "dn", "▼ SELL", "Confluence vendeuse : tech bearish + dollar toujours bullish.");
+    else if(techL === "bullish" && dolL === "bearish") nasCard = opCard("USTEC", "up", "▲ BUY", "Confluence acheteuse : tech bullish + dollar bearish.");
+    else if(techL === "neutre" && dolL === "neutre") nasCard = opCard("USTEC", "neu", "● Pas de priorité", "Ni la tech ni le dollar ne donnent de direction.");
+    else {
+      var D = { bullish:"bullish", bearish:"bearish", neutre:"neutre" };
+      var why = (techL !== "neutre" && dolL !== "neutre") ? "Divergence : la tech et le dollar ne vont pas dans le même sens." : "Une seule moitié donne une direction, l’autre reste neutre.";
+      nasCard = opCard("USTEC", "warn", "◐ À confirmer", why + " Tech " + D[techL] + " · dollar " + D[dolL] + ". Attendre la confluence pour " + (techL === "bearish" || dolL === "bullish" ? "vendre" : "acheter") + ".");
+    }
+    h += '<div class="ag-sy-sec">Opérations à prioriser · semaine suivante</div>' +
+      '<div class="ag-sy-intro">Déduites des biais de la semaine. Un dollar haussier = vente sur EU, GU et XAU ; dollar baissier = achat. Pour le Nasdaq, la tech et le dollar doivent aller dans le même sens (tech bearish + dollar bullish = vente, l’inverse = achat).</div>' +
+      '<div class="ag-sy-cards">' + opCards + nasCard + '</div>';
+
     // les pourcentages d'estimation ne sont volontairement pas affichés pour les devises et les actifs corrélés
     function cards(list){
       return list.filter(function(a){ return V[a]; }).map(function(a){
@@ -5400,7 +5430,19 @@
       var st = AG_STOCKS.filter(function(x){ return x[0] === tk; })[0];
       return { name: st ? st[1] + " (" + tk + ")" : tk, c: acc.TECH.stk[tk] };
     });
-    h += drvBlock("Moteurs du dollar", "USD", acc.USDD.drv) + drvBlock("Moteurs du Nasdaq · tech", "NAS", techDrv);
+    h += drvBlock("Moteurs du dollar · fondamentaux à suivre", "USD", acc.USDD.drv) + drvBlock("Moteurs du Nasdaq · tech à suivre", "NAS", techDrv);
+
+    // messages : suivre le flux via les moteurs fondamentaux (les news) pour voir si le biais change
+    function nm(list){ return agDrivers(list).map(function(x){ return "<b>" + escapeHtml(x.name) + "</b>"; }).join(", "); }
+    var dN = nm(acc.USDD.drv), tN = nm(techDrv), fl = [];
+    if(usdLab !== "neutre"){
+      var opp = usdLab === "bullish" ? "BUY sur EU, GU et XAU" : "SELL sur EU, GU et XAU";
+      fl.push("<b>Dollar " + usdLab + ".</b> " + (dN ? "Suis " + dN + " : " : "Suis les news du dollar : ") + "tant qu’ils restent dans le même sens, le biais est maintenu. Si l’un d’eux se retourne, le billet peut changer et basculer vers un " + opp + ".");
+    }
+    if(techL !== "neutre" || dolL !== "neutre"){
+      fl.push("<b>Nasdaq.</b> " + (tN ? "Suis " + tN + " et le dollar" : "Suis les valeurs tech et le dollar") + " : la confluence tech + dollar doit rester intacte pour garder l’opération. Si la tech change de sens ou si le dollar s’inverse, ne force pas l’entrée.");
+    }
+    if(fl.length) h += '<div class="ag-sy-tip"><b>Suis le flux, pas ton avis.</b> Les moteurs sont les éléments fondamentaux (les news) à suivre durant les semaines à venir pour voir si le biais change.<ul class="ag-sy-flux">' + fl.map(function(x){ return "<li>" + x + "</li>"; }).join("") + '</ul></div>';
 
 
     if(u.noData){
