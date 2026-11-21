@@ -788,7 +788,12 @@
   .ag-sy-pct small{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin-left:8px;}
   .ag-sy-gauge{height:8px; border-radius:4px; background:linear-gradient(90deg,var(--red),var(--border) 50%,var(--green)); position:relative; margin:10px 0 0;}
   .ag-sy-gauge i{position:absolute; top:-6px; width:4px; height:20px; background:var(--text); border-radius:2px; transform:translateX(-50%); box-shadow:0 0 0 3px rgba(0,0,0,0.25);}
-  .ag-sy-scale{display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin:12px 0 22px;}
+  .ag-sy-scale{display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin:12px 0 18px;}
+  .ag-sy-bal-t{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin-bottom:8px;}
+  .ag-sy-bal{display:flex; gap:2px; height:8px; border-radius:4px; overflow:hidden; background:var(--border-soft);}
+  .ag-sy-bal i{display:block; min-width:0;}
+  .ag-sy-bal i.dn{background:var(--red);} .ag-sy-bal i.up{background:var(--green);} .ag-sy-bal i.neu{background:var(--gray, #6b7076);}
+  .ag-sy-bal-l{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; font-family:var(--mono); font-size:10.5px; color:var(--text-dim); margin:8px 0 22px;}
   .ag-sy-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:14px; padding-top:18px; border-top:1px solid var(--border-soft);}
   .ag-sy-stats div{display:flex; flex-direction:column; gap:4px;}
   .ag-sy-stats span{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
@@ -2115,7 +2120,7 @@
           <div class="section-label" style="margin-top:4px;">devises concernées · impact · biais</div>
           <div class="ag-ccy-box" id="agCcyBox"></div>
           <div class="ag-corr" id="agCorr"></div>
-          <div class="hint" style="margin-top:6px;">Règle : USD bullish = EURUSD, GBPUSD, XAUUSD et USTEC bearish (et inversement). GBP ↔ GBPUSD, EUR ↔ EURUSD, Nasdaq ↔ USTEC dans le même sens. Sens unique pour le Nasdaq : le dollar agit sur USTEC, mais un Nasdaq bullish ou bearish ne change pas le biais du dollar. Impact « Neutre » : la grande ligne n’oriente aucun biais, elle tempère simplement la synthèse.</div>
+          <div class="hint" style="margin-top:6px;">Poids de l’impact : Faible 1 · Moyen 2,5 · Fort 5 (un impact fort domine). Règle : USD bullish = EURUSD, GBPUSD, XAUUSD et USTEC bearish (et inversement). GBP ↔ GBPUSD, EUR ↔ EURUSD, Nasdaq ↔ USTEC dans le même sens. Sens unique pour le Nasdaq : le dollar agit sur USTEC, mais un Nasdaq bullish ou bearish ne change pas le biais du dollar. Impact « Neutre » : la grande ligne n’oriente aucun biais, elle tempère simplement la synthèse.</div>
         </div>
         <div class="field span2">
           <label for="ag_important">Aspect important</label>
@@ -4828,7 +4833,14 @@
 
   // ---- devises / biais / corrélations / synthèse ML ----
   var AG_CCY = [["USD","Dollar (USD)"],["EUR","Euro (EUR)"],["GBP","Livre (GBP)"],["NAS","Nasdaq"]];
-  var AG_W = { faible:1, moyen:2, fort:3 };
+  // Poids convexes : un impact fort domine plusieurs impacts faibles (1 fort = 5 faibles, 2 moyens = 1 fort).
+  var AG_W = { faible:1, moyen:2.5, fort:5 };
+  var AG_WMAX = 5;
+  // Persistance : plus l'impact est fort, plus l'événement reste pertinent (demi-vie en jours).
+  var AG_HL = { fort:4.5, moyen:3, faible:2, neutre:2 };
+  // USTEC = 60 % tech et croissance + 40 % dollar (inversé)
+  var AG_UST_T = 0.6, AG_UST_D = 0.4;
+  function agLevel(x){ return x >= 3.75 ? "fort" : x >= 1.75 ? "moyen" : "faible"; }
   var AG_NEUTRAL = 1.5;   // poids d’une grande ligne neutre : aucun signal directionnel, mais elle dilue le biais (dénominateur)
   var AG_PAIRS = ["EURUSD","GBPUSD","XAUUSD","USTEC"];
   // TECH = santé des actions tech (Nasdaq seul) ; USDD = dollar saisi directement : les deux moitiés de USTEC, sans double comptage
@@ -4848,17 +4860,17 @@
   // Biais = signe du score pondéré (impact 1/2/3) ; les entrées neutres tempèrent (poids AG_NEUTRAL) ;
   // des signaux opposés qui s'annulent donnent un Nasdaq neutre ; une entrée sans biais est ignorée.
   function agNasAgg(list){
-    var S = 0, M = 0, dir = 0, dirW = 0;
+    var S = 0, M = 0, dir = 0, dirW = 0, dirW2 = 0;
     list.forEach(function(e){
       if(e.impact === "neutre"){ M += AG_NEUTRAL; return; }
       var sg = agSign(e.bias); if(!sg) return;
-      var w = AG_W[e.impact] || 2; S += sg * w; M += w; dir++; dirW += w;
+      var w = AG_W[e.impact] || AG_W.moyen; S += sg * w; M += w; dir++; dirW += w; dirW2 += w * w;
     });
     if(!M) return { impact:"moyen", bias:"" };
     if(!dir) return { impact:"neutre", bias:"" };
-    var t = S / M, avg = dirW / dir;
+    var t = S / M, avg = dirW2 / dirW;   // moyenne quadratique : l'impact le plus fort prédomine
     if(Math.abs(t) < 0.2) return { impact:"neutre", bias:"" };
-    return { impact: avg >= 2.5 ? "fort" : avg >= 1.5 ? "moyen" : "faible", bias: t > 0 ? "bullish" : "bearish" };
+    return { impact: agLevel(avg), bias: t > 0 ? "bullish" : "bearish" };
   }
   var AG_INV = { USD:["USD","EUR","GBP","NAS"], EUR:["EUR"], GBP:["GBP"], EURUSD:["EUR","USD"], GBPUSD:["GBP","USD"], XAUUSD:["USD"], USTEC:["NAS","USD"], TECH:["NAS"], USDD:["USD"] };
   function agIsNeu(v){ return !!v && v.impact === "neutre"; }
@@ -4869,7 +4881,7 @@
     var w = {}, s = {}, neu = {};
     AG_CCY.forEach(function(c){
       var v = cur[c[0]];
-      w[c[0]] = v ? (agIsNeu(v) ? AG_NEUTRAL : (AG_W[v.impact] || 2)) : 0;
+      w[c[0]] = v ? (agIsNeu(v) ? AG_NEUTRAL : (AG_W[v.impact] || AG_W.moyen)) : 0;
       s[c[0]] = (v && !agIsNeu(v)) ? agSign(v.bias) * w[c[0]] : 0;
     });
     if(cur.USD && !agIsNeu(cur.USD) && !s.USD && usdTxt) s.USD = usdTxt * w.USD;
@@ -4880,9 +4892,9 @@
     return {
       val: { USD: s.USD - 0.5 * (s.EUR + s.GBP),   // le Nasdaq ne déduit rien sur le dollar (corrélation à sens unique)
              EUR: s.EUR, GBP: s.GBP,
-             EURUSD: s.EUR - s.USD, GBPUSD: s.GBP - s.USD, XAUUSD: -s.USD, USTEC: s.NAS - s.USD, TECH: s.NAS, USDD: s.USD },
+             EURUSD: s.EUR - s.USD, GBPUSD: s.GBP - s.USD, XAUUSD: -s.USD, USTEC: AG_UST_T * s.NAS - AG_UST_D * s.USD, TECH: s.NAS, USDD: s.USD },
       mag: { USD: w.USD + 0.5 * (w.EUR + w.GBP), EUR: w.EUR, GBP: w.GBP,
-             EURUSD: w.EUR + w.USD, GBPUSD: w.GBP + w.USD, XAUUSD: w.USD, USTEC: w.NAS + w.USD, TECH: w.NAS, USDD: w.USD },
+             EURUSD: w.EUR + w.USD, GBPUSD: w.GBP + w.USD, XAUUSD: w.USD, USTEC: AG_UST_T * w.NAS + AG_UST_D * w.USD, TECH: w.NAS, USDD: w.USD },
       neu: neu
     };
   }
@@ -5037,8 +5049,8 @@
     var c = e.currencies || {}, x = [], i, lex = 0;
     for(i = 0; i < AG_DIM; i++) x.push(0);
     agTok((e.name || "") + " " + (e.details || "")).forEach(function(w){ x[agHash(w)] = Math.min(1, x[agHash(w)] + 0.5); lex += AG_LEXSET[w] || 0; });
-    var ty = agTypes(e); x.push(ty.indexOf("macro") >= 0 ? 1 : 0, ty.indexOf("geo") >= 0 ? 1 : 0, c.USD ? (agIsNeu(c.USD) ? 0 : (AG_W[c.USD.impact] || 2)) / 3 : 0);
-    ["EUR","GBP","NAS"].forEach(function(k){ var v = c[k]; x.push(v ? agSign(v.bias) * (AG_W[v.impact] || 2) / 3 : 0); });
+    var ty = agTypes(e); x.push(ty.indexOf("macro") >= 0 ? 1 : 0, ty.indexOf("geo") >= 0 ? 1 : 0, c.USD ? (agIsNeu(c.USD) ? 0 : (AG_W[c.USD.impact] || AG_W.moyen)) / AG_WMAX : 0);
+    ["EUR","GBP","NAS"].forEach(function(k){ var v = c[k]; x.push(v ? agSign(v.bias) * (AG_W[v.impact] || AG_W.moyen) / AG_WMAX : 0); });
     x.push(Math.max(-1, Math.min(1, lex / 3)), 1);
     return x;
   }
@@ -5127,23 +5139,30 @@
     var today = agKey(new Date());
     var ref = (today >= sk && today <= ek) ? today : ek;
     var acc = {};
-    AG_ASSETS.forEach(function(a){ acc[a] = { num:0, den:0, n:0, nn:0, drv:[] }; });
+    // num/den : inclinaison pondérée ; pos/neg/neuM : balance des poids ; ev : évidence directionnelle (impact × fraîcheur)
+    function blank(){ return { num:0, den:0, n:0, nn:0, pos:0, neg:0, neuM:0, ev:0 }; }
+    AG_ASSETS.forEach(function(a){ acc[a] = blank(); acc[a].drv = []; });
     acc.TECH.stk = {};
-    acc.types = { macro:{ num:0, den:0, n:0, nn:0 }, geo:{ num:0, den:0, n:0, nn:0 } };
+    acc.types = { macro:blank(), geo:blank() };
+    function add(A, d, v, mg, neu){
+      A.num += d * v; A.den += d * mg; A.n++; if(neu) A.nn++;
+      A.pos += d * Math.max(v, 0); A.neg += d * Math.max(-v, 0); A.neuM += d * (mg - Math.abs(v));
+      if(!neu) A.ev += d * mg;
+    }
     agList().concat(agTradeContexts(sk, ek)).forEach(function(e){
       if(!e.date || e.date < sk || e.date > ek || !e.currencies || !Object.keys(e.currencies).length) return;
       var age = Math.max(0, (agParseKey(ref) - agParseKey(e.date)) / 86400000);
-      var d = Math.pow(0.5, age / 3);
+      var d = Math.pow(0.5, age / (AG_HL[e.impact] || 3));   // décroissance : demi-vie selon l'impact
       var txt = (e.currencies.USD && !e.currencies.USD.bias && !agIsNeu(e.currencies.USD)) ? model.pred(e) : 0;
       var sc = agScores(e.currencies, txt);
       AG_ASSETS.forEach(function(a){
         if(!sc.mag[a]) return;
-        var A = acc[a]; A.num += d * sc.val[a]; A.den += d * sc.mag[a]; A.n++; if(sc.neu[a]) A.nn++;
-        if(sc.val[a]) A.drv.push({ name:e.name || "", c:d * sc.val[a] });
+        add(acc[a], d, sc.val[a], sc.mag[a], sc.neu[a]);
+        if(sc.val[a]) acc[a].drv.push({ name:e.name || "", c:d * sc.val[a], raw:sc.val[a] });
       });
       var nsx = e.currencies.NAS && e.currencies.NAS.stocks;
-      if(nsx) Object.keys(nsx).forEach(function(tk){ var x = nsx[tk], sg = agIsNeu(x) ? 0 : agSign(x.bias) * (AG_W[x.impact] || 2); acc.TECH.stk[tk] = (acc.TECH.stk[tk] || 0) + d * sg; });
-      if(sc.mag.USD) agTypes(e).forEach(function(ty){ var T = acc.types[ty]; if(!T) return; T.num += d * sc.val.USD; T.den += d * sc.mag.USD; T.n++; if(sc.neu.USD) T.nn++; });
+      if(nsx) Object.keys(nsx).forEach(function(tk){ var x = nsx[tk], sg = agIsNeu(x) ? 0 : agSign(x.bias) * (AG_W[x.impact] || AG_W.moyen); acc.TECH.stk[tk] = (acc.TECH.stk[tk] || 0) + d * sg; });
+      if(sc.mag.USD) agTypes(e).forEach(function(ty){ var T = acc.types[ty]; if(!T) return; add(T, d, sc.val.USD, sc.mag.USD, sc.neu.USD); });
     });
     return acc;
   }
@@ -5158,29 +5177,37 @@
     }
     return den ? num / den : null;
   }
-  // verdict : inclinaison t ∈ [-1,1] → proba logistique ; confiance croît avec le nombre d'événements
+  // verdict : inclinaison t ∈ [-1,1] → proba logistique ; la confiance croît avec l'évidence directionnelle
+  // (somme impact × fraîcheur, exprimée en « événements moyens » : un impact fort pèse plus qu'un faible)
   function agVerdict(A, prior){
     if(!A || !A.den) return null;
-    var nn = A.nn || 0, nd = A.n - nn;
+    var nn = A.nn || 0;
+    var r = { n:A.n, nn:nn, pos:A.pos || 0, neg:A.neg || 0, neuM:A.neuM || 0 };
     // toutes les grandes lignes sont neutres : aucune direction, on ne fabrique pas de biais
-    if(nn >= A.n) return { t:0, p:0.5, n:A.n, nn:nn, lab:"neutre", conf:0, allNeu:true };
+    if(nn >= A.n){ r.t = 0; r.p = 0.5; r.lab = "neutre"; r.conf = 0; r.allNeu = true; r.nEff = 0; return r; }
     var t = A.num / A.den;   // les lignes neutres comptent au dénominateur : elles tempèrent t
     if(prior != null) t = 0.8 * t + 0.2 * prior;
-    // la confiance ne croît qu'avec les événements directionnels
-    var p = 1 / (1 + Math.exp(-3 * t * (1 - Math.exp(-nd / 2))));
-    return { t:t, p:p, n:A.n, nn:nn, lab: p > 0.58 ? "bullish" : p < 0.42 ? "bearish" : "neutre", conf: Math.round(Math.abs(2 * p - 1) * 100) };
+    var nEff = (A.ev || 0) / AG_W.moyen;
+    var p = 1 / (1 + Math.exp(-3 * t * (1 - Math.exp(-nEff / 2))));
+    r.t = t; r.p = p; r.nEff = nEff;
+    r.lab = p > 0.58 ? "bullish" : p < 0.42 ? "bearish" : "neutre";
+    r.conf = Math.round(Math.abs(2 * p - 1) * 100);
+    return r;
   }
 
-  // USTEC = 50 % santé des actions tech + 50 % dollar (inversé). Chaque moitié est évaluée séparément ;
-  // une moitié sans donnée compte pour neutre : elle ne fabrique pas de direction.
+  // USTEC = 60 % tech et croissance + 40 % dollar (inversé). Chaque moitié est évaluée séparément ;
+  // une moitié sans donnée compte pour neutre : elle ne fabrique pas de direction et réduit l'évidence.
   function agUstec(vt, vd){
     if(!vt && !vd) return null;
     var tt = vt ? vt.t : 0, td = vd ? -vd.t : 0;
-    var t = 0.5 * tt + 0.5 * td;
-    var n = (vt ? vt.n : 0) + (vd ? vd.n : 0), nn = (vt ? vt.nn : 0) + (vd ? vd.nn : 0), nd = n - nn;
-    if(nd <= 0) return { t:0, p:0.5, n:n, nn:nn, lab:"neutre", conf:0, allNeu:true, tt:tt, td:td };
-    var p = 1 / (1 + Math.exp(-3 * t * (1 - Math.exp(-nd / 2))));
-    return { t:t, p:p, n:n, nn:nn, lab: p > 0.58 ? "bullish" : p < 0.42 ? "bearish" : "neutre", conf: Math.round(Math.abs(2 * p - 1) * 100), tt:tt, td:td };
+    var n = (vt ? vt.n : 0) + (vd ? vd.n : 0), nn = (vt ? vt.nn : 0) + (vd ? vd.nn : 0);
+    if(n - nn <= 0) return { t:0, p:0.5, n:n, nn:nn, lab:"neutre", conf:0, allNeu:true, tt:tt, td:td, ct:0, cd:0 };
+    // conviction de chaque moitié = direction × évidence (impact × fraîcheur) : un impact fort pèse plus qu'un faible
+    function conv(v, sg){ return v ? sg * v.t * (1 - Math.exp(-v.nEff / 2)) : 0; }
+    var ct = conv(vt, 1), cd = conv(vd, -1);
+    var z = AG_UST_T * ct + AG_UST_D * cd;
+    var p = 1 / (1 + Math.exp(-3 * z));
+    return { t:z, p:p, n:n, nn:nn, lab: p > 0.58 ? "bullish" : p < 0.42 ? "bearish" : "neutre", conf: Math.round(Math.abs(2 * p - 1) * 100), tt:tt, td:td, ct:ct, cd:cd };
   }
   function agUstecHtml(V, acc){
     var us = V.USTEC, vt = V.TECH, vd = V.USDD;
@@ -5197,13 +5224,14 @@
     function eco(title, w, cls, big, sub, res){
       return '<div class="ag-sy-eco ' + cls + (res ? " res" : "") + '"><div class="ag-sy-eco-h"><span class="ag-sy-card-n">' + title + '</span>' + (w ? '<span class="ag-sy-eco-w">' + w + '</span>' : "") + '</div><span class="ag-sy-eco-b">' + big + '</span><small>' + sub + '</small></div>';
     }
-    var div = us.tt && us.td && Math.abs(us.tt) > 0.2 && Math.abs(us.td) > 0.2 && us.tt * us.td < 0;
-    var resSub = us.allNeu ? "Toutes les grandes lignes sont neutres : le biais de base prévaut." : (div ? "Les deux écosystèmes divergent : le biais est tempéré." : "Les deux écosystèmes pèsent à parts égales.");
+    var div = us.ct && us.cd && Math.abs(us.ct) > 0.1 && Math.abs(us.cd) > 0.1 && us.ct * us.cd < 0;
+    var lead = Math.abs(AG_UST_T * us.ct) >= Math.abs(AG_UST_D * us.cd) ? "la tech et croissance (60 %)" : "le dollar (40 %)";
+    var resSub = us.allNeu ? "Toutes les grandes lignes sont neutres : le biais de base prévaut." : (div ? "Les deux écosystèmes divergent : " + lead + " l’emporte" + (us.lab === "neutre" ? ", mais le biais reste neutre." : ".") : "Tech et croissance 60 % · dollar 40 %.");
     return '<div class="ag-sy-sec">USTEC · synthèse de 2 écosystèmes</div><div class="ag-sy-ust">' +
-      eco("Santé des actions tech", "50 %", kk(techLab), ar(techLab), techSub) + '<div class="ag-sy-op">+</div>' +
-      eco("Dollar (inversé)", "50 %", kk(effLab), dolLab === "neutre" ? "● Neutre" : "USD " + dolLab + " → " + (effLab === "bullish" ? "▲" : "▼") + " pour USTEC", dolSub) + '<div class="ag-sy-op">=</div>' +
+      eco("Tech et croissance", "60 %", kk(techLab), ar(techLab), techSub) + '<div class="ag-sy-op">+</div>' +
+      eco("Dollar (inversé)", "40 %", kk(effLab), dolLab === "neutre" ? "● Neutre" : "USD " + dolLab + " → " + (effLab === "bullish" ? "▲" : "▼") + " pour USTEC", dolSub) + '<div class="ag-sy-op">=</div>' +
       eco("USTEC global", "", kk(us.lab), ar(us.lab), resSub, true) + '</div>' +
-      '<div class="ag-sy-tip"><b>USTEC = 50 % santé tech + 50 % dollar.</b> Le biais global est la synthèse des deux écosystèmes : un dollar fort pèse sur le Nasdaq, des actions tech en bonne santé le soutiennent. Une moitié sans donnée compte pour neutre.</div>';
+      '<div class="ag-sy-tip"><b>USTEC = 60 % tech et croissance + 40 % dollar.</b> Le biais global est la synthèse des deux écosystèmes : un dollar fort pèse sur le Nasdaq, des actions tech en bonne santé le soutiennent. Une moitié sans donnée compte pour neutre.</div>';
   }
   function agRenderML(sk, ek){
     var box = $("agML"); if(!box) return;
@@ -5226,6 +5254,17 @@
     var cls = k(u);
     var pct = Math.round(u.p * 100);
     var labTxt = u.noData ? "AUCUN BIAIS SAISI" : (u.allNeu ? "NEUTRE" : u.lab.toUpperCase());
+    // balance des poids (impact × fraîcheur), impact dominant et cohérence du camp gagnant
+    var A0 = acc.USD, tot = (A0.pos || 0) + (A0.neg || 0) + (A0.neuM || 0), dirTot = (A0.pos || 0) + (A0.neg || 0);
+    function shr(x){ return tot ? Math.round(100 * x / tot) : 0; }
+    var sgn = u.lab === "bullish" ? 1 : u.lab === "bearish" ? -1 : 0, domRaw = 0;
+    A0.drv.forEach(function(x){ if(sgn && x.raw * sgn > 0 && Math.abs(x.raw) > domRaw) domRaw = Math.abs(x.raw); });
+    var domTxt = domRaw ? agLevel(domRaw) : "—";
+    var cohTxt = (!u.allNeu && dirTot && sgn) ? Math.round(100 * Math.max(A0.pos, A0.neg) / dirTot) + " %" : "—";
+    var bal = (!u.noData && tot) ?
+      '<div class="ag-sy-bal-t">Balance des poids · impact × fraîcheur</div>' +
+      '<div class="ag-sy-bal"><i class="dn" style="flex:' + A0.neg + ' 1 0"></i><i class="neu" style="flex:' + A0.neuM + ' 1 0"></i><i class="up" style="flex:' + A0.pos + ' 1 0"></i></div>' +
+      '<div class="ag-sy-bal-l"><span>Bearish ' + shr(A0.neg) + ' %</span><span>Neutre / compensé ' + shr(A0.neuM) + ' %</span><span>Bullish ' + shr(A0.pos) + ' %</span></div>' : "";
 
     var h = head +
       '<div class="ag-sy-hero ' + cls + '">' +
@@ -5234,9 +5273,11 @@
           (u.allNeu ? '' : '<div class="ag-sy-pct">' + pct + ' %<small>estimation</small></div>') +
         '</div>' +
         '<div><div class="ag-sy-gauge"><i style="left:' + pct + '%"></i></div>' +
-          '<div class="ag-sy-scale"><span>Bearish</span><span>Neutre</span><span>Bullish</span></div>' +
+          '<div class="ag-sy-scale"><span>Bearish</span><span>Neutre</span><span>Bullish</span></div>' + bal +
           '<div class="ag-sy-stats">' +
             '<div><span>Confiance</span><b>' + lvl + (u.allNeu ? '' : ' · ' + u.conf + ' %') + '</b></div>' +
+            '<div><span>Impact dominant</span><b>' + domTxt + '</b></div>' +
+            '<div><span>Cohérence</span><b>' + cohTxt + '</b></div>' +
             '<div><span>Événements</span><b>' + u.n + '</b></div>' +
             '<div><span>Directionnels</span><b>' + nd + '</b></div>' +
             '<div><span>Neutres</span><b>' + u.nn + '</b></div>' +
@@ -5277,7 +5318,8 @@
       h += '<div class="ag-sy-note"><b>' + nTxt(u.nn, "grande ligne") + ' neutre' + (u.nn > 1 ? "s" : "") + '.</b> Elle' + (u.nn > 1 ? "s" : "") + ' n\'oriente' + (u.nn > 1 ? "nt" : "") + ' aucun biais mais ' + (u.nn > 1 ? "tempèrent" : "tempère") + ' la synthèse : plus il y en a, plus le biais se rapproche du neutre. Elles n\'augmentent pas la confiance.</div>';
     }
 
-    agMLText = "USD " + (u.allNeu ? "neutre" : u.lab + " (" + pct + " %, confiance " + lvl + ", " + nTxt(u.n, "événement") + ")") + ". " +
+    h += '<div class="ag-sy-tip"><b>Comment le biais est pesé.</b> Poids par impact : faible 1 · moyen 2,5 · fort 5, donc un impact fort domine plusieurs impacts faibles. Un événement fort reste pertinent plus longtemps (demi-vie 4,5 j contre 2 j pour un faible). Les lignes neutres tempèrent sans ajouter de direction, et la confiance monte avec l’impact total, pas avec le simple nombre de lignes.</div>';
+    agMLText = "USD " + (u.allNeu ? "neutre" : u.lab + " (" + pct + " %, confiance " + lvl + ", " + nTxt(u.n, "événement") + (domRaw ? ", impact dominant " + domTxt : "") + ")") + ". " +
       ["EUR","GBP"].concat(AG_PAIRS).filter(function(a){ return V[a]; }).map(function(a){ return a + " " + V[a].lab; }).join(", ") + "." +
       (u.nn ? " " + nTxt(u.nn, "grande ligne") + " neutre" + (u.nn > 1 ? "s" : "") + " (tempère" + (u.nn > 1 ? "nt" : "") + " le biais)." : "") +
       (drv.length ? " Moteurs : " + drv.map(function(x){ return x.name + " (" + (x.c > 0 ? "USD ▲" : "USD ▼") + ")"; }).join(", ") + "." : "");
@@ -5312,7 +5354,7 @@
     var st = (v && v.stocks) || {}, ob = (v && v.obs) || null;
     if(v && !v.stocks && !v.obs) ob = { impact:v.impact, bias:v.bias, desc:"" };   // ancien format : repris comme observation globale
     var h = '<label><input type="checkbox" data-k="on"' + (v ? " checked" : "") + '> <b>Nasdaq (USTEC)</b></label>' +
-      '<div class="ag-nas-panel"><div class="ag-nas-hint">USTEC est la synthèse de 8 grands actifs technologiques. Coche l\'action impactée, puis son impact, son biais et une description. Pour une grande ligne qui ne vise pas une action précise, utilise l\'observation globale. Les entrées sont agrégées en un biais Nasdaq, puis croisées avec le dollar.</div>';
+      '<div class="ag-nas-panel"><div class="ag-nas-hint">USTEC est la synthèse de 8 grands actifs technologiques. Coche l\'action impactée, puis son impact, son biais et une description. Pour une grande ligne qui ne vise pas une action précise, utilise l\'observation globale. Les entrées sont agrégées en un biais Nasdaq (60 % tech et croissance), puis croisées avec le dollar (40 %).</div>';
     AG_STOCKS.forEach(function(x){ h += agStockRow(x[0], x[0], x[1], st[x[0]], false); });
     h += agStockRow("_obs", "Observation globale", "", ob, true);
     return h + '<div class="ag-nas-agg" id="agNasAgg"></div></div>';
