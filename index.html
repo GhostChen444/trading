@@ -673,6 +673,7 @@
   .tag.ag-imp-faible{background:var(--gray-soft); color:var(--gray); border-color:transparent;}
   .tag.ag-imp-moyen{background:rgba(200,155,74,0.14); color:var(--gold); border-color:transparent;}
   .tag.ag-imp-fort{background:var(--red-soft); color:var(--red); border-color:transparent;}
+  .tag.ag-imp-neutre{background:transparent; color:var(--text-dim); border-color:var(--border); border-style:dashed;}
   .ag-important{border-left:2px solid var(--gold); background:rgba(200,155,74,0.08); padding:9px 14px; margin:8px 0 10px; border-radius:0 var(--r) var(--r) 0; font-size:13.5px; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere;}
   .an-form{padding:16px; border:1px solid var(--gold-soft); border-radius:var(--r); background:rgba(200,155,74,0.05); margin:12px 0; animation:anIn .18s ease-out both;}
   @keyframes anIn{from{opacity:0; transform:translateY(-6px);}}
@@ -699,7 +700,7 @@
   .ag-sources a{color:var(--blue); text-decoration:none; overflow-wrap:anywhere;}
   .ag-sources a:hover{text-decoration:underline;}
   .ag-sources a::before{content:"↗ "; color:var(--text-faint);}
-  .ag-review{border-top:1px solid var(--border-soft); padding:18px 20px 22px;}
+  .ag-review{border-top:1px solid var(--border-soft); padding:28px 24px 32px;}
   .ag-review h4{font-family:var(--mono); font-size:11.5px; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin:0 0 4px;}
   .ag-review .hint{margin:0 0 10px;}
   .ag-review textarea{width:100%; min-height:120px; background:var(--bg-2); border:1px solid var(--border); color:var(--text); border-radius:var(--r); padding:10px 12px; line-height:1.55; font-family:inherit; font-size:14px; resize:vertical; outline:none;}
@@ -732,6 +733,7 @@
   .ag-ccy-box{display:grid; gap:8px;}
   .ag-ccy{border:1px solid var(--border); border-radius:var(--r); padding:10px 12px; display:grid; grid-template-columns:150px 1fr 1fr; gap:10px 14px; align-items:center; background:var(--bg-2); opacity:.72; transition:opacity .15s, border-color .15s;}
   .ag-ccy.on{opacity:1; border-color:var(--gold-soft);}
+  .ag-ccy.neu .ag-ccy-g.bi{opacity:.4;}
   .ag-ccy label{display:inline-flex; align-items:center; gap:6px; margin:0; font-size:13px; color:var(--text); font-family:inherit; cursor:pointer;}
   .ag-ccy input[type=checkbox]{width:auto; margin:0; padding:0; accent-color:var(--gold);}
   .ag-ccy-g{display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px;}
@@ -744,18 +746,53 @@
   .ag-chip{font-family:var(--mono); font-size:11.5px; padding:3px 9px; border-radius:999px; border:1px solid var(--border); color:var(--text-dim); background:transparent;}
   .ag-chip.up{color:var(--green); border-color:var(--green); background:var(--green-soft);}
   .ag-chip.dn{color:var(--red); border-color:var(--red); background:var(--red-soft);}
+  .ag-chip.neu{color:var(--text-dim); border-style:dashed;}
   .ag-der{font-size:12px; color:var(--text-faint); margin-top:0;}
   .ag-sug{margin-top:8px; font-size:12.5px; color:var(--text-dim); display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
-  .ag-ml{border:1px solid var(--gold-soft); border-radius:var(--r); padding:14px 16px; margin:0 0 14px; background:rgba(200,155,74,0.05);}
-  .ag-ml-main{display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin-bottom:10px;}
-  .ag-ml-badge{font-family:var(--serif); font-size:20px; padding:4px 14px; border-radius:var(--r); border:1px solid var(--border);}
-  .ag-ml-badge.up{color:var(--green); border-color:var(--green); background:var(--green-soft);}
-  .ag-ml-badge.dn{color:var(--red); border-color:var(--red); background:var(--red-soft);}
-  .ag-ml-gauge{flex:1; min-width:140px; height:6px; border-radius:3px; background:linear-gradient(90deg,var(--red),var(--border) 50%,var(--green)); position:relative;}
-  .ag-ml-gauge i{position:absolute; top:-4px; width:3px; height:14px; background:var(--text); border-radius:2px; transform:translateX(-50%);}
-  .ag-ml-meta{font-family:var(--mono); font-size:11px; color:var(--text-faint);}
-  .ag-ml-grid{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
-  .ag-ml-drv{font-size:12.5px; color:var(--text-dim); margin:6px 0;}
+  /* ---- Synthèse (revue de fin de semaine) ---- */
+  .ag-ml{border:1px solid var(--gold-soft); border-radius:calc(var(--r) + 4px); padding:30px 32px 34px; margin:10px 0 26px; background:linear-gradient(180deg, rgba(200,155,74,0.07), rgba(200,155,74,0.015));}
+  .ag-sy-head{display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:6px 18px; margin-bottom:24px;}
+  .ag-sy-head h4{margin:0 !important; font-size:12.5px !important;}
+  .ag-sy-week{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
+  .ag-sy-empty{font-size:13.5px; color:var(--text-dim); padding:6px 0;}
+  .ag-sy-hero{display:grid; grid-template-columns:minmax(210px,1fr) minmax(280px,1.7fr); gap:28px 44px; align-items:center; padding:28px 30px; border:1px solid var(--border); border-radius:var(--r); background:var(--bg-2);}
+  .ag-sy-hero.up{border-color:var(--green); background:linear-gradient(135deg, var(--green-soft), var(--bg-2) 72%);}
+  .ag-sy-hero.dn{border-color:var(--red); background:linear-gradient(135deg, var(--red-soft), var(--bg-2) 72%);}
+  .ag-sy-eyebrow{display:block; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint); margin-bottom:12px;}
+  .ag-sy-verdict{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .ag-sy-ccy{font-family:var(--serif); font-size:38px; line-height:1; color:var(--text);}
+  .ag-sy-lab{font-family:var(--mono); font-size:12.5px; letter-spacing:.14em; padding:5px 12px; border-radius:999px; border:1px solid var(--border); color:var(--text-dim);}
+  .ag-sy-hero.up .ag-sy-lab{color:var(--green); border-color:var(--green); background:var(--green-soft);}
+  .ag-sy-hero.dn .ag-sy-lab{color:var(--red); border-color:var(--red); background:var(--red-soft);}
+  .ag-sy-pct{font-family:var(--serif); font-size:46px; line-height:1.05; margin-top:14px; color:var(--text);}
+  .ag-sy-pct small{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin-left:8px;}
+  .ag-sy-gauge{height:8px; border-radius:4px; background:linear-gradient(90deg,var(--red),var(--border) 50%,var(--green)); position:relative; margin:10px 0 0;}
+  .ag-sy-gauge i{position:absolute; top:-6px; width:4px; height:20px; background:var(--text); border-radius:2px; transform:translateX(-50%); box-shadow:0 0 0 3px rgba(0,0,0,0.25);}
+  .ag-sy-scale{display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin:12px 0 22px;}
+  .ag-sy-stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:14px; padding-top:18px; border-top:1px solid var(--border-soft);}
+  .ag-sy-stats div{display:flex; flex-direction:column; gap:4px;}
+  .ag-sy-stats span{font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
+  .ag-sy-stats b{font-weight:500; font-size:15px; color:var(--text);}
+  .ag-sy-sec{display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); margin:34px 0 14px;}
+  .ag-sy-sec::after{content:""; flex:1; height:1px; background:var(--border-soft);}
+  .ag-sy-cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px;}
+  .ag-sy-card{display:flex; flex-direction:column; gap:8px; padding:16px 18px; border:1px solid var(--border); border-left:3px solid var(--border); border-radius:var(--r); background:var(--bg-2);}
+  .ag-sy-card.up{border-left-color:var(--green); background:linear-gradient(90deg, var(--green-soft), var(--bg-2) 80%);}
+  .ag-sy-card.dn{border-left-color:var(--red); background:linear-gradient(90deg, var(--red-soft), var(--bg-2) 80%);}
+  .ag-sy-card.neu{border-left-style:dashed;}
+  .ag-sy-card-n{font-family:var(--mono); font-size:12px; letter-spacing:.08em; color:var(--text-dim);}
+  .ag-sy-card-b{font-size:15px; color:var(--text-dim);}
+  .ag-sy-card.up .ag-sy-card-b{color:var(--green);} .ag-sy-card.dn .ag-sy-card-b{color:var(--red);}
+  .ag-sy-cards.wide{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
+  .ag-sy-drv{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ag-sy-drv li{display:flex; justify-content:space-between; align-items:center; gap:14px; padding:12px 16px; border:1px solid var(--border-soft); border-radius:var(--r); font-size:13.5px; color:var(--text-dim);}
+  .ag-sy-drv li span{min-width:0; overflow-wrap:anywhere;}
+  .ag-sy-drv em{font-style:normal; font-family:var(--mono); font-size:11.5px; white-space:nowrap;}
+  .ag-sy-drv em.up{color:var(--green);} .ag-sy-drv em.dn{color:var(--red);}
+  .ag-sy-note{margin-top:26px; padding:16px 20px; border:1px dashed var(--border); border-radius:var(--r); font-size:13px; line-height:1.6; color:var(--text-dim);}
+  .ag-sy-note b{color:var(--text); font-weight:500;}
+  .ag-sy-narr{margin-top:26px; font-size:13px; line-height:1.65; color:var(--text-faint);}
+  @media (max-width:760px){ .ag-ml{padding:22px 18px 26px;} .ag-sy-hero{grid-template-columns:1fr; padding:22px 20px;} .ag-sy-pct{font-size:38px;} }
   #agTypeBox{display:flex; gap:18px; flex-wrap:wrap;}
   #agTypeBox label{display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text); font-family:inherit; cursor:pointer;}
   #agTypeBox input{width:auto; margin:0; padding:0; accent-color:var(--gold);}
@@ -2040,7 +2077,7 @@
           <div class="section-label" style="margin-top:4px;">devises concernées · impact · biais</div>
           <div class="ag-ccy-box" id="agCcyBox"></div>
           <div class="ag-corr" id="agCorr"></div>
-          <div class="hint" style="margin-top:6px;">Règle : USD bullish = EURUSD, GBPUSD, XAUUSD et Nasdaq bearish (et inversement). GBP ↔ GBPUSD, EUR ↔ EURUSD, Nasdaq ↔ USTEC dans le même sens.</div>
+          <div class="hint" style="margin-top:6px;">Règle : USD bullish = EURUSD, GBPUSD, XAUUSD et Nasdaq bearish (et inversement). GBP ↔ GBPUSD, EUR ↔ EURUSD, Nasdaq ↔ USTEC dans le même sens. Impact « Neutre » : la grande ligne n’oriente aucun biais, elle tempère simplement la synthèse.</div>
         </div>
         <div class="field span2">
           <label for="ag_important">Aspect important</label>
@@ -4426,7 +4463,7 @@
   // Onglet « Grandes lignes » : agenda de la semaine (notes, liens, captures)
   // Données globales (tous comptes) dans root.agenda ; revues dans root.agendaReviews.
   // =====================================================================
-  var IMPACT_LABELS = { faible:"Impact faible", moyen:"Impact moyen", fort:"Impact fort" };
+  var IMPACT_LABELS = { neutre:"Impact neutre", faible:"Impact faible", moyen:"Impact moyen", fort:"Impact fort" };
   var agEditId = null, agFormShots = [], agFormRemoved = [];
   var agShownKey = "", agReviewTimer = null, agPreCtx = null, agPrePairs = [];
 
@@ -4754,6 +4791,7 @@
   // ---- devises / biais / corrélations / synthèse ML ----
   var AG_CCY = [["USD","Dollar (USD)"],["EUR","Euro (EUR)"],["GBP","Livre (GBP)"],["NAS","Nasdaq"]];
   var AG_W = { faible:1, moyen:2, fort:3 };
+  var AG_NEUTRAL = 1.5;   // poids d’une grande ligne neutre : aucun signal directionnel, mais elle dilue le biais (dénominateur)
   var AG_PAIRS = ["EURUSD","GBPUSD","XAUUSD","USTEC"];
   var AG_ASSETS = ["USD","EUR","GBP"].concat(AG_PAIRS);
   var agMLText = "";
@@ -4764,22 +4802,38 @@
   // Corrélations : USD ↑ => EURUSD, GBPUSD, XAUUSD, Nasdaq ↓ (inversement si USD ↓) ;
   // GBP => GBPUSD, EUR => EURUSD, Nasdaq => USTEC (même sens).
   // val = score signé (impact 1/2/3 × biais), mag = amplitude maximale possible.
+  var AG_INV = { USD:["USD","EUR","GBP","NAS"], EUR:["EUR"], GBP:["GBP"], EURUSD:["EUR","USD"], GBPUSD:["GBP","USD"], XAUUSD:["USD"], USTEC:["NAS","USD"] };
+  function agIsNeu(v){ return !!v && v.impact === "neutre"; }
+  // Impact « neutre » : score signé = 0 (aucune direction) mais poids AG_NEUTRAL dans l'amplitude,
+  // donc la grande ligne tempère le biais au lieu de le renforcer.
   function agScores(cur, usdTxt){
     cur = cur || {};
-    var w = {}, s = {};
-    AG_CCY.forEach(function(c){ var v = cur[c[0]]; w[c[0]] = v ? (AG_W[v.impact] || 2) : 0; s[c[0]] = v ? agSign(v.bias) * w[c[0]] : 0; });
-    if(cur.USD && !s.USD && usdTxt) s.USD = usdTxt * w.USD;
+    var w = {}, s = {}, neu = {};
+    AG_CCY.forEach(function(c){
+      var v = cur[c[0]];
+      w[c[0]] = v ? (agIsNeu(v) ? AG_NEUTRAL : (AG_W[v.impact] || 2)) : 0;
+      s[c[0]] = (v && !agIsNeu(v)) ? agSign(v.bias) * w[c[0]] : 0;
+    });
+    if(cur.USD && !agIsNeu(cur.USD) && !s.USD && usdTxt) s.USD = usdTxt * w.USD;
+    Object.keys(AG_INV).forEach(function(a){
+      var pr = AG_INV[a].filter(function(k){ return cur[k]; });
+      neu[a] = pr.length > 0 && pr.every(function(k){ return agIsNeu(cur[k]); });
+    });
     return {
       val: { USD: s.USD - 0.5 * (s.EUR + s.GBP + s.NAS), EUR: s.EUR, GBP: s.GBP,
              EURUSD: s.EUR - s.USD, GBPUSD: s.GBP - s.USD, XAUUSD: -s.USD, USTEC: s.NAS - s.USD },
       mag: { USD: w.USD + 0.5 * (w.EUR + w.GBP + w.NAS), EUR: w.EUR, GBP: w.GBP,
-             EURUSD: w.EUR + w.USD, GBPUSD: w.GBP + w.USD, XAUUSD: w.USD, USTEC: w.NAS + w.USD }
+             EURUSD: w.EUR + w.USD, GBPUSD: w.GBP + w.USD, XAUUSD: w.USD, USTEC: w.NAS + w.USD },
+      neu: neu
     };
   }
   function agMaxImpact(cur){
-    var best = 0, lab = "";
-    Object.keys(cur || {}).forEach(function(k){ var v = AG_W[cur[k].impact] || 0; if(v > best){ best = v; lab = cur[k].impact; } });
-    return lab;
+    var best = 0, lab = "", neu = false;
+    Object.keys(cur || {}).forEach(function(k){
+      if(agIsNeu(cur[k])){ neu = true; return; }
+      var v = AG_W[cur[k].impact] || 0; if(v > best){ best = v; lab = cur[k].impact; }
+    });
+    return lab || (neu ? "neutre" : "");
   }
   function agChip(label, v){
     return '<span class="ag-chip ' + (v > 0 ? "up" : v < 0 ? "dn" : "") + '">' + label + (v > 0 ? " ▲" : v < 0 ? " ▼" : " –") + '</span>';
@@ -4790,7 +4844,8 @@
     var h = '<div class="ag-chips">';
     AG_CCY.forEach(function(c){
       var v = cur[c[0]]; if(!v) return;
-      h += '<span class="ag-chip ' + (v.bias === "bullish" ? "up" : v.bias === "bearish" ? "dn" : "") + '">' + c[0] + " · " + escapeHtml(v.impact || "") + " · " + (v.bias || "neutre") + '</span>';
+      var nv = agIsNeu(v);
+      h += '<span class="ag-chip ' + (nv ? "neu" : v.bias === "bullish" ? "up" : v.bias === "bearish" ? "dn" : "") + '">' + c[0] + " · " + (nv ? "neutre" : escapeHtml(v.impact || "") + " · " + (v.bias || "neutre")) + '</span>';
     });
     var sc = agScores(cur, 0);
     h += '</div><div class="ag-chips ag-der">→ ' + AG_PAIRS.map(function(a){ return agChip(a, sc.val[a]); }).join("") + '</div>';
@@ -4911,7 +4966,7 @@
     var c = e.currencies || {}, x = [], i, lex = 0;
     for(i = 0; i < AG_DIM; i++) x.push(0);
     agTok((e.name || "") + " " + (e.details || "")).forEach(function(w){ x[agHash(w)] = Math.min(1, x[agHash(w)] + 0.5); lex += AG_LEXSET[w] || 0; });
-    var ty = agTypes(e); x.push(ty.indexOf("macro") >= 0 ? 1 : 0, ty.indexOf("geo") >= 0 ? 1 : 0, c.USD ? (AG_W[c.USD.impact] || 2) / 3 : 0);
+    var ty = agTypes(e); x.push(ty.indexOf("macro") >= 0 ? 1 : 0, ty.indexOf("geo") >= 0 ? 1 : 0, c.USD ? (agIsNeu(c.USD) ? 0 : (AG_W[c.USD.impact] || 2)) / 3 : 0);
     ["EUR","GBP","NAS"].forEach(function(k){ var v = c[k]; x.push(v ? agSign(v.bias) * (AG_W[v.impact] || 2) / 3 : 0); });
     x.push(Math.max(-1, Math.min(1, lex / 3)), 1);
     return x;
@@ -5001,20 +5056,20 @@
     var today = agKey(new Date());
     var ref = (today >= sk && today <= ek) ? today : ek;
     var acc = {};
-    AG_ASSETS.forEach(function(a){ acc[a] = { num:0, den:0, n:0, drv:[] }; });
-    acc.types = { macro:{ num:0, den:0, n:0 }, geo:{ num:0, den:0, n:0 } };
+    AG_ASSETS.forEach(function(a){ acc[a] = { num:0, den:0, n:0, nn:0, drv:[] }; });
+    acc.types = { macro:{ num:0, den:0, n:0, nn:0 }, geo:{ num:0, den:0, n:0, nn:0 } };
     agList().concat(agTradeContexts(sk, ek)).forEach(function(e){
       if(!e.date || e.date < sk || e.date > ek || !e.currencies || !Object.keys(e.currencies).length) return;
       var age = Math.max(0, (agParseKey(ref) - agParseKey(e.date)) / 86400000);
       var d = Math.pow(0.5, age / 3);
-      var txt = (e.currencies.USD && !e.currencies.USD.bias) ? model.pred(e) : 0;
+      var txt = (e.currencies.USD && !e.currencies.USD.bias && !agIsNeu(e.currencies.USD)) ? model.pred(e) : 0;
       var sc = agScores(e.currencies, txt);
       AG_ASSETS.forEach(function(a){
         if(!sc.mag[a]) return;
-        var A = acc[a]; A.num += d * sc.val[a]; A.den += d * sc.mag[a]; A.n++;
+        var A = acc[a]; A.num += d * sc.val[a]; A.den += d * sc.mag[a]; A.n++; if(sc.neu[a]) A.nn++;
         if(sc.val[a]) A.drv.push({ name:e.name || "", c:d * sc.val[a] });
       });
-      if(sc.mag.USD) agTypes(e).forEach(function(ty){ var T = acc.types[ty]; if(!T) return; T.num += d * sc.val.USD; T.den += d * sc.mag.USD; T.n++; });
+      if(sc.mag.USD) agTypes(e).forEach(function(ty){ var T = acc.types[ty]; if(!T) return; T.num += d * sc.val.USD; T.den += d * sc.mag.USD; T.n++; if(sc.neu.USD) T.nn++; });
     });
     return acc;
   }
@@ -5032,10 +5087,14 @@
   // verdict : inclinaison t ∈ [-1,1] → proba logistique ; confiance croît avec le nombre d'événements
   function agVerdict(A, prior){
     if(!A || !A.den) return null;
-    var t = A.num / A.den;
+    var nn = A.nn || 0, nd = A.n - nn;
+    // toutes les grandes lignes sont neutres : aucune direction, on ne fabrique pas de biais
+    if(nn >= A.n) return { t:0, p:0.5, n:A.n, nn:nn, lab:"neutre", conf:0, allNeu:true };
+    var t = A.num / A.den;   // les lignes neutres comptent au dénominateur : elles tempèrent t
     if(prior != null) t = 0.8 * t + 0.2 * prior;
-    var p = 1 / (1 + Math.exp(-3 * t * (1 - Math.exp(-A.n / 2))));
-    return { t:t, p:p, n:A.n, lab: p > 0.58 ? "bullish" : p < 0.42 ? "bearish" : "neutre", conf: Math.round(Math.abs(2 * p - 1) * 100) };
+    // la confiance ne croît qu'avec les événements directionnels
+    var p = 1 / (1 + Math.exp(-3 * t * (1 - Math.exp(-nd / 2))));
+    return { t:t, p:p, n:A.n, nn:nn, lab: p > 0.58 ? "bullish" : p < 0.42 ? "bearish" : "neutre", conf: Math.round(Math.abs(2 * p - 1) * 100) };
   }
 
   function agRenderML(sk, ek){
@@ -5043,34 +5102,73 @@
     var m = agBest(), acc = agWeekStats(sk, ek, m), V = {};
     AG_ASSETS.forEach(function(a){ V[a] = agVerdict(acc[a], agPrior(sk, a, m)); });
     var u = V.USD;
+    var head = '<div class="ag-sy-head"><h4>Synthèse · biais du dollar</h4><span class="ag-sy-week">' + escapeHtml(agWeekLabelText(agParseKey(sk))) + '</span></div>';
     if(!u){
       agMLText = "";
-      box.innerHTML = '<h4>Synthèse · biais du dollar</h4><div class="hint" style="margin:0;">Ajoute des événements avec devises, impacts et biais : la synthèse s\'affichera ici.</div>';
+      box.innerHTML = head + '<div class="ag-sy-empty">Ajoute des événements avec devises, impacts et biais : la synthèse s\'affichera ici.</div>';
       return;
     }
+    function k(v){ return v.lab === "bullish" ? "up" : v.lab === "bearish" ? "dn" : "neu"; }
+    function nTxt(n, w){ return n + " " + w + (n > 1 ? "s" : ""); }
+    var nd = u.n - u.nn;
     var high = m.ok && m.acc >= 0.9 && m.n >= 20 && u.conf >= 50;
-    var lvl = high ? "élevé" : (u.conf >= 30 ? "moyen" : "faible");
-    var tchips = ["macro", "geo"].map(function(k){
-      var v = agVerdict(acc.types[k], null);
-      return v ? '<span class="ag-chip ' + (v.lab === "bullish" ? "up" : v.lab === "bearish" ? "dn" : "") + '">' + (k === "geo" ? "Géopolitique" : "Macro") + " · USD " + v.lab + " " + Math.round(v.p * 100) + " %</span>" : "";
+    var lvl = u.allNeu ? "aucune" : (high ? "élevée" : (u.conf >= 30 ? "moyenne" : "faible"));
+    var cls = k(u);
+    var pct = Math.round(u.p * 100);
+    var labTxt = u.allNeu ? "NEUTRE" : u.lab.toUpperCase();
+
+    var h = head +
+      '<div class="ag-sy-hero ' + cls + '">' +
+        '<div><span class="ag-sy-eyebrow">Biais dominant de la semaine</span>' +
+          '<div class="ag-sy-verdict"><span class="ag-sy-ccy">USD</span><span class="ag-sy-lab">' + labTxt + '</span></div>' +
+          (u.allNeu ? '' : '<div class="ag-sy-pct">' + pct + ' %<small>estimation</small></div>') +
+        '</div>' +
+        '<div><div class="ag-sy-gauge"><i style="left:' + pct + '%"></i></div>' +
+          '<div class="ag-sy-scale"><span>Bearish</span><span>Neutre</span><span>Bullish</span></div>' +
+          '<div class="ag-sy-stats">' +
+            '<div><span>Confiance</span><b>' + lvl + (u.allNeu ? '' : ' · ' + u.conf + ' %') + '</b></div>' +
+            '<div><span>Événements</span><b>' + u.n + '</b></div>' +
+            '<div><span>Directionnels</span><b>' + nd + '</b></div>' +
+            '<div><span>Neutres</span><b>' + u.nn + '</b></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    // les pourcentages d'estimation ne sont volontairement pas affichés pour les devises et les actifs corrélés
+    function cards(list){
+      return list.filter(function(a){ return V[a]; }).map(function(a){
+        var v = V[a], arrow = v.lab === "bullish" ? "▲ Bullish" : v.lab === "bearish" ? "▼ Bearish" : "● Neutre";
+        return '<div class="ag-sy-card ' + k(v) + '"><span class="ag-sy-card-n">' + a + '</span><span class="ag-sy-card-b">' + arrow + '</span></div>';
+      }).join("");
+    }
+    var cc = cards(["EUR", "GBP"]), ca = cards(AG_PAIRS);
+    if(cc) h += '<div class="ag-sy-sec">Devises</div><div class="ag-sy-cards">' + cc + '</div>';
+    if(ca) h += '<div class="ag-sy-sec">Actifs corrélés</div><div class="ag-sy-cards">' + ca + '</div>';
+
+    var tc = ["macro", "geo"].map(function(t){
+      var v = agVerdict(acc.types[t], null); if(!v) return "";
+      var txt = v.allNeu ? "USD neutre" : "USD " + v.lab + " · " + Math.round(v.p * 100) + " %";
+      return '<div class="ag-sy-card ' + k(v) + '"><span class="ag-sy-card-n">' + (t === "geo" ? "GÉOPOLITIQUE" : "MACRO") + '</span><span class="ag-sy-card-b">' + txt + '</span></div>';
     }).join("");
-    var cls = u.lab === "bullish" ? "up" : u.lab === "bearish" ? "dn" : "";
+    if(tc) h += '<div class="ag-sy-sec">Par type de contexte</div><div class="ag-sy-cards wide">' + tc + '</div>';
+
     var drv = acc.USD.drv.sort(function(a, b){ return Math.abs(b.c) - Math.abs(a.c); }).slice(0, 3);
-    var drvTxt = drv.map(function(x){ return x.name + " (" + (x.c > 0 ? "USD ▲" : "USD ▼") + ")"; }).join(", ");
-    var others = ["EUR","GBP"].concat(AG_PAIRS).filter(function(a){ return V[a]; });
-    box.innerHTML =
-      '<h4>Synthèse · biais du dollar</h4>' +
-      '<div class="ag-ml-main"><span class="ag-ml-badge ' + cls + '">USD ' + u.lab.toUpperCase() + ' · ' + Math.round(u.p * 100) + ' %</span>' +
-      '<div class="ag-ml-gauge"><i style="left:' + Math.round(u.p * 100) + '%"></i></div>' +
-      '<span class="ag-ml-meta">confiance ' + lvl + ' (' + u.conf + ' %) · ' + u.n + ' événement' + (u.n > 1 ? "s" : "") + '</span></div>' +
-      '<div class="ag-ml-grid">' + others.map(function(a){
-        var v = V[a]; return '<span class="ag-chip ' + (v.lab === "bullish" ? "up" : v.lab === "bearish" ? "dn" : "") + '">' + a + " " + v.lab + " " + Math.round(v.p * 100) + " %</span>";
-      }).join("") + '</div>' +
-      (tchips ? '<div class="ag-ml-grid">' + tchips + '</div>' : "");
-    agMLText = "USD " + u.lab + " (" + Math.round(u.p * 100) + " %, confiance " + lvl + ", " + u.n + " événement" + (u.n > 1 ? "s" : "") + "). " +
-      others.filter(function(a){ return a !== "USD"; }).map(function(a){ return a + " " + V[a].lab; }).join(", ") + "." + (drvTxt ? " Moteurs : " + drvTxt + "." : "");
-    var nar = document.createElement("div"); nar.className = "ag-ml-drv"; nar.textContent = agMLText;
-    box.insertBefore(nar, box.querySelector(".hint"));
+    if(drv.length) h += '<div class="ag-sy-sec">Moteurs principaux</div><ul class="ag-sy-drv">' + drv.map(function(x){
+      return '<li><span>' + escapeHtml(x.name || "(sans titre)") + '</span><em class="' + (x.c > 0 ? "up" : "dn") + '">' + (x.c > 0 ? "USD ▲" : "USD ▼") + '</em></li>';
+    }).join("") + '</ul>';
+
+    if(u.allNeu){
+      h += '<div class="ag-sy-note"><b>Semaine neutre.</b> Toutes les grandes lignes sont neutres : aucune direction n\'est ajoutée, le <b>biais de base</b> prévaut.</div>';
+    } else if(u.nn){
+      h += '<div class="ag-sy-note"><b>' + nTxt(u.nn, "grande ligne") + ' neutre' + (u.nn > 1 ? "s" : "") + '.</b> Elle' + (u.nn > 1 ? "s" : "") + ' n\'oriente' + (u.nn > 1 ? "nt" : "") + ' aucun biais mais ' + (u.nn > 1 ? "tempèrent" : "tempère") + ' la synthèse : plus il y en a, plus le biais se rapproche du neutre. Elles n\'augmentent pas la confiance.</div>';
+    }
+
+    agMLText = "USD " + (u.allNeu ? "neutre" : u.lab + " (" + pct + " %, confiance " + lvl + ", " + nTxt(u.n, "événement") + ")") + ". " +
+      ["EUR","GBP"].concat(AG_PAIRS).filter(function(a){ return V[a]; }).map(function(a){ return a + " " + V[a].lab; }).join(", ") + "." +
+      (u.nn ? " " + nTxt(u.nn, "grande ligne") + " neutre" + (u.nn > 1 ? "s" : "") + " (tempère" + (u.nn > 1 ? "nt" : "") + " le biais)." : "") +
+      (drv.length ? " Moteurs : " + drv.map(function(x){ return x.name + " (" + (x.c > 0 ? "USD ▲" : "USD ▼") + ")"; }).join(", ") + "." : "");
+    h += '<div class="ag-sy-narr">' + escapeHtml(agMLText) + '</div>';
+    box.innerHTML = h;
   }
   $("agML").addEventListener("click", function(ev){
     if(!ev.target.closest("#agMLInsert") || !agMLText) return;
@@ -5085,13 +5183,13 @@
     AG_CCY.forEach(function(c){
       var v = (cur && cur[c[0]]) || null;
       var row = document.createElement("div");
-      row.className = "ag-ccy" + (v ? " on" : "");
+      row.className = "ag-ccy" + (v ? " on" : "") + (v && v.impact === "neutre" ? " neu" : "");
       row.setAttribute("data-c", c[0]);
       row.innerHTML =
         '<label><input type="checkbox" data-k="on"' + (v ? " checked" : "") + '> <b>' + c[1] + '</b></label>' +
         '<div class="ag-ccy-g"><span>Impact</span>' +
-          [["faible","Faible"],["moyen","Moyen"],["fort","Fort"]].map(function(o){ return '<label><input type="checkbox" data-g="impact" value="' + o[0] + '"' + (v && v.impact === o[0] ? " checked" : "") + '> ' + o[1] + '</label>'; }).join("") + '</div>' +
-        '<div class="ag-ccy-g"><span>Biais</span>' +
+          [["neutre","Neutre"],["faible","Faible"],["moyen","Moyen"],["fort","Fort"]].map(function(o){ return '<label><input type="checkbox" data-g="impact" value="' + o[0] + '"' + (v && v.impact === o[0] ? " checked" : "") + '> ' + o[1] + '</label>'; }).join("") + '</div>' +
+        '<div class="ag-ccy-g bi"><span>Biais</span>' +
           '<label class="bu"><input type="checkbox" data-g="bias" value="bullish"' + (v && v.bias === "bullish" ? " checked" : "") + '> Bullish</label>' +
           '<label class="be"><input type="checkbox" data-g="bias" value="bearish"' + (v && v.bias === "bearish" ? " checked" : "") + '> Bearish</label></div>';
       box.appendChild(row);
@@ -5102,7 +5200,7 @@
     $("agCcyBox").querySelectorAll(".ag-ccy").forEach(function(r){
       if(!r.querySelector('[data-k="on"]').checked) return;
       var im = r.querySelector('[data-g="impact"]:checked'), bi = r.querySelector('[data-g="bias"]:checked');
-      o[r.getAttribute("data-c")] = { impact: im ? im.value : "moyen", bias: bi ? bi.value : "" };
+      o[r.getAttribute("data-c")] = { impact: im ? im.value : "moyen", bias: (im && im.value === "neutre") ? "" : (bi ? bi.value : "") };
     });
     return o;
   }
@@ -5112,7 +5210,14 @@
     if(g && t.checked){
       row.querySelectorAll('[data-g="' + g + '"]').forEach(function(x){ if(x !== t) x.checked = false; });
       on.checked = true;
+      // Impact neutre = aucun biais ; choisir un biais sort de « neutre » (impact moyen par défaut)
+      if(g === "impact" && t.value === "neutre") row.querySelectorAll('[data-g="bias"]').forEach(function(x){ x.checked = false; });
+      if(g === "bias"){
+        var ni = row.querySelector('[data-g="impact"][value="neutre"]');
+        if(ni && ni.checked){ ni.checked = false; row.querySelector('[data-g="impact"][value="moyen"]').checked = true; }
+      }
     }
+    row.classList.toggle("neu", !!row.querySelector('[data-g="impact"][value="neutre"]:checked'));
     if(t.getAttribute("data-k") === "on" && t.checked && !row.querySelector('[data-g="impact"]:checked')){
       row.querySelector('[data-g="impact"][value="moyen"]').checked = true;
     }
@@ -5125,7 +5230,7 @@
     if(!Object.keys(cur).length){ box.innerHTML = '<div class="hint" style="margin:0;">Coche les devises concernées pour voir les corrélations déduites.</div>' + nlpBtn; return; }
     var sc = agScores(cur, 0);
     var h = '<div class="ag-corr-t">Corrélations déduites</div><div class="ag-chips">' + AG_PAIRS.map(function(a){ return agChip(a, sc.val[a]); }).join("") + '</div>';
-    if(cur.USD && !cur.USD.bias){
+    if(cur.USD && !cur.USD.bias && cur.USD.impact !== "neutre"){
       var s = agBest().pred({ name:$("ag_name").value, details:$("ag_details").value, types:agReadType(), currencies:cur });
       if(s) h += '<div class="ag-sug">Suggestion pour le USD : <b>' + (s > 0 ? "bullish" : "bearish") + '</b> (' + Math.round(Math.abs(s) * 100) + ' %) <button type="button" class="iconbtn" data-sug="' + (s > 0 ? "bullish" : "bearish") + '">Appliquer</button></div>';
     }
