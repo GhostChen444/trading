@@ -2115,7 +2115,7 @@
           <div class="section-label" style="margin-top:4px;">devises concernées · impact · biais</div>
           <div class="ag-ccy-box" id="agCcyBox"></div>
           <div class="ag-corr" id="agCorr"></div>
-          <div class="hint" style="margin-top:6px;">Règle : USD bullish = EURUSD, GBPUSD, XAUUSD et Nasdaq bearish (et inversement). GBP ↔ GBPUSD, EUR ↔ EURUSD, Nasdaq ↔ USTEC dans le même sens. Impact « Neutre » : la grande ligne n’oriente aucun biais, elle tempère simplement la synthèse.</div>
+          <div class="hint" style="margin-top:6px;">Règle : USD bullish = EURUSD, GBPUSD, XAUUSD et USTEC bearish (et inversement). GBP ↔ GBPUSD, EUR ↔ EURUSD, Nasdaq ↔ USTEC dans le même sens. Sens unique pour le Nasdaq : le dollar agit sur USTEC, mais un Nasdaq bullish ou bearish ne change pas le biais du dollar. Impact « Neutre » : la grande ligne n’oriente aucun biais, elle tempère simplement la synthèse.</div>
         </div>
         <div class="field span2">
           <label for="ag_important">Aspect important</label>
@@ -4838,8 +4838,9 @@
   function agDetectTypes(t){ var o = []; if(/contexte\s+g[ée]opolitique/i.test(t || "")) o.push("geo"); if(/contexte\s+macro/i.test(t || "")) o.push("macro"); return o; }
   function agSign(b){ return b === "bullish" ? 1 : b === "bearish" ? -1 : 0; }
 
-  // Corrélations : USD ↑ => EURUSD, GBPUSD, XAUUSD, Nasdaq ↓ (inversement si USD ↓) ;
+  // Corrélations : USD ↑ => EURUSD, GBPUSD, XAUUSD, USTEC ↓ (inversement si USD ↓) ;
   // GBP => GBPUSD, EUR => EURUSD, Nasdaq => USTEC (même sens).
+  // Sens unique : le dollar influence USTEC, mais un Nasdaq bullish/bearish ne change pas le biais du dollar.
   // val = score signé (impact 1/2/3 × biais), mag = amplitude maximale possible.
   // Nasdaq (USTEC) = synthèse de 8 grands actifs technologiques
   var AG_STOCKS = [["AAPL","Apple"],["MSFT","Microsoft"],["NVDA","Nvidia"],["AMZN","Amazon"],["GOOGL","Alphabet"],["META","Meta"],["TSLA","Tesla"],["AVGO","Broadcom"]];
@@ -4877,9 +4878,10 @@
       neu[a] = pr.length > 0 && pr.every(function(k){ return agIsNeu(cur[k]); });
     });
     return {
-      val: { USD: s.USD - 0.5 * (s.EUR + s.GBP + s.NAS), EUR: s.EUR, GBP: s.GBP,
+      val: { USD: s.USD - 0.5 * (s.EUR + s.GBP),   // le Nasdaq ne déduit rien sur le dollar (corrélation à sens unique)
+             EUR: s.EUR, GBP: s.GBP,
              EURUSD: s.EUR - s.USD, GBPUSD: s.GBP - s.USD, XAUUSD: -s.USD, USTEC: s.NAS - s.USD, TECH: s.NAS, USDD: s.USD },
-      mag: { USD: w.USD + 0.5 * (w.EUR + w.GBP + w.NAS), EUR: w.EUR, GBP: w.GBP,
+      mag: { USD: w.USD + 0.5 * (w.EUR + w.GBP), EUR: w.EUR, GBP: w.GBP,
              EURUSD: w.EUR + w.USD, GBPUSD: w.GBP + w.USD, XAUUSD: w.USD, USTEC: w.NAS + w.USD, TECH: w.NAS, USDD: w.USD },
       neu: neu
     };
@@ -5209,6 +5211,7 @@
     AG_ASSETS.forEach(function(a){ V[a] = agVerdict(acc[a], agPrior(sk, a, m)); });
     V.USTEC = agUstec(V.TECH, V.USDD);   // USTEC = synthèse 50/50 tech + dollar
     var u = V.USD;
+    if(!u && (V.USTEC || V.TECH)) u = { t:0, p:0.5, n:0, nn:0, lab:"neutre", conf:0, allNeu:true, noData:true };
     var head = '<div class="ag-sy-head"><h4>Synthèse · biais du dollar</h4><span class="ag-sy-week">' + escapeHtml(agWeekLabelText(agParseKey(sk))) + '</span></div>';
     if(!u){
       agMLText = "";
@@ -5222,7 +5225,7 @@
     var lvl = u.allNeu ? "aucune" : (high ? "élevée" : (u.conf >= 30 ? "moyenne" : "faible"));
     var cls = k(u);
     var pct = Math.round(u.p * 100);
-    var labTxt = u.allNeu ? "NEUTRE" : u.lab.toUpperCase();
+    var labTxt = u.noData ? "AUCUN BIAIS SAISI" : (u.allNeu ? "NEUTRE" : u.lab.toUpperCase());
 
     var h = head +
       '<div class="ag-sy-hero ' + cls + '">' +
@@ -5266,7 +5269,9 @@
       return '<li><span>' + escapeHtml(x.name || "(sans titre)") + '</span><em class="' + (x.c > 0 ? "up" : "dn") + '">' + (x.c > 0 ? "USD ▲" : "USD ▼") + '</em></li>';
     }).join("") + '</ul>';
 
-    if(u.allNeu){
+    if(u.noData){
+      h += '<div class="ag-sy-note"><b>Aucun biais dollar saisi.</b> Les grandes lignes de la semaine ne portent que sur le Nasdaq : elles ne changent pas le biais du dollar (sens unique).</div>';
+    } else if(u.allNeu){
       h += '<div class="ag-sy-note"><b>Semaine neutre.</b> Toutes les grandes lignes sont neutres : aucune direction n\'est ajoutée, le <b>biais de base</b> prévaut.</div>';
     } else if(u.nn){
       h += '<div class="ag-sy-note"><b>' + nTxt(u.nn, "grande ligne") + ' neutre' + (u.nn > 1 ? "s" : "") + '.</b> Elle' + (u.nn > 1 ? "s" : "") + ' n\'oriente' + (u.nn > 1 ? "nt" : "") + ' aucun biais mais ' + (u.nn > 1 ? "tempèrent" : "tempère") + ' la synthèse : plus il y en a, plus le biais se rapproche du neutre. Elles n\'augmentent pas la confiance.</div>';
