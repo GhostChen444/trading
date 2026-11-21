@@ -676,6 +676,18 @@
   .ag-filters .agf-reset{background:transparent; border:1px solid var(--border); color:var(--text-dim); border-radius:var(--r); padding:7px 12px; font-size:12.5px;}
   .ag-filters .agf-reset:hover{border-color:var(--gold-soft); color:var(--gold);}
   .ag-filters .agf-reset[hidden]{display:none;}
+  .ms-box{padding:16px 20px; border-bottom:1px solid var(--border-soft);}
+  .ms-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px;}
+  .ms-card{display:flex; flex-direction:column; gap:4px; padding:12px 14px; border:1px solid var(--border); border-left:3px solid var(--border); border-radius:var(--r); background:var(--bg-2);}
+  .ms-card.up{border-left-color:var(--green);} .ms-card.dn{border-left-color:var(--red);} .ms-card.gold{border-left-color:var(--gold);}
+  .ms-card span{font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint);}
+  .ms-card b{font-family:var(--mono); font-size:19px; font-weight:500; color:var(--text);}
+  .ms-card.up b{color:var(--green);} .ms-card.dn b{color:var(--red);}
+  .ms-card small{font-size:11.5px; color:var(--text-dim); line-height:1.4;}
+  .ms-verdict{margin-top:14px;}
+  .tag.ms-w{background:var(--green-soft); color:var(--green); border-color:transparent;}
+  .tag.ms-l{background:var(--red-soft); color:var(--red); border-color:transparent;}
+  .tag.ms-be{background:var(--gray-soft); color:var(--gray); border-color:transparent;}
   .ag-day{font-family:var(--mono); font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold); padding:18px 0 6px; border-bottom:1px solid var(--border-soft);}
   .ag-day:first-child{padding-top:8px;}
   .ag-entry .tv-pair{overflow-wrap:anywhere;}
@@ -1147,6 +1159,7 @@
   <nav class="maintabs" id="mainTabs">
     <button type="button" class="active" data-mtab="cal">Calendrier</button>
     <button type="button" data-mtab="agenda">Grandes lignes<span class="mt-count" id="agendaTabCount"></span></button>
+    <button type="button" data-mtab="missed">Setups loupés<span class="mt-count" id="missedTabCount"></span></button>
     <button type="button" data-mtab="traps">Setups trap<span class="mt-count" id="trapTabCount"></span></button>
     <button type="button" data-mtab="aggr">Setups agressifs<span class="mt-count" id="aggrTabCount"></span></button>
     <button type="button" data-mtab="fil">Fil conducteur</button>
@@ -1222,6 +1235,19 @@
         <div class="fc-bubble">Je suis les quatre temps dans l’ordre. Si un temps manque, je n’enchaîne pas sur le suivant : j’attends.</div>
         <div class="fc-stop"><span class="fc-ico">STOP</span><span>Si un <b>CISDRe</b> arrive sur le mouvement de base, c’est un <b>changement de tendance</b> : il <b>invalide la zone</b>. <b>Je ne fais plus rien.</b></span></div>
         <div class="fc-bubble warn">Quand le prix vient <b>avec force</b> sur mes zones S&amp;D du mouvement de base <b>après qu’un narratif macro ou géopolitique a changé</b>, attention : il peut aller faire un <b>CISD</b>. C’est une <b>succession d’événements impactants</b>. Ça vaut pour tous les actifs.</div>
+
+        <div class="fc-sub" style="margin-top:18px;">zones d’exécution annexes · après un CISDCon et après un CISDRe</div>
+        <div class="fc-grid">
+          <div class="fc-card cont">
+            <div class="fc-tag">Après un CISD<b style="color:var(--green)">Con</b><small>zone annexe</small></div>
+            <p>En plus de la zone du mouvement de base, des <b>zones d’exécution annexes</b> existent après un CISDCon. Je ne les trade que sur les <b>structures hors trap</b>.</p>
+          </div>
+          <div class="fc-card rev">
+            <div class="fc-tag">Après un CISD<b style="color:var(--red)">Re</b><small>zone annexe</small></div>
+            <p>La zone du mouvement de base reste <b>invalidée</b>. Seules les <b>zones d’exécution annexes</b> sont exploitables, toujours sur les <b>structures hors trap</b>.</p>
+          </div>
+        </div>
+        <div class="fc-bubble warn">Zones annexes : <b>uniquement les structures hors trap</b>. Jamais de trade sur un trap, ni après un CISDCon, ni après un CISDRe.</div>
       </div>
 
       <!-- 04 IMPULSIONS -->
@@ -1256,6 +1282,7 @@
           <li>Si on a une continuation du retracement et une <b class="g">liquidation en zone OTE</b>, on parle de <b class="g">CHOCHCon</b> : le prix pourrait repartir suivre la tendance de base. Le CHOCHCon n’est <b class="g">effectif qu’après que tous les traps ont été libérés</b>.</li>
           <li>Côté exécution : <b class="g">suivre celle du retracement</b>.</li>
         </ul>
+        <div class="fc-stop"><span class="fc-ico">STOP</span><span><b>Sous-retracement interdit</b> si le prix a <b>déjà fait un CHOCHCon</b> : je ne trade pas de sous-retracement dans ce cas.</span></div>
 
         <div class="fc-sub" style="margin-top:18px;">confirmations du retracement · le trap liquidé puis le CHOCHRe</div>
         <div class="fc-grid">
@@ -1282,17 +1309,40 @@
         <div class="fc-bubble warn"><b>Deux types de retracement.</b> Le <b>retracement de base</b> (logique AMD / ICT / SMC, CHoCHRe, 3 lots 60/20/20 sur 1 %) : lot 1 clôturé à 1:1 (TradingView), lot 2 pour la protection Asian, lot 3 suit le mouvement jusqu'au bout, target 50 % du fibo. Si je rate le CHoCHRe, je peux trader des <b>sous-retracements</b> : zones à forte liquidation, donc attention aux traps, je suis le flux, je repère mes zones de S&amp;D, je target le <b>BOS</b> et je suis rigoureux sur le <b>1:1</b> (TradingView) (TP du lot de 60 %, les 2 lots de 20 % à BE).</div>
       </div>
 
-      <!-- 05 RITUEL -->
+      <!-- 06 TIMING FONDA -->
       <div class="fc-step">
         <div class="fc-node"><span>06</span></div>
+        <h3>Timing d’exécution · calendrier fonda</h3>
+        <div class="fc-sub">la structure me dit où, le calendrier fonda me dit quand</div>
+        <div class="fc-grid">
+          <div class="fc-card rev">
+            <div class="fc-tag">Jours fériés<small>je ne trade pas</small></div>
+            <p><b>Aucune exécution</b> les jours fériés : le marché est irrationnel.</p>
+          </div>
+          <div class="fc-card ret">
+            <div class="fc-tag">Jours à grandes nouvelles<small>je patiente</small></div>
+            <p>Je <b>patiente la nouvelle</b>. Elle est censée <b>accélérer le setup à sa sortie</b>, et non avant : <b>pas d’exécution avant la sortie</b>.</p>
+          </div>
+          <div class="fc-card cont">
+            <div class="fc-tag">Nouvelles semi-impactantes<small>j’exécute en amont</small></div>
+            <p>J’exécute <b>en pleine session</b>, <b>au moins 2 h avant</b> la nouvelle.</p>
+          </div>
+        </div>
+        <div class="fc-bubble warn">Avant chaque exécution, je regarde le <b>calendrier fonda du jour</b> : férié, grande nouvelle ou nouvelle semi-impactante ? Le timing dépend de la réponse.</div>
+      </div>
+
+      <!-- 07 RITUEL -->
+      <div class="fc-step">
+        <div class="fc-node"><span>07</span></div>
         <h3>Le rituel du jour</h3>
-        <div class="fc-sub">cinq questions avant de toucher une exécution (clique pour cocher)</div>
+        <div class="fc-sub">six questions avant de toucher une exécution (clique pour cocher)</div>
         <ul class="fc-ritual" id="fcRitual">
           <li><i></i><span>Quelle est ma <b>tendance de base</b> et où sont mes <b>points clés</b> ?</span></li>
           <li><i></i><span>Quel est le <b>biais</b> donné par le flux du jour ?</span></li>
           <li><i></i><span>Suis-je en <b>impulsion</b> ou en <b>retracement</b> ?</span></li>
           <li><i></i><span>Y a-t-il eu un <b>CISDCon</b> ou un <b>CISDRe</b> ?</span></li>
           <li><i></i><span>Suis-je dans ma <b>killzone</b>, avec mes confirmations d’exécution ?</span></li>
+          <li><i></i><span>Que dit le <b>calendrier fonda</b> du jour : férié, grande nouvelle, nouvelle semi-impactante ?</span></li>
         </ul>
         <div class="fc-bubble">Si je ne peux pas répondre à une de ces questions, c’est que je ne suis pas prêt. Dans ce cas, la meilleure position est de ne rien faire.</div>
         <div class="fc-bubble warn"><b>Jamais</b> de trade les <b>jours fériés</b> : le marché est irrationnel. Et <b>jamais d’exécution en Asie sur le gold</b>.</div>
@@ -1449,6 +1499,21 @@
       </div>
       <div class="tv-list" id="anList"></div>
     </div>
+  </section>
+
+  <section class="card" id="missedView" style="display:none;">
+    <div class="hint" style="padding:14px 20px 0;">Les setups que tu as loupés : captures, description et résultat qu'ils auraient eu. L'onglet calcule leur effet sur ton taux de réussite.</div>
+    <div class="ms-box" id="missedStats"></div>
+    <div class="tv-bar">
+      <select id="missedScope" aria-label="Comparer au taux de réussite de"></select>
+      <select id="missedSortSel" aria-label="Tri par date">
+        <option value="desc">Plus récents d'abord</option>
+        <option value="asc">Plus anciens d'abord</option>
+      </select>
+      <span class="tv-total" id="missedTotal"></span>
+      <button class="btn primary" type="button" id="missedAdd">+ Ajouter un setup loupé</button>
+    </div>
+    <div class="tv-list" id="missedList"></div>
   </section>
 
   <main id="mainCal">
@@ -1729,6 +1794,10 @@
             • Je joue le <b>vrai mouvement de base</b>.<br>
             • Si j'ai raté le mouvement de base, je peux trader les <b>impulsions</b>, mais toujours en <b>discount</b>, en allant chercher les <b>BOS</b>.
           </div>
+          <div class="reminder" data-bt="base"><b>Zones d'exécution annexes · après CISDCon et CISDRe</b><br>
+            • Après un <b>CISDCon</b> comme après un <b>CISDRe</b>, des zones d'exécution annexes existent en plus de la zone du mouvement de base.<br>
+            • Je ne trade que les <b>structures hors trap</b> : jamais un trap.
+          </div>
           <div class="reminder" data-bt="sous"><b>Zone d'exécution · sous-mouvement de base · Config 1</b> <i>(référentiel : TradingView)</i><br>
             • <b>Premium</b> si la tendance est baissière, <b>discount</b> si elle est haussière.<br>
             • Exécution en <b>M5</b> : voir le <b>niveau de protection (SL) en M5</b>.<br>
@@ -1760,6 +1829,7 @@
             <summary><span class="rem-ico">📰</span>Narratif &amp; actualité<span class="rem-n">1</span></summary>
             <div class="rem-grp-body">
           <div class="reminder-red"><b>Rappel · tous actifs :</b> quand le prix vient <b>avec force</b> sur mes zones S&amp;D du mouvement de base <b>après qu'un narratif macro ou géopolitique a changé</b>, attention : il peut aller faire un <b>CISD</b>. C'est une <b>succession d'événements impactants</b>.</div>
+          <div class="reminder-red"><b>Timing d'exécution · calendrier fonda :</b> <b>jour férié</b> = pas de trade. <b>Jour à grande nouvelle</b> = je patiente : la nouvelle accélère le setup <b>à sa sortie</b>, pas avant. <b>Nouvelle semi-impactante</b> = j'exécute <b>en pleine session, au moins 2 h avant</b>.</div>
             </div>
           </details>
           </div>
@@ -1834,6 +1904,7 @@
             • Target : le <b>BOS</b>.<br>
             • Risque en <b>3 lots 60 / 20 / 20</b>. À <b>1:1</b> (TradingView) : je sors (TP) avec le lot de 60 % et je mets les <b>2 lots de 20 % à BE</b> au point d'entrée.<br>
             • Je suis ensuite la gestion : <b>SL à 35 %</b> quand le prix arrive à <b>55 % du TP</b>. Si je suis face à une <b>clôture Asian</b>, je sors avec un des lots de 20 %.</div>
+          <div class="reminder-red" data-rt="sous"><b>Restriction · sous-retracement :</b> <b>interdit de trader</b> si le prix a <b>déjà fait un CHOCHCon</b>.</div>
             </div>
           </details>
           <details class="rem-grp" open>
@@ -1902,6 +1973,7 @@
             <summary><span class="rem-ico">📰</span>Narratif &amp; actualité<span class="rem-n">1</span></summary>
             <div class="rem-grp-body">
           <div class="reminder-red"><b>Rappel · tous actifs :</b> quand le prix vient <b>avec force</b> sur mes zones S&amp;D du mouvement de base <b>après qu'un narratif macro ou géopolitique a changé</b>, attention : il peut aller faire un <b>CISD</b>. C'est une <b>succession d'événements impactants</b>.</div>
+          <div class="reminder-red"><b>Timing d'exécution · calendrier fonda :</b> <b>jour férié</b> = pas de trade. <b>Jour à grande nouvelle</b> = je patiente : la nouvelle accélère le setup <b>à sa sortie</b>, pas avant. <b>Nouvelle semi-impactante</b> = j'exécute <b>en pleine session, au moins 2 h avant</b>.</div>
             </div>
           </details>
           </div>
@@ -2217,6 +2289,62 @@
       <div style="flex:1;"></div>
       <button class="btn" type="button" onclick="closeOverlay()">Annuler</button>
       <button class="btn primary" type="button" id="aggrSaveBtn">Enregistrer</button>
+    </div>
+  </div>
+  <!-- Setups loupés : ajout / modification -->
+  <div class="modal" id="modalMissed" style="display:none;">
+    <div class="modal-header">
+      <div>
+        <h3 id="missedFormTitle">Nouveau setup loupé</h3>
+        <div class="sub">setup non pris · intitulé, date, résultat qu'il aurait eu, description, captures</div>
+      </div>
+      <button class="closebtn" type="button" onclick="closeOverlay()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field span2">
+          <label for="missed_title">Intitulé du setup</label>
+          <input type="text" id="missed_title" placeholder="ex : retracement de base XAUUSD, CHOCHRe sur trap…" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="missed_date">Date</label>
+          <input type="date" id="missed_date">
+        </div>
+        <div class="field">
+          <label for="missed_pair">Actif <span class="hint" style="display:inline;">(facultatif)</span></label>
+          <input type="text" id="missed_pair" placeholder="ex : XAUUSD" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="missed_outcome">Il aurait été</label>
+          <select id="missed_outcome">
+            <option value="">— choisir —</option>
+            <option value="w">Gagnant</option>
+            <option value="l">Perdant</option>
+            <option value="be">Break-even</option>
+            <option value="na">À déterminer</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="missed_r">R obtenu / perdu <span class="hint" style="display:inline;">(facultatif)</span></label>
+          <input type="number" step="any" min="0" id="missed_r" placeholder="ex : 2 (valeur positive)">
+        </div>
+        <div class="field span2">
+          <label for="missed_desc">Description du setup</label>
+          <textarea id="missed_desc" placeholder="ce que j'ai vu, pourquoi je l'ai loupé, ce qui s'est passé ensuite…"></textarea>
+        </div>
+      </div>
+      <div class="section-label">captures</div>
+      <div id="missedShotList"></div>
+      <button type="button" class="addbtn" id="missedAddShotBtn">+ Ajouter une capture</button>
+      <input type="file" id="missedShotFile" class="file-input" accept="image/*" multiple>
+      <div class="hint">Les images sont compressées automatiquement et enregistrées dans ton espace.</div>
+      <div class="form-error" id="missedFormError"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn danger-outline" id="missedDeleteBtn" type="button" style="display:none;">Supprimer</button>
+      <div style="flex:1;"></div>
+      <button class="btn" type="button" onclick="closeOverlay()">Annuler</button>
+      <button class="btn primary" type="button" id="missedSaveBtn">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -2656,7 +2784,7 @@
   // Modèle de données
   // =====================================================================
   function newId(prefix){ return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null }, agenda:[], agendaReviews:{}, agendaFollow:[], aggressive:[], aggrNotes:[] }; }
+  function emptyRoot(){ return { version:2, accounts:[], meta:{ lastSaved:null }, agenda:[], agendaReviews:{}, agendaFollow:[], aggressive:[], aggrNotes:[], missed:[] }; }
   function defaultAccountSettings(){ return { broker:"", currency:"USD", initial:10000, leverage:"", risk:1 }; }
 
   function isValidRoot(obj){
@@ -2692,6 +2820,7 @@
     if(!Array.isArray(out.agendaFollow)) out.agendaFollow = [];
     if(!Array.isArray(out.aggressive)) out.aggressive = [];
     if(!Array.isArray(out.aggrNotes)) out.aggrNotes = [];
+    if(!Array.isArray(out.missed)) out.missed = [];
     if(!out.agendaReviews || typeof out.agendaReviews !== "object" || Array.isArray(out.agendaReviews)) out.agendaReviews = {};
     out.accounts.forEach(function(a){
       if(!a.id) a.id = newId("a_");
@@ -3229,10 +3358,11 @@
   var modalView = $("modalView");
   var modalAgenda = $("modalAgenda");
   var modalAggr = $("modalAggr");
+  var modalMissed = $("modalMissed");
   
 
   function showOnly(modalEl){
-    [modalDay, modalForm, modalAccount, modalNotif, modalView, modalAgenda, modalAggr].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
+    [modalDay, modalForm, modalAccount, modalNotif, modalView, modalAgenda, modalAggr, modalMissed].forEach(function(m){ m.style.display = (m===modalEl)?"block":"none"; });
     overlay.classList.add("show");
   }
   function closeOverlay(){
@@ -4398,7 +4528,7 @@
   }
   function setMainTab(tab){
     if(mainTab === "agenda" && tab !== "agenda" && typeof agFlushReview === "function") agFlushReview();
-    mainTab = ({ traps:1, fil:1, agenda:1, aggr:1 })[tab] ? tab : "cal";
+    mainTab = ({ traps:1, fil:1, agenda:1, aggr:1, missed:1 })[tab] ? tab : "cal";
     document.querySelectorAll("#mainTabs button").forEach(function(b){
       b.classList.toggle("active", b.getAttribute("data-mtab") === mainTab);
     });
@@ -4407,9 +4537,11 @@
     $("filView").style.display = mainTab === "fil" ? "" : "none";
     $("agendaView").style.display = mainTab === "agenda" ? "" : "none";
     $("aggrView").style.display = mainTab === "aggr" ? "" : "none";
+    $("missedView").style.display = mainTab === "missed" ? "" : "none";
     if(mainTab === "traps") renderTrapsTab();
     if(mainTab === "agenda") renderAgenda();
     if(mainTab === "aggr") renderAggr();
+    if(mainTab === "missed") renderMissed();
   }
   function updateTrapTabCount(){
     var n = trapEntries().length;
@@ -4616,6 +4748,7 @@
   }
   function updateAgendaTabCount(){
     if(typeof updateAggrTabCount === "function") updateAggrTabCount();
+    if(typeof updateMissedTabCount === "function") updateMissedTabCount();
     var el = $("agendaTabCount"); if(!el) return;
     var cur = agMonday(new Date()), end = new Date(cur); end.setDate(end.getDate() + 6);
     var n = agWeekItems(agKey(cur), agKey(end)).length;
@@ -5367,22 +5500,20 @@
     function opCard(name, cls, act, sub){
       return '<div class="ag-sy-card ' + cls + '"><span class="ag-sy-card-n">' + name + '</span><span class="ag-sy-card-b">' + act + '</span><small>' + sub + '</small></div>';
     }
+    var usdNone = !!u.noData;
     var opCards = [["EURUSD", "EU"], ["GBPUSD", "GU"], ["XAUUSD", "XAU"]].map(function(a){
-      if(usdLab === "bullish") return opCard(a[0], "dn", "▼ SELL", "Dollar bullish : " + a[1] + " à vendre en priorité.");
-      if(usdLab === "bearish") return opCard(a[0], "up", "▲ BUY", "Dollar bearish : " + a[1] + " à acheter en priorité.");
-      return opCard(a[0], "neu", "● Pas de priorité", "Dollar neutre : le biais de base prévaut.");
+      if(usdLab === "bullish") return opCard(a[0], "dn", "▼ SELL · bearish", "Dollar haussier : " + a[1] + " baissier, à vendre en priorité.");
+      if(usdLab === "bearish") return opCard(a[0], "up", "▲ BUY · bullish", "Dollar baissier : " + a[1] + " haussier, à acheter en priorité.");
+      return opCard(a[0], "warn", "⛔ S’abstenir", usdNone ? "Aucun biais dollar saisi : pas de direction sur " + a[1] + ", reste en dehors." : "Dollar neutre : pas de direction sur " + a[1] + ". Reste en dehors tant qu’un moteur ne donne pas de biais au dollar.");
     }).join("");
     var nasCard;
-    if(techL === "bearish" && dolL === "bullish") nasCard = opCard("USTEC", "dn", "▼ SELL", "Confluence vendeuse : tech bearish + dollar toujours bullish.");
-    else if(techL === "bullish" && dolL === "bearish") nasCard = opCard("USTEC", "up", "▲ BUY", "Confluence acheteuse : tech bullish + dollar bearish.");
-    else if(techL === "neutre" && dolL === "neutre") nasCard = opCard("USTEC", "neu", "● Pas de priorité", "Ni la tech ni le dollar ne donnent de direction.");
-    else {
-      var D = { bullish:"bullish", bearish:"bearish", neutre:"neutre" };
-      var why = (techL !== "neutre" && dolL !== "neutre") ? "Divergence : la tech et le dollar ne vont pas dans le même sens." : "Une seule moitié donne une direction, l’autre reste neutre.";
-      nasCard = opCard("USTEC", "warn", "◐ À confirmer", why + " Tech " + D[techL] + " · dollar " + D[dolL] + ". Attendre la confluence pour " + (techL === "bearish" || dolL === "bullish" ? "vendre" : "acheter") + ".");
-    }
+    var C = { bullish:"haussier", bearish:"baissier", neutre:"neutre" };
+    if(techL === "bearish" && dolL === "bullish") nasCard = opCard("USTEC", "dn", "▼ SELL · bearish", "Tech baissière + dollar haussier : corrélation respectée, USTEC baissier.");
+    else if(techL === "bullish" && dolL === "bearish") nasCard = opCard("USTEC", "up", "▲ BUY · bullish", "Tech haussière + dollar baissier : corrélation respectée, USTEC haussier.");
+    else if(techL === "neutre" || dolL === "neutre") nasCard = opCard("USTEC", "warn", "⛔ S’abstenir", (techL === "neutre" && dolL === "neutre" ? "La tech et le dollar sont neutres" : techL === "neutre" ? "La tech est neutre (dollar " + C[dolL] + ")" : "Le dollar est neutre (tech " + C[techL] + ")") + " : une des deux moitiés manque, pas d’opération sur USTEC.");
+    else nasCard = opCard("USTEC", "warn", "⛔ S’abstenir", "Corrélation non respectée : tech " + C[techL] + " et dollar " + C[dolL] + ". Il faut tech baissière + dollar haussier (sell) ou tech haussière + dollar baissier (buy).");
     h += '<div class="ag-sy-sec">Opérations à prioriser · semaine suivante</div>' +
-      '<div class="ag-sy-intro">Déduites des biais de la semaine. Un dollar haussier = vente sur EU, GU et XAU ; dollar baissier = achat. Pour le Nasdaq, la tech et le dollar doivent aller dans le même sens (tech bearish + dollar bullish = vente, l’inverse = achat).</div>' +
+      '<div class="ag-sy-intro">Déduites des biais de la semaine. Dollar haussier : EU, GU et XAU baissiers (sell) ; dollar baissier : haussiers (buy). USTEC : tech baissière + dollar haussier = sell, tech haussière + dollar baissier = buy. Si l’un des deux est neutre, ou si la corrélation n’est pas respectée, on s’abstient.</div>' +
       '<div class="ag-sy-cards">' + opCards + nasCard + '</div>';
 
     // les pourcentages d'estimation ne sont volontairement pas affichés pour les devises et les actifs corrélés
@@ -5436,11 +5567,16 @@
     function nm(list){ return agDrivers(list).map(function(x){ return "<b>" + escapeHtml(x.name) + "</b>"; }).join(", "); }
     var dN = nm(acc.USDD.drv), tN = nm(techDrv), fl = [];
     if(usdLab !== "neutre"){
-      var opp = usdLab === "bullish" ? "BUY sur EU, GU et XAU" : "SELL sur EU, GU et XAU";
-      fl.push("<b>Dollar " + usdLab + ".</b> " + (dN ? "Suis " + dN + " : " : "Suis les news du dollar : ") + "tant qu’ils restent dans le même sens, le biais est maintenu. Si l’un d’eux se retourne, le billet peut changer et basculer vers un " + opp + ".");
+      var opp = usdLab === "bullish" ? "un BUY sur EU, GU et XAU" : "un SELL sur EU, GU et XAU";
+      fl.push("<b>Dollar " + C[usdLab] + ".</b> " + (dN ? "Suis " + dN + " : " : "Suis les news du dollar : ") + "tant qu’ils restent dans le même sens, le biais est maintenu. Si l’un d’eux se retourne, le billet peut changer et basculer vers " + opp + ".");
+    } else {
+      fl.push("<b>Dollar neutre : abstiens-toi sur EU, GU et XAU.</b> " + (usdNone ? "Aucun biais n’est saisi pour le dollar. " : "Les moteurs se compensent ou n’orientent rien. ") + "Suis les news (Fed, données macro, géopolitique) : tant qu’aucune ne donne de direction claire au dollar, reste en dehors.");
     }
-    if(techL !== "neutre" || dolL !== "neutre"){
-      fl.push("<b>Nasdaq.</b> " + (tN ? "Suis " + tN + " et le dollar" : "Suis les valeurs tech et le dollar") + " : la confluence tech + dollar doit rester intacte pour garder l’opération. Si la tech change de sens ou si le dollar s’inverse, ne force pas l’entrée.");
+    var nasOk = (techL === "bearish" && dolL === "bullish") || (techL === "bullish" && dolL === "bearish");
+    if(nasOk){
+      fl.push("<b>Nasdaq " + (techL === "bearish" ? "baissier" : "haussier") + ".</b> " + (tN ? "Suis " + tN + " et le dollar" : "Suis les valeurs tech et le dollar") + " : la confluence tech + dollar doit rester intacte pour garder l’opération. Si la tech change de sens ou si le dollar s’inverse, la corrélation casse : abstiens-toi.");
+    } else {
+      fl.push("<b>Nasdaq : abstiens-toi sur USTEC.</b> " + (techL === "neutre" || dolL === "neutre" ? "L’une des deux moitiés est neutre. " : "La corrélation n’est pas respectée. ") + (tN ? "Suis " + tN + " et le dollar" : "Suis les valeurs tech et le dollar") + " : n’entre que lorsque la tech et le dollar vont dans le sens attendu (tech baissière + dollar haussier, ou tech haussière + dollar baissier).");
     }
     if(fl.length) h += '<div class="ag-sy-tip"><b>Suis le flux, pas ton avis.</b> Les moteurs sont les éléments fondamentaux (les news) à suivre durant les semaines à venir pour voir si le biais change.<ul class="ag-sy-flux">' + fl.map(function(x){ return "<li>" + x + "</li>"; }).join("") + '</ul></div>';
 
@@ -6170,6 +6306,278 @@
 
   $("aggrAdd").addEventListener("click", function(){ openAggrForm(null, null); });
   $("aggrSortSel").addEventListener("change", function(){ aggrSort = this.value; renderAggr(); });
+
+
+  // =====================================================================
+  // Onglet « Setups loupés » : setups non pris, avec captures et description.
+  // Données globales dans root.missed :
+  // { id, title, date, pair, outcome:"w"|"l"|"be"|"na", r, desc, shots:[{id,desc}], createdAt, updatedAt }
+  // L'onglet compare le taux de réussite des setups loupés à celui des trades pris.
+  // =====================================================================
+  var missedEditId = null, missedFormShots = [], missedFormRemoved = [], missedSort = "desc", missedScope = "all";
+  var MISSED_OUT = { w:"Aurait été gagnant", l:"Aurait été perdant", be:"Aurait été break-even", na:"À déterminer" };
+
+  function missedList(){ if(!root) return []; if(!Array.isArray(root.missed)) root.missed = []; return root.missed; }
+  function updateMissedTabCount(){
+    var el = $("missedTabCount"); if(!el) return;
+    var n = missedList().length; el.textContent = n ? n : "";
+  }
+  function msPct(x){ return x.toFixed(1).replace(".", ",") + " %"; }
+  function msPts(x){ return Math.abs(x).toFixed(1).replace(".", ",") + " pt" + (Math.abs(x) >= 2 ? "s" : ""); }
+  function msR(x){ return (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(2).replace(".", ",").replace(/,?0+$/, "") + " R"; }
+
+  // winrate réel (gagnants ÷ (gagnants + perdants), comme le reste de l'app) sur le périmètre choisi
+  function missedRealStats(){
+    var w = 0, l = 0, n = 0;
+    ((root && root.accounts) || []).forEach(function(a){
+      if(missedScope !== "all" && a.id !== missedScope) return;
+      var st = accStats(a); w += st.wins; l += st.losses; n++;
+    });
+    return { w:w, l:l, closed:w + l, accounts:n };
+  }
+  function missedStats(){
+    var list = missedList(), m = { n:list.length, w:0, l:0, be:0, na:0, rs:[] };
+    list.forEach(function(e){
+      if(e.outcome === "w") m.w++; else if(e.outcome === "l") m.l++; else if(e.outcome === "be") m.be++; else m.na++;
+      var r = parseFloat(e.r);
+      if(!isNaN(r) && (e.outcome === "w" || e.outcome === "l")) m.rs.push(e.outcome === "w" ? Math.abs(r) : -Math.abs(r));
+    });
+    m.closed = m.w + m.l;
+    m.wr = m.closed ? m.w / m.closed * 100 : null;
+    m.sumR = m.rs.reduce(function(a, b){ return a + b; }, 0);
+    m.avgR = m.rs.length ? m.sumR / m.rs.length : null;
+    return m;
+  }
+
+  function renderMissedStats(){
+    var box = $("missedStats"); if(!box) return;
+    var m = missedStats();
+    if(!m.n){ box.style.display = "none"; box.innerHTML = ""; return; }
+    box.style.display = "";
+    var real = missedRealStats();
+    var wrReal = real.closed ? real.w / real.closed * 100 : null;
+    var hyp = (real.closed + m.closed) ? (real.w + m.w) / (real.closed + m.closed) * 100 : null;
+    function card(label, big, sub, cls){ return '<div class="ms-card ' + (cls || "") + '"><span>' + label + '</span><b>' + big + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</div>'; }
+    var h = '<div class="ms-grid">' +
+      card("Setups loupés", m.n, m.na ? m.na + " à déterminer (exclu" + (m.na > 1 ? "s" : "") + " du calcul)" : "tous évalués") +
+      card("Gagnants", m.w, m.closed ? Math.round(m.w / m.closed * 100) + " % des évalués" : "", "up") +
+      card("Perdants", m.l, m.closed ? Math.round(m.l / m.closed * 100) + " % des évalués" : "", "dn") +
+      (m.be ? card("Break-even", m.be, "exclus du taux de réussite") : "") +
+      card("Taux des loupés", m.wr === null ? "—" : msPct(m.wr), m.closed ? m.w + " gagnant" + (m.w > 1 ? "s" : "") + " · " + m.l + " perdant" + (m.l > 1 ? "s" : "") : "renseigne le résultat", "gold") +
+      (m.avgR !== null ? card("R moyen des loupés", msR(m.avgR), "total " + msR(m.sumR) + " sur " + m.rs.length + " setup" + (m.rs.length > 1 ? "s" : ""), m.avgR >= 0 ? "up" : "dn") : "") +
+      card("Ton taux actuel", wrReal === null ? "—" : msPct(wrReal), real.closed + " trade" + (real.closed > 1 ? "s" : "") + " clôturé" + (real.closed > 1 ? "s" : "")) +
+      card("Si tous pris", hyp === null ? "—" : msPct(hyp), (wrReal !== null && hyp !== null && m.closed) ? (hyp - wrReal >= 0 ? "+" : "−") + msPts(hyp - wrReal) + " vs actuel" : "", (wrReal !== null && hyp !== null && m.closed) ? (hyp >= wrReal ? "up" : "dn") : "") +
+      '</div>';
+
+    var tip;
+    if(!m.closed){
+      tip = "Indique si chaque setup loupé aurait été <b>gagnant</b> ou <b>perdant</b> pour mesurer son effet sur ton taux de réussite.";
+    } else if(wrReal === null){
+      tip = "Aucun trade clôturé dans ce périmètre : impossible de comparer. Tes setups loupés auraient eu un taux de <b>" + msPct(m.wr) + "</b>.";
+    } else {
+      var d = hyp - wrReal;
+      var avgTxt = "<b>" + Math.round(m.w / m.closed * 100) + " %</b> de tes setups loupés auraient été gagnants et <b>" + Math.round(m.l / m.closed * 100) + " %</b> perdants (taux de <b>" + msPct(m.wr) + "</b>).";
+      if(Math.abs(d) < 0.05){
+        tip = avgTxt + " C'est le même niveau que ton taux actuel (<b>" + msPct(wrReal) + "</b>) : les avoir loupés <b>ne change pas</b> ton taux de réussite.";
+      } else if(d > 0){
+        tip = avgTxt + " C'est <b>mieux</b> que ton taux actuel (<b>" + msPct(wrReal) + "</b>) : les avoir loupés <b>a fait baisser</b> ton taux de réussite de <b>" + msPts(d) + "</b>. En les prenant tous, tu serais à <b>" + msPct(hyp) + "</b>.";
+      } else {
+        tip = avgTxt + " C'est <b>moins bien</b> que ton taux actuel (<b>" + msPct(wrReal) + "</b>) : les avoir loupés <b>a protégé</b> ton taux de réussite de <b>" + msPts(d) + "</b>. En les prenant tous, tu serais à <b>" + msPct(hyp) + "</b>.";
+      }
+    }
+    h += '<div class="ag-sy-tip ms-verdict"><b>Effet sur ton taux de réussite.</b> ' + tip +
+      '<div style="margin-top:8px; font-size:12px; color:var(--text-faint);">Calcul : gagnants ÷ (gagnants + perdants), comme ton taux habituel. Les break-even et les setups « à déterminer » sont exclus. Comparé à : ' +
+      (missedScope === "all" ? "tous les comptes" : escapeHtml((findAcc(missedScope) || {}).name || "ce compte")) + '.</div></div>';
+    box.innerHTML = h;
+  }
+
+  function missedEl(e){
+    var item = document.createElement("div");
+    item.className = "tv-item ag-entry";
+    var desc = (e.desc || "").trim();
+    var tag = MISSED_OUT[e.outcome] ? '<span class="tag ms-' + e.outcome + '">' + MISSED_OUT[e.outcome] + '</span>' : "";
+    var r = parseFloat(e.r);
+    var rTag = (!isNaN(r) && (e.outcome === "w" || e.outcome === "l")) ? '<span class="tag">' + msR(e.outcome === "w" ? Math.abs(r) : -Math.abs(r)) + '</span>' : "";
+    item.innerHTML =
+      '<div class="tv-top">' +
+        '<span class="tv-pair">' + escapeHtml(e.title || "(sans titre)") + (e.pair ? ' · ' + escapeHtml(e.pair) : '') + '</span>' +
+        (e.date ? '<span class="tv-date">' + escapeHtml(fmtTrapDate(e.date)) + '</span>' : '') +
+        tag + rTag +
+        '<div class="tv-actions"><button type="button" class="iconbtn" data-act="edit">Modifier</button></div>' +
+      '</div>' +
+      (desc ? '<div class="ag-important"><b>Description · </b>' + escapeHtml(desc) + '</div>' : '') +
+      '<div class="tv-shots"></div>';
+    item.querySelector('[data-act="edit"]').addEventListener("click", function(){ openMissedForm(e.id); });
+    var shots = e.shots || [], sh = item.querySelector(".tv-shots");
+    if(!shots.length){ sh.remove(); }
+    shots.forEach(function(s, i){
+      var cell = document.createElement("div");
+      cell.className = "tv-shot";
+      cell.innerHTML = '<div class="thumb">Chargement…</div>' + (s.desc ? '<div class="cap">' + escapeHtml(s.desc) + '</div>' : "");
+      cell.addEventListener("click", function(){ openLightbox(shots, i); });
+      sh.appendChild(cell);
+      loadShotUrl(s).then(function(url){
+        var img = document.createElement("img");
+        img.src = url; img.alt = s.desc || "Capture"; img.loading = "lazy";
+        var th = cell.querySelector(".thumb"); th.textContent = ""; th.appendChild(img);
+      }).catch(function(){ cell.querySelector(".thumb").textContent = "Image indisponible"; });
+    });
+    return item;
+  }
+
+  function renderMissed(){
+    if(!root) return;
+    updateMissedTabCount();
+    // périmètre de comparaison : tous les comptes ou un compte
+    var sel = $("missedScope");
+    var accs = root.accounts || [];
+    if(missedScope !== "all" && !accs.some(function(a){ return a.id === missedScope; })) missedScope = "all";
+    sel.innerHTML = '<option value="all">Comparer à : tous les comptes</option>' + accs.map(function(a){
+      return '<option value="' + escapeHtml(a.id) + '">Comparer à : ' + escapeHtml(a.name || "Compte") + '</option>';
+    }).join("");
+    sel.value = missedScope;
+    sel.style.display = accs.length > 1 ? "" : "none";
+    renderMissedStats();
+    var list = missedList().slice();
+    list.sort(function(a, b){
+      var c = (a.date || "").localeCompare(b.date || "") || (a.createdAt || "").localeCompare(b.createdAt || "");
+      return missedSort === "asc" ? c : -c;
+    });
+    $("missedTotal").textContent = list.length ? list.length + " setup" + (list.length > 1 ? "s" : "") + " loupé" + (list.length > 1 ? "s" : "") : "";
+    var box = $("missedList"); box.innerHTML = "";
+    if(!list.length){
+      box.innerHTML = '<div class="empty-state">Aucun setup loupé pour l\'instant. Clique sur « + Ajouter un setup loupé » : intitulé, date, résultat qu\'il aurait eu, description et captures.</div>';
+      return;
+    }
+    list.forEach(function(e){ box.appendChild(missedEl(e)); });
+  }
+
+  function missedRenderShotList(){
+    var list = $("missedShotList");
+    list.innerHTML = "";
+    missedFormShots.forEach(function(sh){
+      var item = document.createElement("div");
+      item.className = "shot-item";
+      var thumb = document.createElement("div");
+      thumb.className = "shot-thumb"; thumb.textContent = "Chargement…";
+      thumb.addEventListener("click", function(){ openLightbox(missedFormShots, missedFormShots.indexOf(sh)); });
+      var right = document.createElement("div");
+      right.className = "shot-fields";
+      var inp = document.createElement("textarea");
+      inp.rows = 3; inp.value = sh.desc || "";
+      inp.placeholder = "Description de la capture…";
+      inp.addEventListener("input", function(){ sh.desc = inp.value; });
+      var actions = document.createElement("div");
+      actions.className = "shot-actions";
+      var viewBtn = document.createElement("button");
+      viewBtn.type = "button"; viewBtn.className = "iconbtn"; viewBtn.textContent = "Agrandir";
+      viewBtn.addEventListener("click", function(){ openLightbox(missedFormShots, missedFormShots.indexOf(sh)); });
+      var rmBtn = document.createElement("button");
+      rmBtn.type = "button"; rmBtn.className = "iconbtn danger"; rmBtn.textContent = "Retirer";
+      rmBtn.addEventListener("click", function(){
+        var i = missedFormShots.indexOf(sh);
+        if(i > -1) missedFormShots.splice(i, 1);
+        if(!sh.isNew) missedFormRemoved.push(sh.id);
+        missedRenderShotList();
+      });
+      actions.appendChild(viewBtn); actions.appendChild(rmBtn);
+      right.appendChild(inp); right.appendChild(actions);
+      item.appendChild(thumb); item.appendChild(right);
+      list.appendChild(item);
+      loadShotUrl(sh).then(function(url){
+        var img = document.createElement("img");
+        img.src = url; img.alt = sh.desc || "Capture";
+        thumb.textContent = ""; thumb.appendChild(img);
+      }).catch(function(){ thumb.textContent = "Image indisponible"; });
+    });
+    $("missedAddShotBtn").style.display = missedFormShots.length >= MAX_SHOTS ? "none" : "block";
+  }
+  $("missedAddShotBtn").addEventListener("click", function(){ $("missedShotFile").click(); });
+  $("missedShotFile").addEventListener("change", function(ev){
+    var files = Array.prototype.slice.call(ev.target.files || []);
+    ev.target.value = "";
+    files = files.slice(0, Math.max(0, MAX_SHOTS - missedFormShots.length));
+    files.reduce(function(chain, f){
+      return chain.then(function(){
+        return compressImage(f).then(function(url){
+          missedFormShots.push({ id:newId("s_"), desc:"", dataUrl:url, isNew:true });
+          missedRenderShotList();
+        }).catch(function(){ alert("Impossible de lire « " + f.name + " » comme image."); });
+      });
+    }, Promise.resolve());
+  });
+
+  function openMissedForm(id){
+    missedEditId = id || null;
+    var e = id ? missedList().find(function(x){ return x.id === id; }) : null;
+    if(id && !e) missedEditId = null;
+    $("missedFormTitle").textContent = e ? "Modifier le setup loupé" : "Nouveau setup loupé";
+    $("missed_title").value = e ? (e.title || "") : "";
+    $("missed_date").value = e ? (e.date || "") : agKey(new Date());
+    $("missed_pair").value = e ? (e.pair || "") : "";
+    $("missed_outcome").value = e ? (e.outcome || "") : "";
+    $("missed_r").value = e && e.r !== undefined && e.r !== null && e.r !== "" ? e.r : "";
+    $("missed_desc").value = e ? (e.desc || "") : "";
+    missedFormShots = e ? (e.shots || []).map(function(sh){ return { id:sh.id, desc:sh.desc || "", dataUrl:null, isNew:false }; }) : [];
+    missedFormRemoved = [];
+    missedRenderShotList();
+    $("missedFormError").textContent = "";
+    $("missedDeleteBtn").style.display = e ? "" : "none";
+    showOnly(modalMissed);
+    if(!e) $("missed_title").focus();
+  }
+
+  $("missedSaveBtn").addEventListener("click", function(){
+    var err = $("missedFormError"); err.textContent = "";
+    var title = $("missed_title").value.trim(), date = $("missed_date").value, outcome = $("missed_outcome").value;
+    if(!title){ err.textContent = "Donne un intitulé au setup."; $("missed_title").focus(); return; }
+    if(!date){ err.textContent = "Choisis une date."; $("missed_date").focus(); return; }
+    if(!outcome){ err.textContent = "Indique s'il aurait été gagnant, perdant, break-even ou à déterminer."; $("missed_outcome").focus(); return; }
+    var btn = this;
+    var newOnes = missedFormShots.filter(function(sh){ return sh.isNew; });
+    btn.disabled = true;
+    btn.textContent = newOnes.length ? "Envoi des captures…" : "Enregistrement…";
+    Promise.all(newOnes.map(uploadShot)).then(function(){
+      var now = new Date().toISOString();
+      var rv = parseFloat($("missed_r").value);
+      var payload = {
+        title: title, date: date, pair: $("missed_pair").value.trim(), outcome: outcome,
+        r: isNaN(rv) ? "" : Math.abs(rv), desc: $("missed_desc").value.trim(),
+        shots: missedFormShots.map(function(sh){ return { id:sh.id, desc:(sh.desc || "").trim() }; }),
+        updatedAt: now
+      };
+      var existing = missedEditId ? missedList().find(function(x){ return x.id === missedEditId; }) : null;
+      if(existing){ Object.assign(existing, payload); }
+      else { payload.id = newId("ms_"); payload.createdAt = now; missedList().push(payload); }
+      deleteShots(missedFormRemoved);
+      missedFormRemoved = [];
+      persist();
+      closeOverlay();
+      renderMissed();
+    }).catch(function(e){
+      console.error("Envoi des captures échoué :", e);
+      deleteShots(newOnes.map(function(sh){ return sh.id; }));
+      err.textContent = "Impossible d'enregistrer les captures. Vérifie ta connexion et que les règles Firestore autorisent journals/{uid}/shots.";
+    }).then(function(){
+      btn.disabled = false;
+      btn.textContent = "Enregistrer";
+    });
+  });
+
+  $("missedDeleteBtn").addEventListener("click", function(){
+    if(!missedEditId) return;
+    if(!confirm("Supprimer ce setup loupé ? Cette action est irréversible.")) return;
+    var e = missedList().find(function(x){ return x.id === missedEditId; });
+    if(e) deleteShots((e.shots || []).map(function(sh){ return sh.id; }));
+    root.missed = missedList().filter(function(x){ return x.id !== missedEditId; });
+    persist();
+    closeOverlay();
+    renderMissed();
+  });
+
+  $("missedAdd").addEventListener("click", function(){ openMissedForm(null); });
+  $("missedSortSel").addEventListener("change", function(){ missedSort = this.value; renderMissed(); });
+  $("missedScope").addEventListener("change", function(){ missedScope = this.value; renderMissed(); });
 
   // ---- visionneuse de captures ----
   var lbItems = [], lbIndex = 0;
