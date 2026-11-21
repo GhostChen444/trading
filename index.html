@@ -5375,10 +5375,33 @@
     }).join("");
     if(tc) h += '<div class="ag-sy-sec">Par type de contexte</div><div class="ag-sy-cards wide">' + tc + '</div>';
 
-    var drv = acc.USD.drv.sort(function(a, b){ return Math.abs(b.c) - Math.abs(a.c); }).slice(0, 3);
-    if(drv.length) h += '<div class="ag-sy-sec">Moteurs principaux</div><ul class="ag-sy-drv">' + drv.map(function(x){
-      return '<li><span>' + escapeHtml(x.name || "(sans titre)") + '</span><em class="' + (x.c > 0 ? "up" : "dn") + '">' + (x.c > 0 ? "USD ▲" : "USD ▼") + '</em></li>';
-    }).join("") + '</ul>';
+    // moteurs distincts : un bloc pour le dollar (USDD), un pour le Nasdaq (TECH).
+    // Les notes de même titre sont fusionnées (contributions additionnées) pour ne pas répéter « Fed » deux fois.
+    function agDrivers(list){
+      var m = {};
+      (list || []).forEach(function(x){
+        var nm = (x.name || "").trim() || "(sans titre)", key = nm.toLowerCase();
+        var o = m[key] || (m[key] = { name:nm, c:0, n:0 });
+        o.c += x.c; o.n++;
+      });
+      return Object.keys(m).map(function(q){ return m[q]; })
+        .filter(function(x){ return Math.abs(x.c) > 1e-9; })
+        .sort(function(a, b){ return Math.abs(b.c) - Math.abs(a.c); }).slice(0, 3);
+    }
+    function drvBlock(title, tag, list){
+      var d = agDrivers(list);
+      if(!d.length) return "";
+      return '<div class="ag-sy-sec">' + title + '</div><ul class="ag-sy-drv">' + d.map(function(x){
+        return '<li><span>' + escapeHtml(x.name) + (x.n > 1 ? ' <small style="color:var(--text-faint);">×' + x.n + '</small>' : '') + '</span><em class="' + (x.c > 0 ? "up" : "dn") + '">' + tag + (x.c > 0 ? " ▲" : " ▼") + '</em></li>';
+      }).join("") + '</ul>';
+    }
+    // Nasdaq : uniquement les éléments technologiques (les grandes valeurs tech cochées dans les notes), pas les titres d'événements
+    var techDrv = Object.keys(acc.TECH.stk || {}).map(function(tk){
+      var st = AG_STOCKS.filter(function(x){ return x[0] === tk; })[0];
+      return { name: st ? st[1] + " (" + tk + ")" : tk, c: acc.TECH.stk[tk] };
+    });
+    h += drvBlock("Moteurs du dollar", "USD", acc.USDD.drv) + drvBlock("Moteurs du Nasdaq · tech", "NAS", techDrv);
+
 
     if(u.noData){
       h += '<div class="ag-sy-note"><b>Aucun biais dollar saisi.</b> Les grandes lignes de la semaine ne portent que sur le Nasdaq : elles ne changent pas le biais du dollar (sens unique).</div>';
@@ -5388,12 +5411,7 @@
       h += '<div class="ag-sy-note"><b>' + nTxt(u.nn, "grande ligne") + ' neutre' + (u.nn > 1 ? "s" : "") + '.</b> Elle' + (u.nn > 1 ? "s" : "") + ' n\'oriente' + (u.nn > 1 ? "nt" : "") + ' aucun biais mais ' + (u.nn > 1 ? "tempèrent" : "tempère") + ' la synthèse : plus il y en a, plus le biais se rapproche du neutre. Elles n\'augmentent pas la confiance.</div>';
     }
 
-    h += '<div class="ag-sy-tip"><b>Comment le biais est pesé.</b> Poids par impact : faible 1 · moyen 2,5 · fort 5, donc un impact fort domine plusieurs impacts faibles. Un événement fort reste pertinent plus longtemps (demi-vie 4,5 j contre 2 j pour un faible). Les lignes neutres tempèrent sans ajouter de direction, et la confiance monte avec l’impact total, pas avec le simple nombre de lignes.</div>';
-    agMLText = "USD " + (u.allNeu ? "neutre" : u.lab + " (" + pct + " %, confiance " + lvl + ", " + nTxt(u.n, "événement") + (domRaw ? ", impact dominant " + domTxt : "") + ")") + ". " +
-      ["EUR","GBP"].concat(AG_PAIRS).filter(function(a){ return V[a]; }).map(function(a){ return a + " " + V[a].lab; }).join(", ") + "." +
-      (u.nn ? " " + nTxt(u.nn, "grande ligne") + " neutre" + (u.nn > 1 ? "s" : "") + " (tempère" + (u.nn > 1 ? "nt" : "") + " le biais)." : "") +
-      (drv.length ? " Moteurs : " + drv.map(function(x){ return x.name + " (" + (x.c > 0 ? "USD ▲" : "USD ▼") + ")"; }).join(", ") + "." : "");
-    h += '<div class="ag-sy-narr">' + escapeHtml(agMLText) + '</div>';
+    agMLText = "";
     box.innerHTML = h;
   }
   $("agML").addEventListener("click", function(ev){
